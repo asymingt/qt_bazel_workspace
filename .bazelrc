@@ -9,6 +9,8 @@ common --incompatible_enable_cc_toolchain_resolution
 common --@llvm//config:experimental_stub_libgcc_s=False
 common --features=system_include_paths
 common --experimental_platform_in_output_dir
+# Mirrors for flaky upstream download hosts (BCR modules we cannot annotate).
+common --experimental_downloader_config=bazel_downloader.cfg
 
 # This needs to change if you are not compiling from linux, or you
 # want to target a different glibc version. Use one of the `host_*`

@@ -198,7 +198,12 @@ cc_library(
         "TASKING_INTERNAL",
         "__SSE2__",
         "__SSE__",
-    ],
+    ] + select({
+        # mingw-w64's <math.h> hides M_PI & co. under -std=c++17 (strict ANSI)
+        # unless this is defined; embree's math/constants.h needs them.
+        "@platforms//os:windows": ["_USE_MATH_DEFINES"],
+        "//conditions:default": [],
+    }),
     target_compatible_with = select({
         ":_windows_arm64": ["@platforms//:incompatible"],
         "//conditions:default": [],

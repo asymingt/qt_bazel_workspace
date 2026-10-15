@@ -4,7 +4,7 @@
     "url": "https://github.com/xkbcommon/libxkbcommon/archive/refs/tags/xkbcommon-1.9.2.tar.gz",
     "overlay": {
         "BUILD.bazel": "sha256-vwtE16O52uCLhYQbnzxlLIi+olrgrINcjMrWHRQk5wY=",
-        "MODULE.bazel": "sha256-U5+Zna/ZGA5OYKEVmZDGUaiua5+R7IRtQAwmANqdSr0=",
+        "MODULE.bazel": "sha256-4OVfrxfyu9XJH/jsXZMCunN1GUBOPaPtSq44Mz7K8Bk=",
         "config.h.in": "sha256-+R1lKwvRPZCgFTxS6BKpXl79+l1idsFFbOmb5q9iD+g="
     }
 }

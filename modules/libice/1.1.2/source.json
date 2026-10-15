@@ -8,7 +8,7 @@
     ],
     "overlay": {
         "BUILD.bazel": "sha256-Hj3xA0ZJJtsZq360WdIHfQwnxo9LJwHiildzJQ3uwYA=",
-        "MODULE.bazel": "sha256-AZ7KkNrUub+oNWCRwty+fchqsS8xPPcoozSM1TolWho=",
+        "MODULE.bazel": "sha256-UoCgGYV12V1gJE5zhuZiNPrPKanvlzxxEvUHldSMycM=",
         "libice_config_checks.bzl": "sha256-DtDGSgG6rOgsmvaYw1Rn4YhqmrOX+Mo/CO0hVi67Kb0="
     }
 }

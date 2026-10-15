@@ -131,6 +131,11 @@ single_version_override(
 
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+
+# Not a direct dependency: pulled in by ffmpeg/xkbcommon/dbus/... but pinned
+# here because < 0.27.0 fails to compile its config checker with libc++ on a
+# Windows host (std::ifstream from std::wstring).
+bazel_dep(name = "rules_cc_autoconf", version = "0.27.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "wayland", version = "1.24.0.bcr.1")
 
