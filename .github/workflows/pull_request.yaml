@@ -5,10 +5,13 @@
 # hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
 #   1. builds and runs every test natively on the runner
 #      (`--config=host_<os>_<arch> --config=<os>_<arch>`), and
-#   2. cross-compiles everything for every *other* supported platform
-#      (`--platforms=@llvm//platforms:<os>_<arch>` for the 5 remaining targets)
-#      using the hermetic LLVM toolchain, so a PR cannot break any host/target
-#      combination.
+#   2. (currently disabled, see below) cross-compiles everything for every
+#      *other* supported platform (`--platforms=@llvm//platforms:<os>_<arch>`)
+#      using the hermetic LLVM toolchain.
+#
+# The cross-compile step is commented out until native builds are green on all
+# six hosts and their disk caches are warm; running 6 full Qt builds per job on
+# a cold cache does not fit in the 6h job limit.
 #
 # `push` on main is included only so that the Bazel caches get seeded from the
 # default branch; PR runs then restore from those caches (actions/cache scope).
@@ -114,15 +117,16 @@ jobs:
           --config=${{ matrix.platform }}
           //...
 
-      - name: Cross-compile from ${{ matrix.platform }} (${{ matrix.cross }})
-        shell: bash
-        run: |
-          set -euo pipefail
-          for target in ${{ matrix.cross }}; do
-            echo "::group::--platforms=@llvm//platforms:${target}"
-            bazel build --config=host_${{ matrix.platform }} --config=${target} //...
-            echo "::endgroup::"
-          done
+      # TODO: re-enable once native builds pass everywhere and caches are warm.
+      # - name: Cross-compile from ${{ matrix.platform }} (${{ matrix.cross }})
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     for target in ${{ matrix.cross }}; do
+      #       echo "::group::--platforms=@llvm//platforms:${target}"
+      #       bazel build --config=host_${{ matrix.platform }} --config=${target} //...
+      #       echo "::endgroup::"
+      #     done
 
       - name: Upload test logs on failure
         if: failure()
