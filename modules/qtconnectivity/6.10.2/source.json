@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-z1jwIfMoV7W2eZzUQE72EzmezBxRVJLw9iDOM4oxGjI=",
+    "strip_prefix": "qtconnectivity-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtconnectivity-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-plS4AAFHYa9bS8hRDVtfe6s0Yg8xv46eLAhy9GdDatA=",
+        "MODULE.bazel": "sha256-2pHgEd8HeosY+0akg69l4HxfddvYVWCuoTtnfA37TMw="
+    }
+}

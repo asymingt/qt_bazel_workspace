@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-0xPwXe3Fk1F8R9D6PrExoll8Adsj3iY/6J/qVhvlDzw=",
+    "strip_prefix": "qtlocation-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtlocation-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-6JRXG22wGZexLAL2STfS+wl7I3ly/3vjCHdrNNdq78Y=",
+        "MODULE.bazel": "sha256-I/YG/39opX6VVCNgNgExMF0A5erpjzxoy33CXRTJEp0="
+    }
+}

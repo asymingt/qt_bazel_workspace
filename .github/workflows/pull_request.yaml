@@ -1,0 +1,125 @@
+# Pull request CI.
+#
+# Matrix: {ubuntu, macos, windows} x {amd64, arm64} x {bazel 8.x, bazel 9.x}
+# (12 jobs). Each job:
+#   1. builds and runs every test natively on the runner
+#      (`--config=host_<os>_<arch> --config=<os>_<arch>`), and
+#   2. cross-compiles everything for the *other* architecture of the same OS
+#      (`--platforms=@llvm//platforms:<os>_<other-arch>`) using the hermetic
+#      LLVM toolchain, so a PR cannot break either architecture of any OS.
+#
+# `push` on main is included only so that the Bazel caches get seeded from the
+# default branch; PR runs then restore from those caches (actions/cache scope).
+name: Pull Request
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}-${{ matrix.arch }} / bazel ${{ matrix.bazel }}
+    runs-on: ${{ matrix.runner }}
+    # A cold Qt build on a hosted runner takes hours; later runs are mostly
+    # disk-cache hits.
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        arch: [amd64, arm64]
+        bazel: ["8.x", "9.x"]
+        include:
+          # Per-(os, arch) runner image, native platform config and the
+          # other-architecture platform config used for the cross-compile check.
+          - os: ubuntu
+            arch: amd64
+            runner: ubuntu-24.04
+            platform: linux_amd64
+            cross: linux_arm64
+          - os: ubuntu
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux_arm64
+            cross: linux_amd64
+          - os: macos
+            arch: amd64
+            runner: macos-15-intel
+            platform: macos_amd64
+            cross: macos_arm64
+          - os: macos
+            arch: arm64
+            runner: macos-15
+            platform: macos_arm64
+            cross: macos_amd64
+          - os: windows
+            arch: amd64
+            runner: windows-2025
+            platform: windows_amd64
+            cross: windows_arm64
+          - os: windows
+            arch: arm64
+            runner: windows-11-arm
+            platform: windows_arm64
+            cross: windows_amd64
+
+    env:
+      # Bazelisk honours this over .bazelversion.
+      USE_BAZEL_VERSION: ${{ matrix.bazel }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          # All caches below are backed by actions/cache and keyed per matrix
+          # cell so that a given (os, arch, bazel) combination restores its own
+          # artifacts on subsequent runs.
+          bazelisk-cache: true
+          disk-cache: ${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
+          repository-cache: true
+          cache-version: 1
+          # Keep output paths short on Windows (MAX_PATH) and avoid writing
+          # the output base into the checkout on any OS.
+          bazelrc: |
+            ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
+            common --config=ci
+
+      - name: Bazel version
+        shell: bash
+        run: bazel version
+
+      - name: Build and test (native ${{ matrix.platform }})
+        shell: bash
+        run: >
+          bazel test
+          --config=host_${{ matrix.platform }}
+          --config=${{ matrix.platform }}
+          //...
+
+      - name: Cross-compile (${{ matrix.cross }} from ${{ matrix.platform }})
+        shell: bash
+        run: >
+          bazel build
+          --config=host_${{ matrix.platform }}
+          --config=${{ matrix.cross }}
+          //...
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlogs-${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
+          path: bazel-testlogs/**/test.log
+          if-no-files-found: ignore

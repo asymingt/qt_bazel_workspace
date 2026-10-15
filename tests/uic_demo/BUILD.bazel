@@ -1,0 +1,42 @@
+load(
+    "@qt//:qt.bzl",
+    "qt_cc_test",
+    "qt_resource",
+    "qt_resource_via_qrc",
+    "qt_ui_library",
+)
+
+package(default_visibility = ["//visibility:public"])
+
+qt_ui_library(
+    name = "demo",
+    src = "demo.ui",
+    deps = ["@qtbase//:widgets"],
+)
+
+qt_resource_via_qrc(
+    name = "demo_qrc_res",
+    files = ["greeting.txt"],
+    qrc_file = "demo.qrc",
+    deps = ["@qtbase//:core"],
+)
+
+qt_resource(
+    name = "demo_inline_res",
+    files = ["greeting.txt"],
+    prefix = "/inline",
+    deps = ["@qtbase//:core"],
+)
+
+qt_cc_test(
+    name = "uic_demo_test",
+    srcs = ["main.cc"],
+    deps = [
+        ":demo",
+        ":demo_inline_res",
+        ":demo_qrc_res",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)

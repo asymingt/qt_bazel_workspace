@@ -1,0 +1,12 @@
+{
+    "integrity": "sha256-C6KhpLFq/nvOssB+nOmajCw1COXewpDbtkM4S9a+t+I=",
+    "strip_prefix": "dbus-1.16.2",
+    "url": "https://dbus.freedesktop.org/releases/dbus/dbus-1.16.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-oR8XoHMPf6xHCeDGiGdalpokIv0TAiI1B4vXo/AFBbQ=",
+        "MODULE.bazel": "sha256-qDqRmNimkKNRcgVEroy5pKZpxDftcaHegB2E8CBrluI=",
+        "config.h.in": "sha256-FjZfH5IFD9tzZoT3oXImtGrB6IZ1Ebm34W64ARqxtqw=",
+        "dbus/dbus-arch-deps.h": "sha256-vRIVzv43kasPAd6DX+pJg0vTjmkIEnmABHrxqKE/2xI=",
+        "dbus_config_checks.bzl": "sha256-6TtKvz+ecYElix5nruc0jAx2CWo+G9+1QaY6h3bXuwM="
+    }
+}

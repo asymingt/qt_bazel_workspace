@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-Wr47u9jlTw+j7JRSkbfo+oz9PMzENxj4dYQw+UEm5RI=",
+    "strip_prefix": "xcb-util-0.4.1",
+    "url": "https://xcb.freedesktop.org/dist/xcb-util-0.4.1.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-F5sKEpa/OqpAZ9Lfz9JK0ywlpDUufEsoq5v/DOWF7yM=",
+        "MODULE.bazel": "sha256-wiJcSjOVu0Fg+6YN696vOOkC2b0HSmhkqU9FfJHQuCg="
+    }
+}

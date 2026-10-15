@@ -1,0 +1,59 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Smoke test for the Phase 2 Milestone 3 modules. Links the non-GUI libraries
+# (websockets, httpserver, serialport, serialbus, sensors, core5compat,
+# positioning, scxml, statemachine, remoteobjects) into one binary and
+# exercises a representative API from each, verifying that the headers stage
+# correctly (syncqt), moc output links, and static plugins register.
+qt_cc_test(
+    name = "m3_smoke_test",
+    srcs = ["main.cc"],
+    moc_srcs = ["main.cc"],
+    deps = [
+        "@qt5compat//:core5compat",
+        "@qtbase//:core",
+        "@qtbase//:network",
+        "@qtbase//:test",
+        "@qthttpserver//:httpserver",
+        "@qtpositioning//:positioning",
+        "@qtremoteobjects//:remoteobjects",
+        "@qtscxml//:scxml",
+        "@qtscxml//:statemachine",
+        "@qtsensors//:qtsensors_dummy",
+        "@qtsensors//:sensors",
+        "@qtserialbus//:qtvirtualcanbus",
+        "@qtserialbus//:serialbus",
+        "@qtserialport//:serialport",
+        "@qtwebsockets//:websockets",
+    ],
+)
+
+# GUI/QML side of Milestone 3: charts (widgets), location/positioning QML,
+# lottie, quicktimeline, virtualkeyboard, webchannel. Runs offscreen.
+qt_cc_test(
+    name = "m3_quick_smoke_test",
+    srcs = ["quick_main.cc"],
+    moc_srcs = ["quick_main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:test",
+        "@qtbase//:widgets",
+        "@qtcharts//:charts",
+        "@qtcharts//:qtchartsqml2",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:qtquick2plugin",
+        "@qtdeclarative//:quick",
+        "@qtlocation//:declarative_location",
+        "@qtlocation//:qtgeoservices_itemsoverlay",
+        "@qtlottie//:lottieqtplugin",
+        "@qtpositioning//:positioningquickplugin",
+        "@qtquicktimeline//:qtquicktimelineplugin",
+        "@qtscxml//:qtqmlstatemachine",
+        "@qtvirtualkeyboard//:virtualkeyboard",
+        "@qtwebchannel//:webchannel",
+        "@qtwebchannel//:webchannelquickplugin",
+    ],
+)

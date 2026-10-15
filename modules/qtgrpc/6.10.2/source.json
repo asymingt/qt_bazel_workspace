@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-c4a/ycEMeSDl/yLc8GfpXzebs3nk2RYmn0Rlqyle0TY=",
+    "strip_prefix": "qtgrpc-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtgrpc-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-Y7+r5a7eziQ5RvLGxpBZ3dnbFLO014tp0IIDreZVdy8=",
+        "MODULE.bazel": "sha256-Q5wb7A4+firYvBEmY6N9K99mpxhzl7h991ilkMt+O1g=",
+        "qtgrpc_config.bzl": "sha256-9C5K86ArEnWTYgzdA+T47PqN1IR8T/6lyRI+n3v9bz0="
+    }
+}

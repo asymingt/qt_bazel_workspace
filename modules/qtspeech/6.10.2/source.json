@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-2Tf2xxV5Kw2PA26UUT6/yN72uYimXz/zCn9KjMEmMBQ=",
+    "strip_prefix": "qtspeech-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtspeech-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-0rMSOGYdgxBkDqPbqC8/wWg7mB/NvPl80xFr2zaX3hI=",
+        "MODULE.bazel": "sha256-Tpi2QYjPTt7QFE3hpjs2gpSEEYN6zjNlh0FwWBM8+yI=",
+        "qtspeech_config.bzl": "sha256-j/nwAPqkX3tWFOL7pLGdYJie22UmIWIkqOfYX0mN/XA="
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-9pD8aqVn2Jpuds43DWhL6yQ9wMLtEYfdMFQz4njdeq8=",
+    "strip_prefix": "qtgraphs-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtgraphs-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-jfOW9HP/dD1yzINu0g/HnGxh3bWSPYp7WZ9iTz9i1rA=",
+        "MODULE.bazel": "sha256-JVB/wbHC5ugdb7YSUc/WIeRUxwhBrU5k7VHXqch4wE0=",
+        "qtgraphs_config.bzl": "sha256-MQUQHB9Dapp6hb5SP0yUas+USqPbuiUSXXcNK4KzfcY="
+    }
+}

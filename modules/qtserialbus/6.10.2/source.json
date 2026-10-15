@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-Rza//s+2lA69euriYKesLGjal5vfkVPCtZ3K+kB5Ons=",
+    "strip_prefix": "qtserialbus-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtserialbus-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-MMVtlVhSmoGJGpc8iWRGHpK22AF/mpwRvU3AZXNsixU=",
+        "MODULE.bazel": "sha256-uT5j2KluEajk8MeXdNUSAfQsLd0RUSi+YtSTt+wuBrg="
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-i4+ccYY4CB57PAAOfzGRAUCxICqY6Y310bSW/m9jnWc=",
+    "strip_prefix": "qtimageformats-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtimageformats-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-YptrknU1OJNGAvIzu9CVSBx1rJaMq3gMPeMPsd4ltMk=",
+        "MODULE.bazel": "sha256-D8RdNfi9LNla/KadkhUB8lut8sJzipyjk353BgWO1Wc="
+    }
+}

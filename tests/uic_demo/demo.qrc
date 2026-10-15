@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/demo">
+    <file>greeting.txt</file>
+  </qresource>
+</RCC>

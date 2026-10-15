@@ -1,0 +1,24 @@
+load("@qt//:qt.bzl", "qt_cc_binary", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_binary(
+    name = "hello_world",
+    srcs = ["main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_cc_test(
+    name = "hello_world_test",
+    srcs = ["main.cc"],
+    defines = ["HELLO_WORLD_AUTOQUIT"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)

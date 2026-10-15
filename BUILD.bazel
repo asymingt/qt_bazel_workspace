@@ -1,0 +1,4 @@
+# Root package intentionally empty.
+#
+# Platforms come from the hermetic LLVM toolchain module
+# (e.g. @llvm//platforms:linux_amd64_gnu.2.39, selected in .bazelrc).

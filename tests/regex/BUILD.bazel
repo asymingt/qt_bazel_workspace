@@ -1,0 +1,9 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_test(
+    name = "regex_test",
+    srcs = ["main.cc"],
+    deps = ["@qtbase//:core"],
+)

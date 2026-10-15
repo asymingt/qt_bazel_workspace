@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-YnMlYJGoPz8oPRqRSYlk/WqRJWtmfXuemABdcx/bmGs=",
+    "strip_prefix": "qtvirtualkeyboard-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtvirtualkeyboard-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-l62FOnw/W7/Aj/CEpNUqWGcDFzJbg2T/sEdyF0MIhE8=",
+        "MODULE.bazel": "sha256-YLa8khQCw5qxoqMXP6juIAIo5lRr+56CC046U7Tz2pA="
+    }
+}

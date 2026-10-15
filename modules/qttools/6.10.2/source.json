@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-Hj0sB8H9dtJCXG6u6qYv+v9feSEMThpbwqap22aNWyQ=",
+    "strip_prefix": "qttools-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qttools-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-KLdaDEGdN8Gj58WSVgoFsHUCJbAdGw5gH+iXrM4zNPs=",
+        "MODULE.bazel": "sha256-/IGTbO42EiHRXGPZlCdG0ejLho/Zyw8n65oKr0oTMVs=",
+        "qttools_config.bzl": "sha256-/+kYE9ryi4IkfAdz/jmoTsniLHel5XOxEljDSVdUb6w="
+    }
+}

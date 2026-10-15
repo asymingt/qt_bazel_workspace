@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-pdhregeDOg8r0gMEK7wVbsZYj9lX8Ao8FmeIQQ6kAow=",
+    "strip_prefix": "qtlottie-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtlottie-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-ahNHnFRa7Wc5NV9iVX0RNl0v3oW//xqma7YlyqeKoG8=",
+        "MODULE.bazel": "sha256-7v8zNmS1t7iVuzlYL4IE8DYN+r6PSN9kOsgjDBx1QMQ="
+    }
+}

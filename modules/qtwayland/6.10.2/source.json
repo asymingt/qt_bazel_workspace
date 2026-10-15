@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-ORmY60MnGd8mpqZ9jv3Gf4vyr912we4zgev/T+dSfuI=",
+    "strip_prefix": "qtwayland-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwayland-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-FMtOYQiy1puWSQmrFn3MESkd7tKJ/m21Ea4cMtG0FCQ=",
+        "MODULE.bazel": "sha256-ab85WxPUeYXT0HWtl6Hlfuaer4rLoK3IgLk0xYZAyjc="
+    }
+}

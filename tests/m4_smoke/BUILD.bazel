@@ -1,0 +1,44 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_test(
+    name = "m4_3d_smoke_test",
+    srcs = ["main.cc"],
+    deps = [
+        "@qt3d//:3danimation",
+        "@qt3d//:3dcore",
+        "@qt3d//:3dextras",
+        "@qt3d//:3dinput",
+        "@qt3d//:3dlogic",
+        "@qt3d//:3drender",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:opengl",
+        "@qtbase//:openglwidgets",
+        "@qtbase//:test",
+        "@qtbase//:widgets",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtgraphs//:graphs",
+        "@qtgraphs//:graphswidgets",
+        "@qtquick3d//:qquick3dplugin",
+        "@qtquick3d//:quick3d",
+        "@qtquick3dphysics//:qquick3dphysicsplugin",
+        "@qtquick3dphysics//:quick3dphysics",
+    ],
+)
+
+qt_cc_test(
+    name = "m4_datavis3d_smoke_test",
+    srcs = ["datavis3d_main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:test",
+        "@qtdatavis3d//:datavisualization",
+        "@qtdatavis3d//:datavisualizationqml",
+        "@qtdatavis3d//:datavisualizationqmlplugin",
+        "@qtdeclarative//:qml",
+    ],
+)

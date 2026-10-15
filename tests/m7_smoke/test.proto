@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package m7smoke;
+
+message EchoRequest {
+  string message = 1;
+  int32 count = 2;
+}
+
+message EchoReply {
+  string echoed = 1;
+}
+
+service EchoService {
+  rpc Echo(EchoRequest) returns (EchoReply);
+}

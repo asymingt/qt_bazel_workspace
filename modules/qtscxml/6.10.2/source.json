@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-D5wXjbPxsbBtIBcqqqTX9VE7y5neAfiAwp4jtf/dI2o=",
+    "strip_prefix": "qtscxml-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtscxml-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-Wz3avXuCYDtWeS4N/2fKJwfYDp9uLrjk6vW8TVYQyJE=",
+        "MODULE.bazel": "sha256-IGBTkfe3R8iZS1uq6/NJlixQk7XXpeGegwvladFjr0s="
+    }
+}

@@ -1,0 +1,25 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Bake a GLSL fragment shader to a .qsb with the host qsb tool (glslang -> SPIR-V ->
+# SPIRV-Cross -> GLSL 100es/120/150 + HLSL + MSL), then load it with QShader.
+genrule(
+    name = "simple_frag_qsb",
+    srcs = ["simple.frag"],
+    outs = ["simple.frag.qsb"],
+    cmd = "$(execpath @qtshadertools//:qsb) --glsl '100 es,120,150' --hlsl 50 --msl 12 -o $@ $(location simple.frag)",
+    tools = ["@qtshadertools//:qsb"],
+)
+
+qt_cc_test(
+    name = "shadertools_test",
+    srcs = ["main.cc"],
+    args = ["$(location :simple_frag_qsb)"],
+    data = [":simple_frag_qsb"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtshadertools//:shadertools",
+    ],
+)

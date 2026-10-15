@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-uVQ58x0eWAw3npgotIsDuTKwva3k/wn03WOe/52izXU=",
+    "strip_prefix": "qtquick3d-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtquick3d-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-vN7D6tHSMN6xd8IU0aObnlHaigHOeAiDfncpHou9NNc=",
+        "MODULE.bazel": "sha256-mujqSZ2TCj4zfjrpVcgCWWhm2UaAn9BNIhaE/S6/tR0=",
+        "qtquick3d_config.bzl": "sha256-Q6aSgB2dOMAE+GWsbXaGT0bbuRkpj68sqLIpMY5uXsg="
+    }
+}

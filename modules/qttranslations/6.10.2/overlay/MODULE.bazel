@@ -1,0 +1,10 @@
+"""Qt 6.10.2 qttranslations module (compiled .qm translation catalogs)."""
+
+module(
+    name = "qttranslations",
+    version = "6.10.2",
+)
+
+bazel_dep(name = "qt", version = "6.10.2")
+bazel_dep(name = "qttools", version = "6.10.2")
+bazel_dep(name = "rules_license", version = "1.0.0")

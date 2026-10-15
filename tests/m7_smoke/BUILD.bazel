@@ -1,0 +1,86 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library")
+load("@qt//:qt_protobuf.bzl", "qt_grpc_gen", "qt_protobuf_gen")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_protobuf_gen(
+    name = "test_proto_gen",
+    protos = ["test.proto"],
+)
+
+qt_grpc_gen(
+    name = "test_grpc_gen",
+    protos = ["test.proto"],
+)
+
+qt_internal_library(
+    name = "test_proto_lib",
+    srcs = [
+        ":test_grpc_gen_srcs",
+        ":test_proto_gen_srcs",
+    ],
+    hdrs = [
+        ":test_grpc_gen_hdrs",
+        ":test_proto_gen_hdrs",
+    ],
+    copts = ["-std=gnu++20"],
+    create_shared = False,
+    moc_hdrs = [
+        ":test_grpc_gen_hdrs",
+        ":test_proto_gen_hdrs",
+    ],
+    deps = [
+        ":test_grpc_gen",
+        ":test_proto_gen",
+        "@qtbase//:core",
+        "@qtbase//:network",
+        "@qtgrpc//:grpc",
+        "@qtgrpc//:protobuf",
+    ],
+)
+
+qt_cc_test(
+    name = "m7_smoke_test",
+    srcs = ["main.cc"],
+    data = [
+        "@qttranslations//:qm_files",
+    ],
+    deps = [
+        ":test_proto_lib",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+        "@qtbase//:offscreen",
+        "@qtbase//:opengl",
+        "@qtbase//:openglwidgets",
+        "@qtbase//:qsqlite",
+        "@qtbase//:sql",
+        "@qtbase//:widgets",
+        "@qtbase//:xml",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:qmlmodels",
+        "@qtdeclarative//:qmlnetwork",
+        "@qtdeclarative//:qmlnetworkplugin",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickwidgets",
+        "@qtgrpc//:grpc",
+        "@qtgrpc//:grpcquick",
+        "@qtgrpc//:grpcquickplugin",
+        "@qtgrpc//:protobuf",
+        "@qtgrpc//:protobufqtcoretypes",
+        "@qtgrpc//:protobufqtguitypes",
+        "@qtgrpc//:protobufquick",
+        "@qtgrpc//:protobufquickplugin",
+        "@qtgrpc//:protobufwellknowntypes",
+        "@qttools//:designer_lib",
+        "@qttools//:designercomponents",
+        "@qttools//:help",
+        "@qttools//:qquickwidgetplugin",
+        "@qttools//:uiplugin",
+        "@qttools//:uitools",
+        "@qtwebview//:qtwebviewquickplugin",
+        "@qtwebview//:webview",
+        "@qtwebview//:webviewquick",
+    ],
+)

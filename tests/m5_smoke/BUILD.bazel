@@ -1,0 +1,27 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_test(
+    name = "m5_smoke_test",
+    srcs = ["main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtmultimedia//:multimedia",
+        "@qtmultimedia//:multimediaquick",
+        "@qtmultimedia//:multimediawidgets",
+        "@qtmultimedia//:qffmpegmediaplugin",
+        "@qtmultimedia//:quick3dspatialaudio",
+        "@qtmultimedia//:quickmultimedia",
+        "@qtmultimedia//:spatialaudio",
+        "@qtmultimedia//:spatialaudioquick3d",
+        "@qtspeech//:qtexttospeech_mock",
+        "@qtspeech//:tts",
+        "@qtspeech//:ttsqml",
+        "@qtspeech//:ttsqmlplugin",
+    ],
+)

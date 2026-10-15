@@ -1,0 +1,17 @@
+"""Qt 6.10.2 qttools module (QtUiPlugin, QtUiTools, QtDesigner, QtHelp, lupdate, lrelease, lconvert, qdoc, designer, linguist)."""
+
+module(
+    name = "qttools",
+    version = "6.10.2",
+)
+
+bazel_dep(name = "llvm", version = "0.8.24")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "qt", version = "6.10.2")
+bazel_dep(name = "qtbase", version = "6.10.2")
+bazel_dep(name = "qtdeclarative", version = "6.10.2")
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_license", version = "1.0.0")
+
+llvm = use_extension("@llvm//extensions:llvm.bzl", "llvm")
+use_repo(llvm, "llvm-project")

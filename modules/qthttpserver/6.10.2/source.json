@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-JlaNWb7iWP01KXgj0veDnvEzcEKgCbdSdp5ohwP+RkM=",
+    "strip_prefix": "qthttpserver-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qthttpserver-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-EN1/ROFtfaizAse49/PaPenzUEZZSUKQG5B0ETyMG7s=",
+        "MODULE.bazel": "sha256-T33CI0mdEg3GwhjzgP3jExNzMg4LgLvZOIz4rV3YEnk="
+    }
+}

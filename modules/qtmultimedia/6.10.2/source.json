@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-k/fvAQb71zEWWicj8+Q2yRH8XmiA9byYe1VRbCCDPis=",
+    "strip_prefix": "qtmultimedia-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-6sbezcudihYXnhCyd22u2iLfiP54L2I2GPNmpJY0bKg=",
+        "MODULE.bazel": "sha256-Pe40bTrhVth4a/cg3UozkFxTefRgY3IeRYLgjissPvs=",
+        "qtmultimedia_config.bzl": "sha256-Fbyc+vH4pdkTkadTwcYGKHze4Fpb4PraGIq0B3qfXXE="
+    }
+}

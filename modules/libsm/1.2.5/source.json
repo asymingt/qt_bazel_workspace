@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-KvnhLaXvZw3Dp7zhiVycDxv7DLnmTo20D8wz+IO9ILw=",
+    "strip_prefix": "libSM-1.2.5",
+    "url": "https://www.x.org/releases/individual/lib/libSM-1.2.5.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-LezyOrf94ABLPq2yO4TWnh288fAxtPkvZ64Xw/6tric=",
+        "MODULE.bazel": "sha256-AxVDsVg0607q30ZuXLdoKVWiDR5gTqDBfUSjCZCxKeQ=",
+        "libsm_config_checks.bzl": "sha256-nK0J42T+J++qctckAc9NrGAB+khqRms1+Fr89TU/Mho="
+    }
+}

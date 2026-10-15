@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-DK+ZsNYJcPgc5Bx7ppTl6q+DMie7LLzbL23JZmpmPFc=",
+    "strip_prefix": "xcb-util-cursor-0.1.5",
+    "url": "https://xcb.freedesktop.org/dist/xcb-util-cursor-0.1.5.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-EEBHGHO8KEwpCMn5LW8IDTK9fUcM1rYAODdSbtmQ370=",
+        "MODULE.bazel": "sha256-+v3gy1zVWHlDNMM+/uiDgsNSwuXbFc11qs96uBu7SwI="
+    }
+}

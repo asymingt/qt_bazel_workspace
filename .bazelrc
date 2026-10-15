@@ -1,0 +1,88 @@
+# Additional modules
+common --registry=file:///%workspace%/
+common --registry=https://bcr.bazel.build
+
+# Tolchain properties
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --incompatible_strict_action_env
+common --incompatible_enable_cc_toolchain_resolution
+common --@llvm//config:experimental_stub_libgcc_s=False
+common --features=system_include_paths
+common --experimental_platform_in_output_dir
+
+# This needs to change if you are not compiling from linux, or you
+# want to target a different glibc version. Use one of the `host_*`
+# configs below to override it (CI does this per runner).
+common --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
+build --platforms=@llvm//platforms:linux_amd64_gnu.2.39
+build --macos_minimum_os=14.0
+
+# Host (execution) platform presets
+common:host_linux_amd64 --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
+common:host_linux_arm64 --host_platform=@llvm//platforms:linux_arm64_gnu.2.39
+common:host_macos_amd64 --host_platform=@llvm//platforms:macos_amd64
+common:host_macos_arm64 --host_platform=@llvm//platforms:macos_arm64
+common:host_windows_amd64 --host_platform=@llvm//platforms:windows_amd64
+common:host_windows_arm64 --host_platform=@llvm//platforms:windows_arm64
+
+# Target platform presets
+build:linux_amd64 --platforms=@llvm//platforms:linux_amd64_gnu.2.39
+build:linux_arm64 --platforms=@llvm//platforms:linux_arm64_gnu.2.39
+build:macos_amd64 --platforms=@llvm//platforms:macos_amd64
+build:macos_arm64 --platforms=@llvm//platforms:macos_arm64
+build:windows_amd64 --platforms=@llvm//platforms:windows_amd64
+build:windows_arm64 --platforms=@llvm//platforms:windows_arm64
+
+# CI defaults (see .github/workflows/pull_request.yaml)
+common:ci --announce_rc
+common:ci --show_timestamps
+build:ci --verbose_failures
+test:ci --test_output=errors
+
+# Address sanitizer
+common:asan --strip=never
+common:asan --@llvm//config:asan
+common:asan --copt -O0
+common:asan --copt -g
+common:asan --copt -fno-omit-frame-pointer
+test:asan --test_tag_filters=-noasan
+
+# Memory sanitizer
+common:msan --strip=never
+common:msan --@llvm//config:msan
+common:msan --copt -O0
+common:msan --copt -g
+common:msan --copt -fno-omit-frame-pointer
+test:msan --test_tag_filters=-nomsan
+
+# Thread sanitizer
+common:tsan --strip=never
+common:tsan --@llvm//config:tsan
+common:tsan --copt -O0
+common:tsan --copt -g
+common:tsan --copt -fno-omit-frame-pointer
+test:tsan --test_tag_filters=-notsan
+
+# Undefined Behavior sanitizer
+common:ubsan --strip=never
+common:ubsan --@llvm//config:ubsan
+common:ubsan --copt -O0
+common:ubsan --copt -g
+common:ubsan --copt -fno-omit-frame-pointer
+test:ubsan --test_tag_filters=-noubsan
+
+# Real-time sanitizer
+common:rtsan --strip=never
+common:rtsan --@llvm//config:rtsan
+common:rtsan --copt -O0
+common:rtsan --copt -g
+common:rtsan --copt -fno-omit-frame-pointer
+test:rtsan --test_tag_filters=-nortsan
+
+# Fuzzing
+common:fuzztest --config=asan
+common:fuzztest --config=ubsan
+common:fuzztest --dynamic_mode=off
+common:fuzztest --copt=-fsanitize-coverage=inline-8bit-counters,trace-cmp,pc-table
+common:fuzztest --@llvm//config:sanitizer_strip_foreign_source_paths
+test:fuzztest --test_tag_filters=-nofuzztest

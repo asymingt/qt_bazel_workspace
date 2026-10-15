@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-Tyn9nktQX1cU/EIpawTHAfZs7RhcSd5NUgy43ksZgbM=",
+    "strip_prefix": "qtnetworkauth-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtnetworkauth-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-AQyaM52l8pvDXm58kkucoVYa7VABx+FmM8CBrNrG718=",
+        "MODULE.bazel": "sha256-e+PKy4tCA0NGr9HG1PidBOp/H0O/ZusfXXbAMf7cK5E="
+    }
+}

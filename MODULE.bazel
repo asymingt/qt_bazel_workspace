@@ -1,0 +1,171 @@
+# Root workspace name
+
+module(
+    name = "qt_workspace",
+)
+
+# Hermetic LLVM toolchain
+
+bazel_dep(name = "llvm", version = "0.8.24")
+single_version_override(
+    module_name = "llvm",
+    patch_strip = 1,
+    patches = [
+        "//patches:fastbuild_compile_flags.patch",
+        "//patches:header_search_paths.patch",
+        "//patches:msan_libcxx.patch",
+        "//patches:stage0_object_reset.patch",
+        "//patches:llvm21_third_party_zstd.patch",
+        "//patches:asan_runtime.patch",
+        "//patches:sanitizer_runtime_libunwind.patch",
+        "//patches:sanitizer_strip_foreign_source_paths.patch",
+    ],
+    version = "0.8.24",
+)
+
+# Backends built into the from-source `@llvm-project` overlay (used for
+# libclang in qttools, or `--@llvm//toolchain:bootstrap_stage=stage1_from_source`).
+# The prebuilt cross-compiler always has every backend, so this list does not
+# limit which `--platforms` we can compile for; it should mirror the CPUs we
+# ship (amd64 + arm64 across Linux/macOS/Windows, see design/PHASE3.md).
+llvm = use_extension("@llvm//extensions:llvm.bzl", "llvm")
+llvm.version(llvm_version = "21.1.8")
+llvm.configure(
+    targets = [
+        "AArch64",
+        "X86",
+    ],
+)
+use_repo(llvm, "llvm-project")
+
+register_toolchains(
+    "@llvm//toolchain:all",
+    dev_dependency = True,
+)
+
+osx = use_extension("@llvm//extensions:osx.bzl", "osx")
+osx.frameworks(
+    names = [
+        "AVFAudio",
+        "AVFoundation",
+        "AVRouting",
+        "Accelerate",
+        "AppKit",
+        "ApplicationServices",
+        "AudioToolbox",
+        "AudioUnit",
+        "CFNetwork",
+        "Carbon",
+        "CloudKit",
+        "Cocoa",
+        "ColorSync",
+        "CoreAudio",
+        "CoreAudioTypes",
+        "CoreBluetooth",
+        "CoreData",
+        "CoreFoundation",
+        "CoreGraphics",
+        "CoreHaptics",
+        "CoreImage",
+        "CoreLocation",
+        "CoreMIDI",
+        "CoreMedia",
+        "CoreServices",
+        "CoreText",
+        "CoreVideo",
+        "DiskArbitration",
+        "FontServices",
+        "ForceFeedback",
+        "Foundation",
+        "GameController",
+        "IOBluetooth",
+        "IOKit",
+        "IOSurface",
+        "ImageIO",
+        "JavaScriptCore",
+        "Kernel",
+        "MediaToolbox",
+        "Metal",
+        "MetalKit",
+        "ModelIO",
+        "Network",
+        "OSLog",
+        "OpenGL",
+        "PCSC",
+        "PrintCore",
+        "QuartzCore",
+        "Security",
+        "Symbols",
+        "SystemConfiguration",
+        "UniformTypeIdentifiers",
+        "VideoToolbox",
+        "WebKit",
+        "_LocationEssentials",
+    ],
+)
+
+# BCR modules
+
+bazel_dep(name = "assimp", version = "6.0.5")
+bazel_dep(name = "egl-registry", version = "0.0.0-20250527")
+bazel_dep(name = "eigen", version = "5.0.1.bcr.1")
+bazel_dep(name = "ffmpeg", version = "7.1.1.bcr.beta.13")
+single_version_override(
+    module_name = "ffmpeg",
+    patch_strip = 1,
+    patches = ["//patches:ffmpeg_sysctl.patch"],
+    version = "7.1.1.bcr.beta.13",
+)
+
+bazel_dep(name = "opengl-registry", version = "0.0.0-20250707")
+bazel_dep(name = "openssl", version = "3.5.8.bcr.0")
+single_version_override(
+    module_name = "openssl",
+    patch_strip = 1,
+    patches = ["//patches:openssl_windows_clang.patch"],
+    version = "3.5.8.bcr.0",
+)
+
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "wayland", version = "1.24.0.bcr.1")
+
+# Qt modules (served from the local registry under modules/, see .bazelrc)
+
+bazel_dep(name = "qt", version = "6.10.2")
+bazel_dep(name = "qtbase", version = "6.10.2")
+bazel_dep(name = "qtsvg", version = "6.10.2")
+bazel_dep(name = "qtlanguageserver", version = "6.10.2")
+bazel_dep(name = "qtimageformats", version = "6.10.2")
+bazel_dep(name = "qtshadertools", version = "6.10.2")
+bazel_dep(name = "qtdeclarative", version = "6.10.2")
+bazel_dep(name = "qtwebsockets", version = "6.10.2")
+bazel_dep(name = "qtwebchannel", version = "6.10.2")
+bazel_dep(name = "qthttpserver", version = "6.10.2")
+bazel_dep(name = "qtnetworkauth", version = "6.10.2")
+bazel_dep(name = "qtserialport", version = "6.10.2")
+bazel_dep(name = "qtserialbus", version = "6.10.2")
+bazel_dep(name = "qtsensors", version = "6.10.2")
+bazel_dep(name = "qt5compat", version = "6.10.2")
+bazel_dep(name = "qtcharts", version = "6.10.2")
+bazel_dep(name = "qtpositioning", version = "6.10.2")
+bazel_dep(name = "qtlocation", version = "6.10.2")
+bazel_dep(name = "qtconnectivity", version = "6.10.2")
+bazel_dep(name = "qtlottie", version = "6.10.2")
+bazel_dep(name = "qtquicktimeline", version = "6.10.2")
+bazel_dep(name = "qtvirtualkeyboard", version = "6.10.2")
+bazel_dep(name = "qtremoteobjects", version = "6.10.2")
+bazel_dep(name = "qtscxml", version = "6.10.2")
+bazel_dep(name = "qtquick3d", version = "6.10.2")
+bazel_dep(name = "qtquick3dphysics", version = "6.10.2")
+bazel_dep(name = "qtgraphs", version = "6.10.2")
+bazel_dep(name = "qtdatavis3d", version = "6.10.2")
+bazel_dep(name = "qt3d", version = "6.10.2")
+bazel_dep(name = "qtmultimedia", version = "6.10.2")
+bazel_dep(name = "qtspeech", version = "6.10.2")
+bazel_dep(name = "qtwayland", version = "6.10.2")
+bazel_dep(name = "qtwebview", version = "6.10.2")
+bazel_dep(name = "qtgrpc", version = "6.10.2")
+bazel_dep(name = "qttools", version = "6.10.2")
+bazel_dep(name = "qttranslations", version = "6.10.2")

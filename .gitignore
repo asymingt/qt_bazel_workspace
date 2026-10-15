@@ -1,0 +1,6 @@
+bazel-*
+design
+reference
+repos
+tools
+**/MODULE.bazel.lock

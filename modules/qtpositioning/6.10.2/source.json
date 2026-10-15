@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-cFH6ZEd8ZnaYQMrTlvw3cqAbpVFjY8iEKnpRP6DEzc4=",
+    "strip_prefix": "qtpositioning-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtpositioning-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-jb9USkZthGFsCL7l9GOmUrvbcHn63HqLEsOf153Skus=",
+        "MODULE.bazel": "sha256-c01t6UZk62uoEQHh7s0G3wdjBiTz9brQ0B4QMnon0b0="
+    }
+}

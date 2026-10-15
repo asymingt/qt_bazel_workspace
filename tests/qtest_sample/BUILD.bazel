@@ -1,0 +1,13 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_test(
+    name = "qtest_sample",
+    srcs = ["main.cc"],
+    moc_srcs = ["main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:test",
+    ],
+)

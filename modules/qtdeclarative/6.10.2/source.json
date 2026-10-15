@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-okmRT/Zs3Nvw34tf+tmXou5tzgHMF9Q8bMVv3B0PSw8=",
+    "strip_prefix": "qtdeclarative-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtdeclarative-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-o/wCZqRBY8dSm01/XMQmhCejiinJW7zbvCe5M79C0EI=",
+        "MODULE.bazel": "sha256-jFwayVIDhe+ntH3prjauw33BOewxA1aTxKFvIdfIIRU=",
+        "qtdeclarative_config.bzl": "sha256-QvQwV4lJMFlqKVCd5ixI3CowLc3DJF8WAehgGkyOlYA="
+    }
+}

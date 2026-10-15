@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-PhXU8OItjdv7ufXXfbQ+rNejBAKb8lphZsxjyqltBLo=",
+    "strip_prefix": "xcb-util-renderutil-0.3.10",
+    "url": "https://xcb.freedesktop.org/dist/xcb-util-renderutil-0.3.10.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-ptFIjCSnQLljPZIuqKsAwbHQ7KtNxOCFxRJSNX7p32E=",
+        "MODULE.bazel": "sha256-bjS2MHzT+HQmSkTfeCIY0vXCCFdMqK4s7fXXRwGOmhE="
+    }
+}

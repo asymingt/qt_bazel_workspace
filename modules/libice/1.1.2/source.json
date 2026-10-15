@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-l05O1BQiXrPHFphd+XCfTajSKmeiiQBmvG38ia0phiU=",
+    "strip_prefix": "libICE-1.1.2",
+    "url": "https://www.x.org/releases/individual/lib/libICE-1.1.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-Hj3xA0ZJJtsZq360WdIHfQwnxo9LJwHiildzJQ3uwYA=",
+        "MODULE.bazel": "sha256-AZ7KkNrUub+oNWCRwty+fchqsS8xPPcoozSM1TolWho=",
+        "libice_config_checks.bzl": "sha256-DtDGSgG6rOgsmvaYw1Rn4YhqmrOX+Mo/CO0hVi67Kb0="
+    }
+}

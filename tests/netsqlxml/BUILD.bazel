@@ -1,0 +1,18 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Smoke test for the M2 prerequisite modules: QtNetwork (OpenSSL-linked TLS,
+# local TCP loopback), QtSql (+ static QSQLITE driver plugin) and QtXml.
+qt_cc_test(
+    name = "netsqlxml_test",
+    srcs = ["main.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:network",
+        "@qtbase//:qopensslbackend",
+        "@qtbase//:qsqlite",
+        "@qtbase//:sql",
+        "@qtbase//:xml",
+    ],
+)

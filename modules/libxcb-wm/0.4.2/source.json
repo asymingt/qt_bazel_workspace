@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-YsNOIdBiZGh/rqftv2NjLJ8E1V5yEUqkpXu5Xk+Iigs=",
+    "strip_prefix": "xcb-util-wm-0.4.2",
+    "url": "https://xcb.freedesktop.org/dist/xcb-util-wm-0.4.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-BY0c5Y673OLdTCXZMJvUFAYqTzPtYMthKHHjtbu8qj4=",
+        "MODULE.bazel": "sha256-AXkRnKWDXRPAZX8/25pc4kkD1+Fj48lSQSl0S9sqJ78="
+    }
+}

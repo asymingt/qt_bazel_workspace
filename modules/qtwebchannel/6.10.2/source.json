@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-4x6ln44Z4DdNVP3HqEechArP/EulKX7kNWS1FYpPLCc=",
+    "strip_prefix": "qtwebchannel-everywhere-src-6.10.2",
+    "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwebchannel-everywhere-src-6.10.2.tar.xz",
+    "overlay": {
+        "BUILD.bazel": "sha256-BdgQCt3t6ouZnqT7veTrB4TsSieHk65nDxXMxAjmoAE=",
+        "MODULE.bazel": "sha256-BtNZ20vyLZ05ZajCDq9H+8DrAy0AWNrVCfinyUtXh5s="
+    }
+}
