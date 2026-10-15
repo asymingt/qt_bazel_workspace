@@ -1,7 +1,8 @@
 # Pull request CI.
 #
-# Matrix: {ubuntu, macos, windows} x {amd64, arm64} x {bazel 8.x, bazel 9.x}
-# (12 jobs). Each job:
+# Matrix: {ubuntu, macos, windows} x {amd64, arm64} x {bazel 9.x, last_rc}
+# (12 jobs). Bazel 8 is not supported: rules_cc >= 0.2.21 (required by the
+# hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
 #   1. builds and runs every test natively on the runner
 #      (`--config=host_<os>_<arch> --config=<os>_<arch>`), and
 #   2. cross-compiles everything for the *other* architecture of the same OS
@@ -32,13 +33,19 @@ jobs:
     # A cold Qt build on a hosted runner takes hours; later runs are mostly
     # disk-cache hits.
     timeout-minutes: 360
+    # Pre-release Bazel is allowed to fail without blocking the PR.
+    continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
         arch: [amd64, arm64]
-        bazel: ["8.x", "9.x"]
+        # "last_rc" is bazelisk's alias for the newest release candidate
+        # (currently 10.0.0rc1); it is informational only, see continue-on-error.
+        bazel: ["9.x", "last_rc"]
         include:
+          - bazel: "last_rc"
+            experimental: true
           # Per-(os, arch) runner image, native platform config and the
           # other-architecture platform config used for the cross-compile check.
           - os: ubuntu

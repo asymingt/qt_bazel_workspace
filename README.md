@@ -39,8 +39,9 @@ binary.
 
 ## Try it now
 
-Point Bazel at the GitHub Pages mirror of this registry, ahead of the BCR, in
-your `.bazelrc`:
+Point Bazel (**9.0 or newer** — `rules_cc` ≥ 0.2.21, which the hermetic LLVM
+toolchain depends on, needs Bazel 9's C++ runtime toolchain type) at the GitHub
+Pages mirror of this registry, ahead of the BCR, in your `.bazelrc`:
 
 ```
 common --registry=https://asymingt.github.io/qt_bazel_workspace/
