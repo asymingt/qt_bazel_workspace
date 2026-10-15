@@ -8,6 +8,35 @@ The goal is to upstream these modules to the
 [Bazel Central Registry](https://registry.bazel.build); until then you can use
 them directly from here.
 
+## Why build Qt from source?
+
+The existing Bazel integrations download the official prebuilt Qt binaries.
+That is convenient, but it quietly breaks the guarantees Bazel is supposed to
+give you:
+
+- **Prebuilts assume GCC and libstdc++.** The official Linux binaries are
+  compiled with GCC against libstdc++. Link them from a Clang/libc++ toolchain
+  (as any hermetic LLVM setup does) and you are mixing two C++ standard
+  libraries and two ABIs in one process — at best a wall of warnings, at worst
+  `std::string`/`std::function` layout mismatches that surface as crashes at
+  runtime rather than errors at build time.
+- **Prebuilts are not self-contained.** They dynamically load a long tail of
+  system libraries at *runtime* — `libxcb-*`, `libxkbcommon`, `libGL`,
+  `fontconfig`, `libdbus`, `libpulse`, `libgstreamer`, and so on — which must
+  be installed via `apt` on every machine that builds *and* every machine that
+  runs the result. Which versions you get depends on the host image, not on
+  Bazel, so builds are no longer reproducible and remote execution is a
+  gamble.
+- **Cross-compilation is off the table.** A downloaded SDK is for one
+  OS/architecture; targeting another means a different download, a different
+  sysroot and, on macOS and Windows, a non-hermetic native SDK.
+
+Building Qt — and its X11/D-Bus/multimedia dependencies — from source inside
+the action graph with one hermetic Clang toolchain fixes all three: a single
+ABI end to end, nothing read from `/usr` at build or run time, and
+`--platforms=...` as the only difference between a Linux, macOS or Windows
+binary.
+
 ## Try it now
 
 Point Bazel at the GitHub Pages mirror of this registry, ahead of the BCR, in
