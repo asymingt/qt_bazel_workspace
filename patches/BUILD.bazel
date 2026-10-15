@@ -1,12 +1,3 @@
-exports_files([
-    "asan_runtime.patch",
-    "fastbuild_compile_flags.patch",
-    "ffmpeg_sysctl.patch",
-    "header_search_paths.patch",
-    "llvm21_third_party_zstd.patch",
-    "msan_libcxx.patch",
-    "openssl_windows_clang.patch",
-    "sanitizer_runtime_libunwind.patch",
-    "stage0_object_reset.patch",
-    "sanitizer_strip_foreign_source_paths.patch",
-])
+# Patches applied to third-party Bazel modules via single_version_override in
+# the root MODULE.bazel, grouped by the module they apply to.
+exports_files(glob(["*/*.patch"]))

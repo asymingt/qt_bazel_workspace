@@ -132,5 +132,45 @@ is a different thing:
 | --- | --- |
 | `bazel_registry.json`, `modules/` | The Bazel registry, published to GitHub Pages on every merge (`.github/workflows/ci.yaml`). |
 | `tests/` | Smoke tests per Qt area, run natively and cross-compiled by the PR matrix (`.github/workflows/pull_request.yaml`). |
-| `patches/` | Patches for third-party BCR modules (`llvm`, `ffmpeg`, `openssl`) consumed via `single_version_override`. |
+| `patches/` | Patches for third-party BCR modules, one directory per module (`llvm/`, `ffmpeg/`, `openssl/`, `rules_perl/`), applied via `single_version_override`. See below. |
 | `.bazelrc` | `--config=<os>_<arch>` / `--config=host_<os>_<arch>` presets for the six supported platforms. |
+| `bazel_downloader.cfg` | Download mirrors for upstream tarballs of BCR modules we cannot annotate with `mirror_urls` (currently `fontconfig`). |
+
+## Patches to third-party modules
+
+Qt itself is never patched. A few *third-party* Bazel modules are, via
+`single_version_override` in `MODULE.bazel`, with the patch files kept under
+`patches/<module>/`. These only apply inside this workspace (overrides are not
+part of the published registry); each one is a stopgap we intend to drop once
+the fix lands upstream.
+
+| Module | Patch | Why |
+| --- | --- | --- |
+| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module (fastbuild flags, header search paths, sanitizer runtimes, stage-0 object reset, zstd for LLVM 21). |
+| `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
+| `openssl` | `patches/openssl/windows_clang.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC. |
+| `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
+
+### `rules_perl`: Perl on Windows/ARM64 hosts
+
+The BCR `openssl` module runs Perl at build time (header templates, perlasm,
+`buildinf.h`), so it needs a Perl toolchain on the **execution** platform.
+`rules_perl` has no toolchain for Windows/ARM64 because
+[Strawberry Perl does not publish an arm64 build](https://github.com/StrawberryPerl/Perl-Dist-Strawberry/issues/218)
+([bazel-contrib/rules_perl#116](https://github.com/bazel-contrib/rules_perl/issues/116)).
+As a result, *building on* a Windows/ARM64 machine fails toolchain resolution
+for `@openssl//:progs_gen` — even though *targeting* `windows_arm64` from any
+other host works fine, since the Perl steps run on the host.
+
+We carry the change from
+[bazel-contrib/rules_perl#125](https://github.com/bazel-contrib/rules_perl/pull/125)
+(rebased onto the released `rules_perl` 1.1.2): it registers a `windows`/`arm64`
+toolchain that reuses the hash-pinned x86_64 Strawberry Perl archive and relies
+on Windows-on-Arm's built-in x64 emulation to run it. Perl is a plain
+interpreter with no CPU-specific code generation, so this is correct, just
+slower. It requires Windows 11 on Arm (Windows 10 on Arm only emulates 32-bit
+x86) with the "Turn off x64 emulation on Arm" policy unset — both true of
+GitHub's `windows-11-arm` runners.
+
+Remove the patch and the `rules_perl` override in `MODULE.bazel` once a
+`rules_perl` release includes #125 (or a native arm64 Perl).

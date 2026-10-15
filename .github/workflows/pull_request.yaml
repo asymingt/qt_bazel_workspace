@@ -1,6 +1,6 @@
 # Pull request CI.
 #
-# Matrix: {ubuntu, macos, windows} x {amd64, arm64} x {bazel 9.x, last_rc}
+# Matrix: {linux, darwin, windows} x {amd64, arm64} x {bazel 9.x, last_rc}
 # (12 jobs). Bazel 8 is not supported: rules_cc >= 0.2.21 (required by the
 # hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
 #   1. builds and runs every test natively on the runner
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: [linux, darwin, windows]
         arch: [amd64, arm64]
         # "last_rc" is bazelisk's alias for the newest release candidate
         # (currently 10.0.0rc1); it is informational only, see continue-on-error.
@@ -47,22 +47,22 @@ jobs:
             experimental: true
           # Per-(os, arch) runner image, native platform config, and the list of
           # all other platform configs to cross-compile for from that host.
-          - os: ubuntu
+          - os: linux
             arch: amd64
             runner: ubuntu-24.04
             platform: linux_amd64
             cross: linux_arm64 macos_amd64 macos_arm64 windows_amd64 windows_arm64
-          - os: ubuntu
+          - os: linux
             arch: arm64
             runner: ubuntu-24.04-arm
             platform: linux_arm64
             cross: linux_amd64 macos_amd64 macos_arm64 windows_amd64 windows_arm64
-          - os: macos
+          - os: darwin
             arch: amd64
             runner: macos-15-intel
             platform: macos_amd64
             cross: linux_amd64 linux_arm64 macos_arm64 windows_amd64 windows_arm64
-          - os: macos
+          - os: darwin
             arch: arm64
             runner: macos-15
             platform: macos_arm64
@@ -72,15 +72,10 @@ jobs:
             runner: windows-2025
             platform: windows_amd64
             cross: linux_amd64 linux_arm64 macos_amd64 macos_arm64 windows_arm64
-          # windows_arm64 as an *execution* platform is informational only:
-          # rules_perl (needed by the BCR openssl module's code generation)
-          # ships no Perl toolchain for Windows/ARM64. The target is still fully
-          # covered by the other five hosts cross-compiling to it.
           - os: windows
             arch: arm64
             runner: windows-11-arm
             platform: windows_arm64
-            experimental: true
             cross: linux_amd64 linux_arm64 macos_amd64 macos_arm64 windows_amd64
 
     env:
