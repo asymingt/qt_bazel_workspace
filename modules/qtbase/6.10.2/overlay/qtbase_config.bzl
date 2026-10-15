@@ -1019,36 +1019,30 @@ qt_write_config_file = rule(
 
 def _qt_mime_database_impl(ctx):
     out = ctx.actions.declare_file(ctx.attr.out)
-    xml = ctx.file.src
-    cmd = """python3 -c '
-import gzip, sys
-with open(sys.argv[1], "rb") as f:
-    raw = f.read()
-compressed = gzip.compress(raw, compresslevel=9, mtime=0)
-with open(sys.argv[2], "w") as out:
-    out.write("#define MIME_DATABASE_IS_GZIP\\n")
-    out.write("static const unsigned char mimetype_database[] = {{\\n")
-    for i in range(0, len(compressed), 12):
-        chunk = compressed[i:i+12]
-        out.write(" " + ", ".join("0x%02x" % b for b in chunk) + ",\\n")
-    out.write("}};\\n")
-    out.write("static constexpr size_t MimeTypeDatabaseOriginalSize = %d;\\n" % len(raw))
-' "{src}" "{dst}"
-""".format(src = xml.path, dst = out.path)
-    ctx.actions.run_shell(
-        inputs = [xml],
+    ctx.actions.run(
+        executable = ctx.executable._tool,
+        arguments = [ctx.file.src.path, out.path],
+        inputs = [ctx.file.src],
         outputs = [out],
-        command = cmd,
         mnemonic = "QtMimeDatabase",
         progress_message = "Generating qmimeprovider_database.cpp",
     )
     return [DefaultInfo(files = depset([out]))]
 
+# Compresses the shared-mime-info XML into the C array that
+# src/corelib/mimetypes/qmimeprovider.cpp embeds. The compressor is a small
+# cc_binary built for the execution platform (see qt_mime_database_gen.cc), so
+# this works on every host without relying on a system python3/gzip.
 qt_mime_database = rule(
     implementation = _qt_mime_database_impl,
     attrs = {
         "src": attr.label(allow_single_file = True, mandatory = True),
         "out": attr.string(mandatory = True),
+        "_tool": attr.label(
+            default = Label("//:qt_mime_database_gen"),
+            executable = True,
+            cfg = "exec",
+        ),
     },
 )
 

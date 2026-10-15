@@ -37,6 +37,10 @@ build:windows_arm64 --platforms=@llvm//platforms:windows_arm64
 common:ci --announce_rc
 common:ci --show_timestamps
 build:ci --verbose_failures
+# Be patient with slow upstream hosts (freedesktop.org, x.org) on fresh runners.
+common:ci --http_timeout_scaling=3
+common:ci --http_connector_attempts=12
+common:ci --experimental_repository_downloader_retries=10
 test:ci --test_output=errors
 
 # Address sanitizer

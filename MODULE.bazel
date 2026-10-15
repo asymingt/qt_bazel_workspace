@@ -43,6 +43,11 @@ register_toolchains(
     dev_dependency = True,
 )
 
+# NOTE: do not add JavaScriptCore or WebKit here. In the SDK archive they are
+# symlinks into System/Cryptexes (which is not extracted), i.e. dangling links
+# in the sysroot; the darwin sandbox rejects those ("file type ... is not
+# supported") whenever macOS is the execution platform. Nothing in the Qt
+# modules links them.
 osx = use_extension("@llvm//extensions:osx.bzl", "osx")
 osx.frameworks(
     names = [
@@ -82,7 +87,6 @@ osx.frameworks(
         "IOKit",
         "IOSurface",
         "ImageIO",
-        "JavaScriptCore",
         "Kernel",
         "MediaToolbox",
         "Metal",
@@ -99,7 +103,6 @@ osx.frameworks(
         "SystemConfiguration",
         "UniformTypeIdentifiers",
         "VideoToolbox",
-        "WebKit",
         "_LocationEssentials",
     ],
 )

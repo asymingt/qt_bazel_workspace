@@ -175,34 +175,8 @@ _TRACEPOINTS_P_H = """#ifndef QT_DECLARATIVE_TRACEPOINTS_P_H
 #endif // QT_DECLARATIVE_TRACEPOINTS_P_H
 """
 
-def _qt_regexp_jit_tables_impl(ctx):
-    out = ctx.actions.declare_file(ctx.attr.out)
-    script = ctx.file.script
-    ctx.actions.run_shell(
-        inputs = [script],
-        outputs = [out],
-        command = 'python3 "{script}" "{out}"'.format(
-            script = script.path,
-            out = out.path,
-        ),
-        mnemonic = "QtRegExpJitTables",
-        progress_message = "Generating RegExpJitTables.h",
-    )
-    return [DefaultInfo(files = depset([out]))]
-
-qt_regexp_jit_tables = rule(
-    implementation = _qt_regexp_jit_tables_impl,
-    attrs = {
-        "script": attr.label(
-            allow_single_file = True,
-            default = Label("//:src/3rdparty/masm/yarr/create_regex_tables"),
-        ),
-        "out": attr.string(mandatory = True),
-    },
-)
-
 def declare_qtdeclarative_config_targets():
-    """Declares generated config headers, tracepoints headers, and RegExpJitTables.h."""
+    """Declares generated config headers and tracepoints headers."""
     qt_write_file(
         name = "gen_qtqml_config_h",
         content = _QTQML_CONFIG_H,
@@ -218,19 +192,18 @@ def declare_qtdeclarative_config_targets():
         content = _TRACEPOINTS_P_H,
         out = "generated_cfg/QtQml/private/qtqml_tracepoints_p.h",
     )
-    qt_regexp_jit_tables(
-        name = "gen_regexp_jit_tables_h",
-        out = "generated_cfg/QtQml/private/RegExpJitTables.h",
-    )
     cc_library(
         name = "qml_internal_cfg",
         hdrs = [
             ":gen_qtqml_config_h",
             ":gen_qtqml_config_p_h",
             ":gen_qtqml_tracepoints_p_h",
-            ":gen_regexp_jit_tables_h",
+            # Pre-generated output of src/3rdparty/masm/yarr/create_regex_tables
+            # (deterministic); avoids needing a host python at build time.
+            "bazel_prebuilt/yarr/RegExpJitTables.h",
         ],
         includes = [
+            "bazel_prebuilt/yarr",
             "generated_cfg",
             "generated_cfg/QtQml",
             "generated_cfg/QtQml/private",

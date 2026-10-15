@@ -73,6 +73,16 @@ common_defines = [
     "//conditions:default": [],
 })
 
+# Build-time tool (runs on the execution platform) used by qt_mime_database in
+# qtbase_config.bzl to gzip the shared-mime-info XML into a C array. Replaces the
+# host python3 that Qt's CMake build uses, so no system interpreter is needed.
+cc_binary(
+    name = "qt_mime_database_gen",
+    srcs = ["qt_mime_database_gen.cc"],
+    visibility = ["//visibility:private"],
+    deps = ["@zlib"],
+)
+
 declare_qtbase_config_targets()
 
 # =============================================================================
