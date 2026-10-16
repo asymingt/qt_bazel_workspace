@@ -35,6 +35,12 @@ build:macos_amd64 --platforms=@llvm//platforms:macos_amd64
 build:macos_arm64 --platforms=@llvm//platforms:macos_arm64
 build:windows_amd64 --platforms=@llvm//platforms:windows_amd64
 build:windows_arm64 --platforms=@llvm//platforms:windows_arm64
+# Windows' CreateProcessW caps command lines at 32767 chars; QML module compile
+# actions (many -I/-isystem dirs) exceed this, so route all compiler args via
+# @params files on Windows. The feature is defined by the patched @llvm
+# toolchain (patches/llvm/windows_compiler_param_file.patch).
+build:windows_amd64 --features=compiler_param_file
+build:windows_arm64 --features=compiler_param_file
 
 # CI defaults (see .github/workflows/pull_request.yaml)
 common:ci --announce_rc
