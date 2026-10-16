@@ -8,7 +8,7 @@
         "https://ftp.x.org/pub/individual/xcb/xcb-util-cursor-0.1.5.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-EEBHGHO8KEwpCMn5LW8IDTK9fUcM1rYAODdSbtmQ370=",
+        "BUILD.bazel": "sha256-7Vb9VBCT9M/eWf+m2rRRyGYnTzW7sryoCH5GHy1tcZQ=",
         "MODULE.bazel": "sha256-+v3gy1zVWHlDNMM+/uiDgsNSwuXbFc11qs96uBu7SwI="
     }
 }
