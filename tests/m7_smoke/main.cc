@@ -1,6 +1,5 @@
 #include <QtCore/QBuffer>
 #include <QtCore/QCoreApplication>
-#include <QtCore/QDirIterator>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTranslator>
 #include <QtGrpc/QGrpcChannelOptions>
@@ -16,6 +15,9 @@
 #include <cassert>
 #include <cstdio>
 #include <memory>
+#include <string>
+
+#include "rules_cc/cc/runfiles/runfiles.h"
 
 #include "test.qpb.h"
 #include "test_client.grpc.qpb.h"
@@ -76,19 +78,19 @@ int main(int argc, char* argv[]) {
   QHelpEngineCore help_engine(temp_dir.filePath(QStringLiteral("smoke.qhc")));
   assert(help_engine.setupData());
 
-  // 5. @qttranslations: find and load a compiled .qm catalog
-  int loaded_qm_count = 0;
-  QDirIterator it(QStringLiteral(".."), QStringList() << QStringLiteral("qtbase_de.qm"),
-                  QDir::Files, QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    const QString qm_path = it.next();
-    QTranslator translator;
-    if (translator.load(qm_path)) {
-      ++loaded_qm_count;
-      break;
-    }
-  }
-  assert(loaded_qm_count > 0);
+  // 5. @qttranslations: find and load a compiled .qm catalog. Resolve it via
+  // the runfiles library rather than scanning the cwd: on Windows Bazel does
+  // not materialize a runfiles tree (manifest only), so relative lookups fail.
+  std::string rf_error;
+  std::unique_ptr<rules_cc::cc::runfiles::Runfiles> runfiles(
+      rules_cc::cc::runfiles::Runfiles::CreateForTest(&rf_error));
+  assert(runfiles != nullptr);
+  const std::string qm_path =
+      runfiles->Rlocation("qttranslations+/translations_qm/qtbase_de.qm");
+  assert(!qm_path.empty());
+  QTranslator translator;
+  const bool loaded_qm = translator.load(QString::fromStdString(qm_path));
+  assert(loaded_qm);
 
   std::printf("Milestone 7 smoke test passed!\n");
   return 0;

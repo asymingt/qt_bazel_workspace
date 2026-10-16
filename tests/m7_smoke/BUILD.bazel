@@ -58,6 +58,7 @@ qt_cc_test(
         "@qtbase//:sql",
         "@qtbase//:widgets",
         "@qtbase//:xml",
+        "@rules_cc//cc/runfiles",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:qmlmodels",
         "@qtdeclarative//:qmlnetwork",

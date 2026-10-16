@@ -51,6 +51,9 @@ common:ci --http_timeout_scaling=3
 common:ci --http_connector_attempts=12
 common:ci --experimental_repository_downloader_retries=10
 test:ci --test_output=errors
+# Without a console (as under Bazel on Windows) Qt routes qDebug/QTest output
+# to OutputDebugString, leaving test.log empty. Force it to stderr/stdout.
+test --test_env=QT_FORCE_STDERR_LOGGING=1
 
 # Address sanitizer
 common:asan --strip=never
