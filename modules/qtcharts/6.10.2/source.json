@@ -3,7 +3,7 @@
     "strip_prefix": "qtcharts-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtcharts-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-Vz++WY1fieWKmPRZMNIYSpD33JZr6/1GqQvfT90W7H4=",
+        "BUILD.bazel": "sha256-h8GYudSvlconETrhORrnN7CQKvoMJcpZOgbloQAGFSM=",
         "MODULE.bazel": "sha256-+qlVlN4NOaOPZvC5hdKpLtfDn6RCt2KoNoosp1Wl2uc="
     }
 }

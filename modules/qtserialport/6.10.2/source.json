@@ -3,7 +3,7 @@
     "strip_prefix": "qtserialport-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtserialport-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-ioAcoHPqz0Qxn5y0/KeFHybSBX2Mh/Tml8yfHRqn75A=",
+        "BUILD.bazel": "sha256-oIhudRs3nSQ1JlRtUEE83Mbn94pQWw68xc0Q3zAmjFk=",
         "MODULE.bazel": "sha256-RtDOEFYQYSUIY35lq2IgAULOgEflSh79h/b3lyXm5PU="
     }
 }

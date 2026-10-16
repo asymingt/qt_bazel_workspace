@@ -165,3 +165,18 @@ diff --git a/configs/BUILD.bazel b/configs/BUILD.bazel
  config_setting(
      name = "linux_riscv64",
      constraint_values = [
+diff --git a/crypto/perlasm/x86_64-xlate.pl b/crypto/perlasm/x86_64-xlate.pl
+--- a/crypto/perlasm/x86_64-xlate.pl
++++ b/crypto/perlasm/x86_64-xlate.pl
+@@ -87,9 +87,7 @@
+ # syntax
+ my $gnuas=0;
+ 
+-if    ($flavour eq "mingw64")	{ $gas=1; $elf=0; $win64=1;
+-				  $prefix=`echo __USER_LABEL_PREFIX__ | $ENV{CC} -E -P -`;
+-				  $prefix =~ s|\R$||; # Better chomp
++if    ($flavour eq "mingw64")	{ $gas=1; $elf=0; $win64=1; $prefix="";
+ 				}
+ elsif ($flavour eq "macosx")	{ $gas=1; $elf=0; $prefix="_"; $decor="L\$"; }
+ elsif ($flavour eq "masm")	{ $gas=0; $elf=0; $masm=$masmref; $win64=1; $decor="\$L\$"; }
+

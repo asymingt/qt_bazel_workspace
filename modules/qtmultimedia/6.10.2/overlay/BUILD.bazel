@@ -1115,11 +1115,15 @@ qt_sync_headers(
 
 # qffmpegscreencapture_dxgi.cpp does `#include "D3d11.h"` (capital D) while
 # MinGW ships `d3d11.h`. On a case-sensitive host (Linux cross-compile) we emit
-# a forwarding shim at the package root, found via -iquote. On a native Windows
-# host the filesystem is case-insensitive so the real header is found directly;
+# a forwarding shim at the package root, found via -iquote. On a case-insensitive
+# host (Windows or macOS) the filesystem finds the real header directly;
 # emitting the shim there is harmful because the package root is also on the
 # -isystem path, so `<d3d11.h>` would resolve to the shim and recurse.
-_HOST_IS_WINDOWS = "@platforms//os:windows" in HOST_CONSTRAINTS
+_HOST_IS_CASE_INSENSITIVE = (
+    "@platforms//os:windows" in HOST_CONSTRAINTS or
+    "@platforms//os:macos" in HOST_CONSTRAINTS or
+    "@platforms//os:osx" in HOST_CONSTRAINTS
+)
 
 qt_write_file(
     name = "win_d3d11_h",
@@ -1127,7 +1131,7 @@ qt_write_file(
     content = "#include_next <d3d11.h>\n",
 )
 
-_WIN_D3D11_SHIM_HDRS = [] if _HOST_IS_WINDOWS else [":win_d3d11_h"]
+_WIN_D3D11_SHIM_HDRS = [] if _HOST_IS_CASE_INSENSITIVE else [":win_d3d11_h"]
 
 qt_write_file(
     name = "ffmpeg_win_mfuuid_src",

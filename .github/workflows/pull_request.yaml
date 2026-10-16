@@ -1,18 +1,19 @@
 # Pull request CI.
 #
-# Matrix: {linux, darwin, windows} x {amd64, arm64} x {bazel 9.x, last_rc}
-# (12 jobs). Bazel 8 is not supported: rules_cc >= 0.2.21 (required by the
-# hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
-#   1. builds and runs every test natively on the runner (no platform flags;
-#      Bazel auto-detects the host via @platforms//host, and .bazelrc pins
-#      Linux to glibc 2.34 via //platforms:linux), and
-#   2. cross-compiles everything for every *other* supported platform with the
-#      hermetic LLVM toolchain (`--platforms=@llvm//platforms:...`; the host
-#      stays auto-detected).
+# Structured into two sequential stages (`bazel 9.x` followed by `bazel last_rc`)
+# so that `last_rc` reuses the per-(host, target) disk caches populated by `9.x`.
 #
-# Each job therefore performs six full Qt builds. On a cold disk cache this is
-# close to the 6h job limit; the per-cell actions/cache keeps subsequent runs
-# incremental.
+# Within each stage:
+#   1. `native-*`: Matrix over {linux, darwin, windows} x {amd64, arm64} (6 jobs).
+#      Runs native analyze, build, and test (no `--platforms` flag; Bazel
+#      auto-detects the host via @platforms//host, and .bazelrc pins Linux to
+#      glibc 2.34 via //platforms:linux).
+#   2. `cross-*`: Matrix on `linux-amd64` (`ubuntu-24.04`) cross-compiling to
+#      all 5 other target platforms via `--platforms=@llvm//platforms:...`.
+#
+# Disk caches are keyed by `<host_os>-<host_arch>-<target_os>-<target_arch>`
+# (independent of Bazel version) so each cache entry stays well under GitHub's
+# 10 GB cache limit and `last_rc` hits the cache populated by `9.x`.
 #
 # `push` on main is included only so that the Bazel caches get seeded from the
 # default branch; PR runs then restore from those caches (actions/cache scope).
@@ -32,79 +33,40 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    name: ${{ matrix.os }}-${{ matrix.arch }} / bazel ${{ matrix.bazel }}
+  # ---------------------------------------------------------------------------
+  # Stage 1: Bazel 9.x (blocking)
+  # ---------------------------------------------------------------------------
+  native-9x:
+    name: native ${{ matrix.os }}-${{ matrix.arch }} / bazel 9.x
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 360
-    # Pre-release Bazel is allowed to fail without blocking the PR.
-    continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       fail-fast: false
       matrix:
         os: [linux, darwin, windows]
         arch: [amd64, arm64]
-        bazel: ["9.x", "last_rc"]
         include:
-          - bazel: "last_rc"
-            experimental: true
           - os: linux
             arch: amd64
             runner: ubuntu-24.04
-            cross: >-
-              @llvm//platforms:linux_arm64_gnu.2.34
-              @llvm//platforms:macos_amd64
-              @llvm//platforms:macos_arm64
-              @llvm//platforms:windows_amd64
-              @llvm//platforms:windows_arm64
           - os: linux
             arch: arm64
             runner: ubuntu-24.04-arm
-            cross: >-
-              @llvm//platforms:linux_amd64_gnu.2.34
-              @llvm//platforms:macos_amd64
-              @llvm//platforms:macos_arm64
-              @llvm//platforms:windows_amd64
-              @llvm//platforms:windows_arm64
           - os: darwin
             arch: amd64
             runner: macos-15-intel
-            cross: >-
-              @llvm//platforms:linux_amd64_gnu.2.34
-              @llvm//platforms:linux_arm64_gnu.2.34
-              @llvm//platforms:macos_arm64
-              @llvm//platforms:windows_amd64
-              @llvm//platforms:windows_arm64
           - os: darwin
             arch: arm64
             runner: macos-15
-            cross: >-
-              @llvm//platforms:linux_amd64_gnu.2.34
-              @llvm//platforms:linux_arm64_gnu.2.34
-              @llvm//platforms:macos_amd64
-              @llvm//platforms:windows_amd64
-              @llvm//platforms:windows_arm64
           - os: windows
             arch: amd64
             runner: windows-2025
-            cross: >-
-              @llvm//platforms:linux_amd64_gnu.2.34
-              @llvm//platforms:linux_arm64_gnu.2.34
-              @llvm//platforms:macos_amd64
-              @llvm//platforms:macos_arm64
-              @llvm//platforms:windows_arm64
           - os: windows
             arch: arm64
             runner: windows-11-arm
-            cross: >-
-              @llvm//platforms:linux_amd64_gnu.2.34
-              @llvm//platforms:linux_arm64_gnu.2.34
-              @llvm//platforms:macos_amd64
-              @llvm//platforms:macos_arm64
-              @llvm//platforms:windows_amd64
 
     env:
-      # Bazelisk honours this over .bazelversion.
-      USE_BAZEL_VERSION: ${{ matrix.bazel }}
+      USE_BAZEL_VERSION: "9.x"
 
     steps:
       - name: Checkout
@@ -113,15 +75,10 @@ jobs:
       - name: Set up Bazel
         uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
         with:
-          # All caches below are backed by actions/cache and keyed per matrix
-          # cell so that a given (os, arch, bazel) combination restores its own
-          # artifacts on subsequent runs.
           bazelisk-cache: true
-          disk-cache: ${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
+          disk-cache: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.arch }}
           repository-cache: true
           cache-version: 1
-          # Keep output paths short on Windows (MAX_PATH) and avoid writing
-          # the output base into the checkout on any OS.
           bazelrc: |
             ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
             common --config=ci
@@ -130,9 +87,6 @@ jobs:
         shell: bash
         run: bazel version
 
-      # No platform flags: these are exactly what a developer runs locally.
-      # Bazel auto-detects the host; on Linux, .bazelrc additionally pins the
-      # target to //platforms:linux (glibc 2.34 on the host's CPU).
       - name: Analyze (native ${{ matrix.os }}-${{ matrix.arch }})
         shell: bash
         run: >
@@ -152,17 +106,160 @@ jobs:
           bazel test
           //...
 
-      - name: Cross-compile
+      - name: Force bazel shutdown to enable cache sync
+        if: always()
         shell: bash
-        run: |
-          set -euo pipefail
-          for target in ${{ matrix.cross }}; do
-            echo "::group::--platforms=${target}"
-            bazel build \
-              --platforms=${target} \
-              //...
-            echo "::endgroup::"
-          done
+        run: >
+          bazel shutdown
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: testlogs-${{ matrix.os }}-${{ matrix.arch }}-bazel9.x
+          path: bazel-testlogs/**/test.log
+          if-no-files-found: ignore
+
+  cross-9x:
+    name: cross linux-amd64 -> ${{ matrix.target_os }}-${{ matrix.target_arch }} / bazel 9.x
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target_os: linux
+            target_arch: arm64
+            platform: "@llvm//platforms:linux_arm64_gnu.2.34"
+          - target_os: darwin
+            target_arch: amd64
+            platform: "@llvm//platforms:macos_amd64"
+          - target_os: darwin
+            target_arch: arm64
+            platform: "@llvm//platforms:macos_arm64"
+          - target_os: windows
+            target_arch: amd64
+            platform: "@llvm//platforms:windows_amd64"
+          - target_os: windows
+            target_arch: arm64
+            platform: "@llvm//platforms:windows_arm64"
+
+    env:
+      USE_BAZEL_VERSION: "9.x"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+        with:
+          bazelisk-cache: true
+          disk-cache: linux-amd64-${{ matrix.target_os }}-${{ matrix.target_arch }}
+          repository-cache: true
+          cache-version: 1
+          bazelrc: |
+            common --config=ci
+
+      - name: Bazel version
+        shell: bash
+        run: bazel version
+
+      - name: Analyze (cross ${{ matrix.target_os }}-${{ matrix.target_arch }})
+        shell: bash
+        run: >
+          bazel build
+          --nobuild
+          --platforms=${{ matrix.platform }}
+          //...
+
+      - name: Build (cross ${{ matrix.target_os }}-${{ matrix.target_arch }})
+        shell: bash
+        run: >
+          bazel build
+          --platforms=${{ matrix.platform }}
+          //...
+
+      - name: Force bazel shutdown to enable cache sync
+        if: always()
+        shell: bash
+        run: >
+          bazel shutdown
+
+  # ---------------------------------------------------------------------------
+  # Stage 2: Bazel last_rc (non-blocking, reuses caches from Stage 1)
+  # ---------------------------------------------------------------------------
+  native-last-rc:
+    name: native ${{ matrix.os }}-${{ matrix.arch }} / bazel last_rc
+    needs: [native-9x]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+        include:
+          - os: linux
+            arch: amd64
+            runner: ubuntu-24.04
+          - os: linux
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - os: darwin
+            arch: amd64
+            runner: macos-15-intel
+          - os: darwin
+            arch: arm64
+            runner: macos-15
+          - os: windows
+            arch: amd64
+            runner: windows-2025
+          - os: windows
+            arch: arm64
+            runner: windows-11-arm
+
+    env:
+      USE_BAZEL_VERSION: "last_rc"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.os }}-${{ matrix.arch }}
+          repository-cache: true
+          cache-version: 1
+          bazelrc: |
+            ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
+            common --config=ci
+
+      - name: Bazel version
+        shell: bash
+        run: bazel version
+
+      - name: Analyze (native ${{ matrix.os }}-${{ matrix.arch }})
+        shell: bash
+        run: >
+          bazel build
+          --nobuild
+          //...
+
+      - name: Build (native ${{ matrix.os }}-${{ matrix.arch }})
+        shell: bash
+        run: >
+          bazel build
+          //...
+
+      - name: Test (native ${{ matrix.os }}-${{ matrix.arch }})
+        shell: bash
+        run: >
+          bazel test
+          //...
 
       - name: Force bazel shutdown to enable cache sync
         if: always()
@@ -174,6 +271,75 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: testlogs-${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
+          name: testlogs-${{ matrix.os }}-${{ matrix.arch }}-bazellast_rc
           path: bazel-testlogs/**/test.log
           if-no-files-found: ignore
+
+  cross-last-rc:
+    name: cross linux-amd64 -> ${{ matrix.target_os }}-${{ matrix.target_arch }} / bazel last_rc
+    needs: [cross-9x]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target_os: linux
+            target_arch: arm64
+            platform: "@llvm//platforms:linux_arm64_gnu.2.34"
+          - target_os: darwin
+            target_arch: amd64
+            platform: "@llvm//platforms:macos_amd64"
+          - target_os: darwin
+            target_arch: arm64
+            platform: "@llvm//platforms:macos_arm64"
+          - target_os: windows
+            target_arch: amd64
+            platform: "@llvm//platforms:windows_amd64"
+          - target_os: windows
+            target_arch: arm64
+            platform: "@llvm//platforms:windows_arm64"
+
+    env:
+      USE_BAZEL_VERSION: "last_rc"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+        with:
+          bazelisk-cache: true
+          disk-cache: linux-amd64-${{ matrix.target_os }}-${{ matrix.target_arch }}
+          repository-cache: true
+          cache-version: 1
+          bazelrc: |
+            common --config=ci
+
+      - name: Bazel version
+        shell: bash
+        run: bazel version
+
+      - name: Analyze (cross ${{ matrix.target_os }}-${{ matrix.target_arch }})
+        shell: bash
+        run: >
+          bazel build
+          --nobuild
+          --platforms=${{ matrix.platform }}
+          //...
+
+      - name: Build (cross ${{ matrix.target_os }}-${{ matrix.target_arch }})
+        shell: bash
+        run: >
+          bazel build
+          --platforms=${{ matrix.platform }}
+          //...
+
+      - name: Force bazel shutdown to enable cache sync
+        if: always()
+        shell: bash
+        run: >
+          bazel shutdown
+

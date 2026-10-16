@@ -3,7 +3,7 @@
     "strip_prefix": "qtmultimedia-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-fTtGUiwG668YBDWM8FiqDey+cMnZ3t6tZ/EL1W5fMpg=",
+        "BUILD.bazel": "sha256-ieaaLlsChi6GVHCRjumIV50VllMnRfYf7u73uv9D1A8=",
         "MODULE.bazel": "sha256-Pe40bTrhVth4a/cg3UozkFxTefRgY3IeRYLgjissPvs=",
         "qtmultimedia_config.bzl": "sha256-Fbyc+vH4pdkTkadTwcYGKHze4Fpb4PraGIq0B3qfXXE="
     }
