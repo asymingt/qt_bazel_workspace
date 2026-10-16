@@ -151,7 +151,7 @@ the fix lands upstream.
 
 | Module | Patch | Why |
 | --- | --- | --- |
-| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module (fastbuild flags, header search paths, sanitizer runtimes, stage-0 object reset, zstd for LLVM 21). |
+| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module (fastbuild flags, header search paths, sanitizer runtimes, stage-0 object reset, zstd for LLVM 21, Windows `@params` files, de-duplicated `-rpath` entries). |
 | `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
 | `openssl` | `patches/openssl/windows_clang.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC. |
 | `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
