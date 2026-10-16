@@ -4,15 +4,15 @@
 # (12 jobs). Bazel 8 is not supported: rules_cc >= 0.2.21 (required by the
 # hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
 #   1. builds and runs every test natively on the runner (no platform flags;
-#      Bazel auto-detects the host via @platforms//host), and
-#   2. (currently disabled, see below) cross-compiles everything for every
-#      *other* supported platform by pinning the host and target to explicit
-#      hermetic LLVM toolchain platforms (`--host_platform=@llvm//platforms:...`
-#      and `--platforms=@llvm//platforms:...`).
+#      Bazel auto-detects the host via @platforms//host, and .bazelrc pins
+#      Linux to glibc 2.34 via //platforms:linux), and
+#   2. cross-compiles everything for every *other* supported platform with the
+#      hermetic LLVM toolchain (`--platforms=@llvm//platforms:...`; the host
+#      stays auto-detected).
 #
-# The cross-compile step is commented out until native builds are green on all
-# six hosts and their disk caches are warm; running 6 full Qt builds per job on
-# a cold cache does not fit in the 6h job limit.
+# Each job therefore performs six full Qt builds. On a cold disk cache this is
+# close to the 6h job limit; the per-cell actions/cache keeps subsequent runs
+# incremental.
 #
 # `push` on main is included only so that the Bazel caches get seeded from the
 # default branch; PR runs then restore from those caches (actions/cache scope).
@@ -43,19 +43,13 @@ jobs:
       matrix:
         os: [linux, darwin, windows]
         arch: [amd64, arm64]
-        # "last_rc" is bazelisk's alias for the newest release candidate
-        # (currently 10.0.0rc1); it is informational only, see continue-on-error.
         bazel: ["9.x", "last_rc"]
         include:
           - bazel: "last_rc"
             experimental: true
-          # Per-(os, arch) runner image, the hermetic LLVM platform matching
-          # that runner (used as --host_platform when cross-compiling), and the
-          # list of all other platforms to cross-compile for from that host.
           - os: linux
             arch: amd64
             runner: ubuntu-24.04
-            platform: "@llvm//platforms:linux_amd64_gnu.2.34"
             cross: >-
               @llvm//platforms:linux_arm64_gnu.2.34
               @llvm//platforms:macos_amd64
@@ -65,7 +59,6 @@ jobs:
           - os: linux
             arch: arm64
             runner: ubuntu-24.04-arm
-            platform: "@llvm//platforms:linux_arm64_gnu.2.34"
             cross: >-
               @llvm//platforms:linux_amd64_gnu.2.34
               @llvm//platforms:macos_amd64
@@ -75,7 +68,6 @@ jobs:
           - os: darwin
             arch: amd64
             runner: macos-15-intel
-            platform: "@llvm//platforms:macos_amd64"
             cross: >-
               @llvm//platforms:linux_amd64_gnu.2.34
               @llvm//platforms:linux_arm64_gnu.2.34
@@ -85,7 +77,6 @@ jobs:
           - os: darwin
             arch: arm64
             runner: macos-15
-            platform: "@llvm//platforms:macos_arm64"
             cross: >-
               @llvm//platforms:linux_amd64_gnu.2.34
               @llvm//platforms:linux_arm64_gnu.2.34
@@ -95,7 +86,6 @@ jobs:
           - os: windows
             arch: amd64
             runner: windows-2025
-            platform: "@llvm//platforms:windows_amd64"
             cross: >-
               @llvm//platforms:linux_amd64_gnu.2.34
               @llvm//platforms:linux_arm64_gnu.2.34
@@ -105,7 +95,6 @@ jobs:
           - os: windows
             arch: arm64
             runner: windows-11-arm
-            platform: "@llvm//platforms:windows_arm64"
             cross: >-
               @llvm//platforms:linux_amd64_gnu.2.34
               @llvm//platforms:linux_arm64_gnu.2.34
@@ -163,19 +152,17 @@ jobs:
           bazel test
           //...
 
-      # TODO: re-enable once native builds pass everywhere and caches are warm.
-      # - name: Cross-compile from ${{ matrix.platform }}
-      #   shell: bash
-      #   run: |
-      #     set -euo pipefail
-      #     for target in ${{ matrix.cross }}; do
-      #       echo "::group::--platforms=${target}"
-      #       bazel build \
-      #         --host_platform=${{ matrix.platform }} \
-      #         --platforms=${target} \
-      #         //...
-      #       echo "::endgroup::"
-      #     done
+      - name: Cross-compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          for target in ${{ matrix.cross }}; do
+            echo "::group::--platforms=${target}"
+            bazel build \
+              --platforms=${target} \
+              //...
+            echo "::endgroup::"
+          done
 
       - name: Force bazel shutdown to enable cache sync
         if: always()
