@@ -10,46 +10,34 @@ common --incompatible_enable_cc_toolchain_resolution
 common --@llvm//config:experimental_stub_libgcc_s=False
 common --features=system_include_paths
 common --experimental_platform_in_output_dir
+common --macos_minimum_os=14.0
+
 # Mirrors for flaky upstream download hosts (BCR modules we cannot annotate).
 common --downloader_config=bazel_downloader.cfg
 
-# This needs to change if you are not compiling from linux, or you
-# want to target a different glibc version. Use one of the `host_*`
-# configs below to override it (CI does this per runner).
-common --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
-build --platforms=@llvm//platforms:linux_amd64_gnu.2.39
-build --macos_minimum_os=14.0
+# Lets Bazel auto-apply the `linux` / `macos` / `windows` configs below.
+common --enable_platform_specific_config
 
-# Host (execution) platform presets
-common:host_linux_amd64 --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
-common:host_linux_arm64 --host_platform=@llvm//platforms:linux_arm64_gnu.2.39
-common:host_macos_amd64 --host_platform=@llvm//platforms:macos_amd64
-common:host_macos_arm64 --host_platform=@llvm//platforms:macos_arm64
-common:host_windows_amd64 --host_platform=@llvm//platforms:windows_amd64
-common:host_windows_arm64 --host_platform=@llvm//platforms:windows_arm64
+# Native Linux builds target glibc 2.34 on the host's CPU (see
+# platforms/BUILD.bazel). macOS and Windows need no pin: Bazel's auto-detected
+# @platforms//host already resolves to the right @llvm toolchain there. To
+# cross-compile, pass an explicit --platforms=@llvm//platforms:<os>_<arch>[...]
+# (see .github/workflows/pull_request.yaml); it overrides this.
+build:linux --platforms=//platforms:linux
 
-# Target platform presets
-build:linux_amd64 --platforms=@llvm//platforms:linux_amd64_gnu.2.39
-build:linux_arm64 --platforms=@llvm//platforms:linux_arm64_gnu.2.39
-build:macos_amd64 --platforms=@llvm//platforms:macos_amd64
-build:macos_arm64 --platforms=@llvm//platforms:macos_arm64
-build:windows_amd64 --platforms=@llvm//platforms:windows_amd64
-build:windows_arm64 --platforms=@llvm//platforms:windows_arm64
 # Windows' CreateProcessW caps command lines at 32767 chars; QML module compile
 # actions (many -I/-isystem dirs) exceed this, so route all compiler args via
 # @params files on Windows. The feature is defined by the patched @llvm
 # toolchain (patches/llvm/windows_compiler_param_file.patch).
-build:windows_amd64 --features=compiler_param_file
-build:windows_arm64 --features=compiler_param_file
+build:windows --features=compiler_param_file
 
 # CI defaults (see .github/workflows/pull_request.yaml)
 common:ci --announce_rc
 common:ci --show_timestamps
-build:ci --verbose_failures
-# Be patient with slow upstream hosts (freedesktop.org, x.org) on fresh runners.
 common:ci --http_timeout_scaling=3
 common:ci --http_connector_attempts=12
 common:ci --experimental_repository_downloader_retries=10
+build:ci --verbose_failures
 test:ci --test_output=errors
 
 # Address sanitizer

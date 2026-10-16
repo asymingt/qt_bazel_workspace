@@ -81,7 +81,7 @@ flag:
 ```
 bazel build //:app --platforms=@llvm//platforms:macos_arm64
 bazel build //:app --platforms=@llvm//platforms:windows_amd64
-bazel build //:app --platforms=@llvm//platforms:linux_arm64_gnu.2.39
+bazel build //:app --platforms=@llvm//platforms:linux_arm64_gnu.2.34
 ```
 
 ## What's in the box
@@ -138,7 +138,7 @@ is a different thing:
 | `bazel_registry.json`, `modules/` | The Bazel registry, published to GitHub Pages on every merge (`.github/workflows/ci.yaml`). |
 | `tests/` | Smoke tests per Qt area, run natively and cross-compiled by the PR matrix (`.github/workflows/pull_request.yaml`). |
 | `patches/` | Patches for third-party BCR modules, one directory per module (`llvm/`, `ffmpeg/`, `openssl/`, `rules_perl/`), applied via `single_version_override`. See below. |
-| `.bazelrc` | `--config=<os>_<arch>` / `--config=host_<os>_<arch>` presets for the six supported platforms. |
+| `.bazelrc` | Toolchain flags and sanitizer configs. No platform is pinned, so `bazel test //...` builds natively on any supported host; cross-compile by passing `--platforms=@llvm//platforms:<os>_<arch>` explicitly. |
 | `bazel_downloader.cfg` | Download mirrors for upstream tarballs of BCR modules we cannot annotate with `mirror_urls` (currently `fontconfig`). |
 
 ## Patches to third-party modules

@@ -3,11 +3,12 @@
 # Matrix: {linux, darwin, windows} x {amd64, arm64} x {bazel 9.x, last_rc}
 # (12 jobs). Bazel 8 is not supported: rules_cc >= 0.2.21 (required by the
 # hermetic llvm toolchain) needs Bazel 9's cc_runtimes toolchain type. Each job:
-#   1. builds and runs every test natively on the runner
-#      (`--config=host_<os>_<arch> --config=<os>_<arch>`), and
+#   1. builds and runs every test natively on the runner (no platform flags;
+#      Bazel auto-detects the host via @platforms//host), and
 #   2. (currently disabled, see below) cross-compiles everything for every
-#      *other* supported platform (`--platforms=@llvm//platforms:<os>_<arch>`)
-#      using the hermetic LLVM toolchain.
+#      *other* supported platform by pinning the host and target to explicit
+#      hermetic LLVM toolchain platforms (`--host_platform=@llvm//platforms:...`
+#      and `--platforms=@llvm//platforms:...`).
 #
 # The cross-compile step is commented out until native builds are green on all
 # six hosts and their disk caches are warm; running 6 full Qt builds per job on
@@ -48,38 +49,69 @@ jobs:
         include:
           - bazel: "last_rc"
             experimental: true
-          # Per-(os, arch) runner image, native platform config, and the list of
-          # all other platform configs to cross-compile for from that host.
+          # Per-(os, arch) runner image, the hermetic LLVM platform matching
+          # that runner (used as --host_platform when cross-compiling), and the
+          # list of all other platforms to cross-compile for from that host.
           - os: linux
             arch: amd64
             runner: ubuntu-24.04
-            platform: linux_amd64
-            cross: linux_arm64 macos_amd64 macos_arm64 windows_amd64 windows_arm64
+            platform: "@llvm//platforms:linux_amd64_gnu.2.34"
+            cross: >-
+              @llvm//platforms:linux_arm64_gnu.2.34
+              @llvm//platforms:macos_amd64
+              @llvm//platforms:macos_arm64
+              @llvm//platforms:windows_amd64
+              @llvm//platforms:windows_arm64
           - os: linux
             arch: arm64
             runner: ubuntu-24.04-arm
-            platform: linux_arm64
-            cross: linux_amd64 macos_amd64 macos_arm64 windows_amd64 windows_arm64
+            platform: "@llvm//platforms:linux_arm64_gnu.2.34"
+            cross: >-
+              @llvm//platforms:linux_amd64_gnu.2.34
+              @llvm//platforms:macos_amd64
+              @llvm//platforms:macos_arm64
+              @llvm//platforms:windows_amd64
+              @llvm//platforms:windows_arm64
           - os: darwin
             arch: amd64
             runner: macos-15-intel
-            platform: macos_amd64
-            cross: linux_amd64 linux_arm64 macos_arm64 windows_amd64 windows_arm64
+            platform: "@llvm//platforms:macos_amd64"
+            cross: >-
+              @llvm//platforms:linux_amd64_gnu.2.34
+              @llvm//platforms:linux_arm64_gnu.2.34
+              @llvm//platforms:macos_arm64
+              @llvm//platforms:windows_amd64
+              @llvm//platforms:windows_arm64
           - os: darwin
             arch: arm64
             runner: macos-15
-            platform: macos_arm64
-            cross: linux_amd64 linux_arm64 macos_amd64 windows_amd64 windows_arm64
+            platform: "@llvm//platforms:macos_arm64"
+            cross: >-
+              @llvm//platforms:linux_amd64_gnu.2.34
+              @llvm//platforms:linux_arm64_gnu.2.34
+              @llvm//platforms:macos_amd64
+              @llvm//platforms:windows_amd64
+              @llvm//platforms:windows_arm64
           - os: windows
             arch: amd64
             runner: windows-2025
-            platform: windows_amd64
-            cross: linux_amd64 linux_arm64 macos_amd64 macos_arm64 windows_arm64
+            platform: "@llvm//platforms:windows_amd64"
+            cross: >-
+              @llvm//platforms:linux_amd64_gnu.2.34
+              @llvm//platforms:linux_arm64_gnu.2.34
+              @llvm//platforms:macos_amd64
+              @llvm//platforms:macos_arm64
+              @llvm//platforms:windows_arm64
           - os: windows
             arch: arm64
             runner: windows-11-arm
-            platform: windows_arm64
-            cross: linux_amd64 linux_arm64 macos_amd64 macos_arm64 windows_amd64
+            platform: "@llvm//platforms:windows_arm64"
+            cross: >-
+              @llvm//platforms:linux_amd64_gnu.2.34
+              @llvm//platforms:linux_arm64_gnu.2.34
+              @llvm//platforms:macos_amd64
+              @llvm//platforms:macos_arm64
+              @llvm//platforms:windows_amd64
 
     env:
       # Bazelisk honours this over .bazelversion.
@@ -109,39 +141,39 @@ jobs:
         shell: bash
         run: bazel version
 
-      - name: Analyze (native ${{ matrix.platform }})
+      # No platform flags: these are exactly what a developer runs locally.
+      # Bazel auto-detects the host; on Linux, .bazelrc additionally pins the
+      # target to //platforms:linux (glibc 2.34 on the host's CPU).
+      - name: Analyze (native ${{ matrix.os }}-${{ matrix.arch }})
         shell: bash
         run: >
           bazel build
           --nobuild
-          --config=host_${{ matrix.platform }}
-          --config=${{ matrix.platform }}
           //...
 
-      - name: Build (native ${{ matrix.platform }})
+      - name: Build (native ${{ matrix.os }}-${{ matrix.arch }})
         shell: bash
         run: >
           bazel build
-          --config=host_${{ matrix.platform }}
-          --config=${{ matrix.platform }}
           //...
 
-      - name: Test (native ${{ matrix.platform }})
+      - name: Test (native ${{ matrix.os }}-${{ matrix.arch }})
         shell: bash
         run: >
           bazel test
-          --config=host_${{ matrix.platform }}
-          --config=${{ matrix.platform }}
           //...
 
       # TODO: re-enable once native builds pass everywhere and caches are warm.
-      # - name: Cross-compile from ${{ matrix.platform }} (${{ matrix.cross }})
+      # - name: Cross-compile from ${{ matrix.platform }}
       #   shell: bash
       #   run: |
       #     set -euo pipefail
       #     for target in ${{ matrix.cross }}; do
-      #       echo "::group::--platforms=@llvm//platforms:${target}"
-      #       bazel build --config=host_${{ matrix.platform }} --config=${target} //...
+      #       echo "::group::--platforms=${target}"
+      #       bazel build \
+      #         --host_platform=${{ matrix.platform }} \
+      #         --platforms=${target} \
+      #         //...
       #       echo "::endgroup::"
       #     done
 
