@@ -1114,8 +1114,8 @@ qt_sync_headers(
 
 qt_write_file(
     name = "win_d3d11_h",
-    out = "generated_win_hdrs/D3d11.h",
-    content = "#include_next <d3d11.h>\n",
+    out = "D3d11.h",
+    content = "#include <d3d11.h>\n",
 )
 
 qt_write_file(
@@ -1219,7 +1219,6 @@ qt_internal_library(
     ],
     create_shared = False,
     includes = [
-        "generated_win_hdrs",
         "src/3rdparty/signalsmith-stretch",
         "src/plugins/multimedia/ffmpeg",
         "src/plugins/multimedia/ffmpeg/darwin",
