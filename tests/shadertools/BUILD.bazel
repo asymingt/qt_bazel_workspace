@@ -8,7 +8,10 @@ genrule(
     name = "simple_frag_qsb",
     srcs = ["simple.frag"],
     outs = ["simple.frag.qsb"],
-    cmd = "$(execpath @qtshadertools//:qsb) --glsl '100 es,120,150' --hlsl 50 --msl 12 -o $@ $(location simple.frag)",
+    cmd = select({
+        "@platforms//os:linux": "LC_ALL=C.UTF-8 $(execpath @qtshadertools//:qsb) --glsl '100 es,120,150' --hlsl 50 --msl 12 -o $@ $(location simple.frag)",
+        "//conditions:default": "$(execpath @qtshadertools//:qsb) --glsl '100 es,120,150' --hlsl 50 --msl 12 -o $@ $(location simple.frag)",
+    }),
     tools = ["@qtshadertools//:qsb"],
 )
 

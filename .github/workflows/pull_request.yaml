@@ -109,7 +109,24 @@ jobs:
         shell: bash
         run: bazel version
 
-      - name: Build and test (native ${{ matrix.platform }})
+      - name: Analyze (native ${{ matrix.platform }})
+        shell: bash
+        run: >
+          bazel build
+          --nobuild
+          --config=host_${{ matrix.platform }}
+          --config=${{ matrix.platform }}
+          //...
+
+      - name: Build (native ${{ matrix.platform }})
+        shell: bash
+        run: >
+          bazel build
+          --config=host_${{ matrix.platform }}
+          --config=${{ matrix.platform }}
+          //...
+
+      - name: Test (native ${{ matrix.platform }})
         shell: bash
         run: >
           bazel test
@@ -131,7 +148,7 @@ jobs:
       - name: Force bazel shutdown to enable cache sync
         shell: bash
         run: >
-          bazel shudown
+          bazel shutdown
 
       - name: Upload test logs on failure
         if: failure()

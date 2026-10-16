@@ -1,0 +1,11 @@
+diff --git a/toolchain/features/BUILD.bazel b/toolchain/features/BUILD.bazel
+--- a/toolchain/features/BUILD.bazel
++++ b/toolchain/features/BUILD.bazel
+@@ -697,6 +697,7 @@ cc_feature_set(
+         ":fully_static_link",
+     ] + select({
+         "@platforms//os:windows": [
++            "//toolchain/features/clang_cl:compiler_param_file",
+             ":copy_dynamic_libraries_to_binary",
+             "@rules_cc//cc/toolchains/args/def_file:def_file",
+             ":no_windows_export_all_symbols",

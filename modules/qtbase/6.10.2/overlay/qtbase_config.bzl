@@ -43,7 +43,7 @@ _QCONFIG_H = """#ifndef QT_QCONFIG_H
 #define QT_FEATURE_future 1
 #define QT_FEATURE_concurrent 1
 #define QT_FEATURE_dbus 1
-#define QT_FEATURE_openssl_linked 1
+#define QT_FEATURE_openssl_linked -1
 #define QT_FEATURE_openssl_runtime -1
 #define QT_FEATURE_opensslv11 -1
 #define QT_FEATURE_opensslv30 1

@@ -19,6 +19,7 @@ single_version_override(
         "//patches:llvm/asan_runtime.patch",
         "//patches:llvm/sanitizer_runtime_libunwind.patch",
         "//patches:llvm/sanitizer_strip_foreign_source_paths.patch",
+        "//patches:llvm/windows_compiler_param_file.patch",
     ],
     version = "0.8.24",
 )

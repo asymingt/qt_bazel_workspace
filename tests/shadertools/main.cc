@@ -12,6 +12,9 @@ int main(int argc, char *argv[]) {
 
     // 1. Load the .qsb produced by the qsb host tool in the genrule.
     QFile f(QString::fromLocal8Bit(argv[1]));
+    if (!f.exists()) {
+        f.setFileName(QCoreApplication::applicationDirPath() + QStringLiteral("/simple.frag.qsb"));
+    }
     assert(f.open(QIODevice::ReadOnly));
     QShader baked = QShader::fromSerialized(f.readAll());
     assert(baked.isValid());

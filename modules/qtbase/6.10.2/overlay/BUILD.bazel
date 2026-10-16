@@ -2052,12 +2052,6 @@ qt_internal_library(
     cxxopts = ["-std=gnu++20"],
     defines = ["QT_NETWORK_LIB"],
     dynamic_deps = [":core_shared"],
-    # OpenSSL (Apache-2.0) and libpsl are linked statically into libnetwork_shared.so
-    # with default visibility; the TLS backend plugin reuses them.
-    exports_filter = [
-        "@openssl//:crypto",
-        "@openssl//:ssl",
-    ],
     includes = [
         "src/3rdparty/libpsl",
         "src/network",
@@ -2185,7 +2179,6 @@ qt_internal_library(
         ":core_internal_cfg",
         ":network_internal_cfg",
         ":network_sync_headers",
-        "@openssl//:ssl",  # QT_FEATURE_openssl_linked (PHASE2 decision 6.5)
         "@zlib",
     ],
 )
@@ -2239,6 +2232,7 @@ qt_static_plugin(
     local_defines = [
         "OPENSSL_API_COMPAT=0x10100000L",
         "QT_CORE_LIB",
+        "QT_LINKED_OPENSSL",
         "QT_NETWORK_LIB",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",
