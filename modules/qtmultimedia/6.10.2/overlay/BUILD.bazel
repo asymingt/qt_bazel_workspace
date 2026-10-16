@@ -1115,7 +1115,7 @@ qt_sync_headers(
 qt_write_file(
     name = "win_d3d11_h",
     out = "generated_win_hdrs/D3d11.h",
-    content = "#include <d3d11.h>\n",
+    content = "#include_next <d3d11.h>\n",
 )
 
 qt_write_file(

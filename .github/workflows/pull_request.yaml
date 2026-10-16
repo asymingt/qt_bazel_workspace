@@ -146,6 +146,7 @@ jobs:
       #     done
 
       - name: Force bazel shutdown to enable cache sync
+        if: always()
         shell: bash
         run: >
           bazel shutdown
