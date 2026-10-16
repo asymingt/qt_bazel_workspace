@@ -1,5 +1,7 @@
 #include <QtCore/QBuffer>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #include <QtCore/QTemporaryDir>
 #include <QtCore/QTranslator>
 #include <QtGrpc/QGrpcChannelOptions>
@@ -15,12 +17,36 @@
 #include <cassert>
 #include <cstdio>
 #include <memory>
-#include <string>
-
-#include "rules_cc/cc/runfiles/runfiles.h"
 
 #include "test.qpb.h"
 #include "test_client.grpc.qpb.h"
+
+// Minimal runfiles lookup (see bazel's runfiles spec). On Windows Bazel does
+// not materialize a runfiles tree, only a MANIFEST, so a relative scan from
+// the cwd finds nothing; elsewhere RUNFILES_DIR / TEST_SRCDIR point at the
+// tree. Kept self-contained so the test does not link @rules_cc//cc/runfiles
+// (which is already linked statically into libcore_shared).
+static QString rlocation(const QString& rel) {
+  const QString manifest = qEnvironmentVariable("RUNFILES_MANIFEST_FILE");
+  if (!manifest.isEmpty()) {
+    QFile f(manifest);
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      while (!f.atEnd()) {
+        const QString line = QString::fromUtf8(f.readLine()).trimmed();
+        const int sp = line.indexOf(QLatin1Char(' '));
+        if (sp > 0 && line.left(sp) == rel) return line.mid(sp + 1);
+      }
+    }
+  }
+  for (const char* var : {"RUNFILES_DIR", "TEST_SRCDIR"}) {
+    const QString dir = qEnvironmentVariable(var);
+    if (!dir.isEmpty()) {
+      const QString candidate = dir + QLatin1Char('/') + rel;
+      if (QFileInfo::exists(candidate)) return candidate;
+    }
+  }
+  return QString();
+}
 
 int main(int argc, char* argv[]) {
   qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -78,18 +104,12 @@ int main(int argc, char* argv[]) {
   QHelpEngineCore help_engine(temp_dir.filePath(QStringLiteral("smoke.qhc")));
   assert(help_engine.setupData());
 
-  // 5. @qttranslations: find and load a compiled .qm catalog. Resolve it via
-  // the runfiles library rather than scanning the cwd: on Windows Bazel does
-  // not materialize a runfiles tree (manifest only), so relative lookups fail.
-  std::string rf_error;
-  std::unique_ptr<rules_cc::cc::runfiles::Runfiles> runfiles(
-      rules_cc::cc::runfiles::Runfiles::CreateForTest(&rf_error));
-  assert(runfiles != nullptr);
-  const std::string qm_path =
-      runfiles->Rlocation("qttranslations+/translations_qm/qtbase_de.qm");
-  assert(!qm_path.empty());
+  // 5. @qttranslations: find and load a compiled .qm catalog via runfiles.
+  const QString qm_path =
+      rlocation(QStringLiteral("qttranslations+/translations_qm/qtbase_de.qm"));
+  assert(!qm_path.isEmpty());
   QTranslator translator;
-  const bool loaded_qm = translator.load(QString::fromStdString(qm_path));
+  const bool loaded_qm = translator.load(qm_path);
   assert(loaded_qm);
 
   std::printf("Milestone 7 smoke test passed!\n");
