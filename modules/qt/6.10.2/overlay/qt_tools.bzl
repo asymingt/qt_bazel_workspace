@@ -1800,7 +1800,17 @@ def _qt_cc_library_impl(ctx):
             additional_inputs = additional_inputs,
             linking_contexts = linking_contexts,
             user_link_flags = cc_helper.linkopts(ctx, additional_make_variable_substitutions, cc_toolchain),
-            alwayslink = ctx.attr.alwayslink,
+            # On Windows, Qt headers mark every exported symbol dllimport for
+            # consumers, so objects reference `__imp_<sym>`. Tools such as
+            # uic/rcc/qmlcachegen link Qt statically; lld can only satisfy an
+            # `__imp_` reference from a local definition (LNK4217) when that
+            # definition is already loaded, and it never pulls archive members
+            # in for `__imp_` references. Forcing whole-archive linking makes
+            # every definition available. DLL consumers are unaffected, since
+            # cc_shared_library already links its roots whole-archive. This only
+            # matters for native Windows builds, where those tools are built for
+            # the (Windows) exec platform.
+            alwayslink = ctx.attr.alwayslink or is_windows_enabled,
             disallow_dynamic_library = not create_dynamic_library,
             variables_extension = link_variables,
         )

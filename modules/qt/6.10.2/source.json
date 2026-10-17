@@ -4,6 +4,6 @@
     "url": "https://github.com/asymingt/qt_bazel/archive/refs/tags/6.10.2.tar.gz",
     "overlay": {
         "qt.bzl": "sha256-gWy5gehYFly04+mp14SSztKgqkuWBMcBoXrDQOX/bOE=",
-        "qt_tools.bzl": "sha256-yXFWr7zuf/V39Ab0dK5ACRBIIMRHzA5/2hQ+6+sRYX0="
+        "qt_tools.bzl": "sha256-Z6jWDZIi6oa1picHq0Y0vg6+POqrNgSpOuf8F+VXN38="
     }
 }
