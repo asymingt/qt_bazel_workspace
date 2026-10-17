@@ -127,7 +127,10 @@ bazel_dep(name = "openssl", version = "3.5.8.bcr.0")
 single_version_override(
     module_name = "openssl",
     patch_strip = 1,
-    patches = ["//patches:openssl/windows_clang.patch"],
+    patches = [
+        "//patches:openssl/perlasm_gnu_section_syntax.patch",
+        "//patches:openssl/windows_clang.patch",
+    ],
     version = "3.5.8.bcr.0",
 )
 
@@ -165,6 +168,19 @@ single_version_override(
 
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "wayland", version = "1.24.0.bcr.1")
+
+# Not a direct dependency (pulled in by qtbase for Linux targets), but
+# overridden to ship its Bison-generated parser instead of running bison (and
+# m4) at build time: those are built for the execution platform and neither
+# builds with MinGW, which breaks cross-compiling Linux targets from Windows.
+# See patches/xkbcommon/.
+bazel_dep(name = "xkbcommon", version = "1.9.2.bcr.beta.1")
+single_version_override(
+    module_name = "xkbcommon",
+    patch_strip = 1,
+    patches = ["//patches:xkbcommon/pregenerated_parser.patch"],
+    version = "1.9.2.bcr.beta.1",
+)
 
 # Qt modules (served from the local registry under modules/, see .bazelrc)
 

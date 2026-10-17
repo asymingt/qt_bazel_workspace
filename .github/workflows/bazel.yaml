@@ -91,8 +91,12 @@ jobs:
           disk-cache: false
           repository-cache: true
           cache-version: ${{ inputs.cache_version }}
+          # Windows -> macOS: the macOS SDK reaches every framework's headers
+          # through symlinks (Headers -> Versions/Current/Headers, Current -> A).
+          # Bazel on Windows only creates real symlinks with this startup flag.
           bazelrc: |
             ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
+            ${{ runner.os == 'Windows' && startsWith(inputs.target, 'darwin') && 'startup --windows_enable_symlinks' || '' }}
             build --disk_cache=${{ env.DISK_CACHE_DIR }}
             common --config=ci
 
