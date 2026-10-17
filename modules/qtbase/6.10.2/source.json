@@ -3,8 +3,9 @@
     "strip_prefix": "qtbase-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-Z5PGizZMByHVxiS0Hhs00OZUOKALIevLos4sFQmBX2Q=",
+        "BUILD.bazel": "sha256-1MVI6qzKMxb8Cj57VzbeDedIH3A6HrKonxOjxckmzS8=",
         "MODULE.bazel": "sha256-0xIinC6MAeUfO7M/vDcREuJ50TjiSUwiLCxcue7jMEM=",
-        "qtbase_config.bzl": "sha256-7WMYJOwHhv+jnzfl2VCsaO1wgGZvkKVpMv4+n8o3Cnw="
+        "qt_mime_database_gen.cc": "sha256-GNmHjctomGpuAeboRwXcfD/3F/8Mb2+JV78K/nbXpCE=",
+        "qtbase_config.bzl": "sha256-yY0E06BPVYBZ+7MTyjBYgwQeUJzlDhZtapfH6/RW/t8="
     }
 }

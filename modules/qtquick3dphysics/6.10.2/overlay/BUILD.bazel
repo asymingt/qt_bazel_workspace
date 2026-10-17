@@ -62,13 +62,13 @@ _QT_INTERNAL_DEFINES = [
 qt_write_file(
     name = "win_versionhelpers_h",
     out = "generated_win_hdrs/VersionHelpers.h",
-    content = "#include <versionhelpers.h>\n",
+    content = "#include_next <versionhelpers.h>\n",
 )
 
 qt_write_file(
     name = "win_winsock2_h",
     out = "generated_win_hdrs/Winsock2.h",
-    content = "#include <winsock2.h>\n",
+    content = "#include_next <winsock2.h>\n",
 )
 
 cc_library(

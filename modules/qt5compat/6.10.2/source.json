@@ -3,7 +3,7 @@
     "strip_prefix": "qt5compat-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qt5compat-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-fT8hjrxni/ex/qoDKh4wq32ubpqb3hWk9DiYtLScRLc=",
+        "BUILD.bazel": "sha256-af4peugbhaipN6Bspnpcjq6wc8JF8WpTzSeUcBAiju4=",
         "MODULE.bazel": "sha256-mR4ZXk532TJFBLdIH4PqIC9OHJTK52ue8rQjBooa3vU="
     }
 }

@@ -37,6 +37,9 @@ cc_library(
     copts = [
         # Upstream configure.ac DEF_CURSORPATH default (runtime search path).
         '-DXCURSORPATH=\\"~/.icons:/usr/share/icons:/usr/share/pixmaps:/usr/X11R6/lib/X11/icons\\"',
+        # Upstream configure.ac uses AC_USE_SYSTEM_EXTENSIONS. cursor.c calls
+        # asprintf(), which glibc < 2.38 only declares under _GNU_SOURCE.
+        "-D_GNU_SOURCE",
     ] + select({
         "@platforms//os:macos": ["-DHAVE_LIBKERN_OSBYTEORDER_H=1"],
         "//conditions:default": [

@@ -1,5 +1,9 @@
 {
-    "integrity": "sha256-HjuQSGr0xBNZrNKqHbQ3JTz6ndu8mqqCXu0hfxnT/28=",
+    "integrity": "sha256-55ImJcHedtGVFUY1VMX+x3e5RtpjWOy05xniY4ELQKc=",
     "strip_prefix": "qt_bazel-6.10.2",
-    "url": "https://github.com/asymingt/qt_bazel/archive/refs/tags/6.10.2.tar.gz"
+    "url": "https://github.com/asymingt/qt_bazel/archive/refs/tags/6.10.2.tar.gz",
+    "overlay": {
+        "qt.bzl": "sha256-gWy5gehYFly04+mp14SSztKgqkuWBMcBoXrDQOX/bOE=",
+        "qt_tools.bzl": "sha256-Z6jWDZIi6oa1picHq0Y0vg6+POqrNgSpOuf8F+VXN38="
+    }
 }

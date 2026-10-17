@@ -5,6 +5,7 @@
     "overlay": {
         "BUILD.bazel": "sha256-o/wCZqRBY8dSm01/XMQmhCejiinJW7zbvCe5M79C0EI=",
         "MODULE.bazel": "sha256-jFwayVIDhe+ntH3prjauw33BOewxA1aTxKFvIdfIIRU=",
-        "qtdeclarative_config.bzl": "sha256-QvQwV4lJMFlqKVCd5ixI3CowLc3DJF8WAehgGkyOlYA="
+        "bazel_prebuilt/yarr/RegExpJitTables.h": "sha256-+7K8PVxdiKJ8GkRfe6qhcjJNQXY6YDVbUsPQZrcFgYQ=",
+        "qtdeclarative_config.bzl": "sha256-9DljMQWMuFzY3N7mbnh/Xn1RMX9YXIwxCTP8eLwivUM="
     }
 }

@@ -50,13 +50,6 @@ qt_write_file(
 #include <QtCore/qtconfigmacros.h>
 #include <QtCore/qtdeprecationmarkers.h>
 
-#ifdef __MINGW32__
-#  undef Q_DECL_EXPORT
-#  undef Q_DECL_IMPORT
-#  define Q_DECL_EXPORT
-#  define Q_DECL_IMPORT
-#endif
-
 #if defined(QT_SHARED) || !defined(QT_STATIC)
 #  if defined(QT_BUILD_SERIALBUS_LIB)
 #    define Q_SERIALBUS_EXPORT Q_DECL_EXPORT
