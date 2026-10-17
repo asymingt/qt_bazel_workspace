@@ -25,6 +25,21 @@ common --enable_platform_specific_config
 # (see .github/workflows/pull_request.yaml); it overrides this.
 build:linux --platforms=//platforms:linux
 
+# Pin the action environment that --incompatible_strict_action_env produces.
+# Bazel 10 changed its defaults (PATH=/bin:/usr/bin:/sbin:/usr/sbin plus
+# LC_CTYPE=C.UTF-8, vs. PATH=/bin:/usr/bin:/usr/local/bin in Bazel 9). The
+# environment is part of every action's cache key, so without this pin the
+# 9.x and last_rc CI jobs cannot share a disk cache. Exec-config (tool)
+# actions take --host_action_env, so pin both.
+common:linux --action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:linux --action_env=LC_CTYPE=C.UTF-8
+common:linux --host_action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:linux --host_action_env=LC_CTYPE=C.UTF-8
+common:macos --action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:macos --action_env=LC_CTYPE=C.UTF-8
+common:macos --host_action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:macos --host_action_env=LC_CTYPE=C.UTF-8
+
 # Windows' CreateProcessW caps command lines at 32767 chars; QML module compile
 # actions (many -I/-isystem dirs) exceed this, so route all compiler args via
 # @params files on Windows. The feature is defined by the patched @llvm
