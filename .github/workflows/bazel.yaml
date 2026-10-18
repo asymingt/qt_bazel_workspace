@@ -174,8 +174,12 @@ jobs:
           find "$dir" -type f ! -newer "${{ env.DISK_CACHE_MARKER }}" -delete
           echo "Disk cache: $before -> $(du -sh "$dir" | cut -f1)"
 
+      # Only save after a successful build. Restore falls back to the most
+      # recent entry for the (host, target) pair, so a near-empty cache saved by
+      # a run that failed or was cancelled early would shadow the last good one.
+      # `always()` keeps saving when only the tests failed.
       - name: Save disk cache
-        if: always() && inputs.save_disk_cache && steps.restore-disk-cache.outputs.cache-hit != 'true'
+        if: always() && inputs.save_disk_cache && steps.build.outcome == 'success' && steps.restore-disk-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.DISK_CACHE_DIR }}
