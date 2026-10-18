@@ -85,14 +85,24 @@ jobs:
       # runner.temp (D:\a\_temp on Windows) cannot be used in a bazelrc.
       DISK_CACHE_DIR: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_disk' || '/tmp/bazel-disk' }}
       DISK_CACHE_MARKER: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_disk_marker' || '/tmp/bazel-disk-marker' }}
-      # Kept outside setup-bazel's repository cache directory (its default
-      # location), so the saved repository cache holds only downloaded
-      # archives, not tens of thousands of extracted files.
-      REPO_CONTENTS_DIR: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_repo_contents' || '/tmp/bazel-repo-contents' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Bazel's repo contents cache (extracted repos) is kept outside
+      # setup-bazel's repository cache directory (its default location), so the
+      # saved repository cache holds only downloaded archives. It must be on
+      # the same drive as the output base: Bazel moves fetched repos into it,
+      # and on Windows a cross-drive move falls back to a copy that breaks
+      # symlinks (e.g. the macOS SDK's usr/lib/libpthread.tbd). RUNNER_TEMP is
+      # on the workspace drive, which is where setup-bazel puts the output base.
+      - name: Compute Bazel paths
+        shell: bash
+        run: |
+          temp="$RUNNER_TEMP"
+          if command -v cygpath >/dev/null; then temp="$(cygpath -m "$temp")"; fi
+          echo "REPO_CONTENTS_DIR=$temp/bazel-repo-contents" >> "$GITHUB_ENV"
 
       - name: Set up Bazel
         uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
