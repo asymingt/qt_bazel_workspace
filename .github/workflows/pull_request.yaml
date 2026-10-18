@@ -117,6 +117,9 @@ jobs:
       target: ${{ matrix.host }}
       test: true
       allow_failure: true
+      # Restores the 9.x entry for the same commit; saving its own (nearly
+      # identical) copy would double cache storage per commit.
+      save_disk_cache: false
 
   cross-last-rc:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel last_rc
@@ -137,3 +140,6 @@ jobs:
       target: ${{ matrix.target }}
       platform: ${{ matrix.platform }}
       allow_failure: true
+      # Restores the 9.x entry for the same commit; saving its own (nearly
+      # identical) copy would double cache storage per commit.
+      save_disk_cache: false

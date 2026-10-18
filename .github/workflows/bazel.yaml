@@ -8,7 +8,8 @@
 # files and skips saving on an exact-key hit, so entries froze at their first
 # save and changes to .bzl files, sources or patches never reached the cache.
 #
-# Instead, every job saves under a unique key
+# Instead, every job (except `last_rc`, see save_disk_cache) saves under a
+# unique key
 #   bazel-disk-v<cache_version>-<host>-<target>-<sha>-<stage>
 # and restores the most recent entry for the same commit (so `last_rc` picks up
 # what `9.x` just produced), falling back to the most recent entry for the
@@ -55,6 +56,11 @@ on:
         required: false
         type: boolean
         default: false
+      save_disk_cache:
+        description: Save the disk cache after building (restore always happens).
+        required: false
+        type: boolean
+        default: true
       cache_version:
         description: Bump to invalidate all Bazel caches.
         required: false
@@ -79,6 +85,10 @@ jobs:
       # runner.temp (D:\a\_temp on Windows) cannot be used in a bazelrc.
       DISK_CACHE_DIR: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_disk' || '/tmp/bazel-disk' }}
       DISK_CACHE_MARKER: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_disk_marker' || '/tmp/bazel-disk-marker' }}
+      # Kept outside setup-bazel's repository cache directory (its default
+      # location), so the saved repository cache holds only downloaded
+      # archives, not tens of thousands of extracted files.
+      REPO_CONTENTS_DIR: ${{ startsWith(inputs.host, 'windows') && 'C:/_bzl_repo_contents' || '/tmp/bazel-repo-contents' }}
 
     steps:
       - name: Checkout
@@ -91,9 +101,15 @@ jobs:
           disk-cache: false
           repository-cache: true
           cache-version: ${{ inputs.cache_version }}
+          # bazelisk/repository caches are keyed per runner OS/arch, so one job
+          # per runner type (the native one) saving them is enough. actions/cache
+          # archives the whole directory before finding out whether the key can
+          # still be reserved, which costs 10-30 minutes per job on Windows.
+          cache-save: ${{ inputs.host == inputs.target }}
           bazelrc: |
             ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
             build --disk_cache=${{ env.DISK_CACHE_DIR }}
+            common --repo_contents_cache=${{ env.REPO_CONTENTS_DIR }}
             common --config=ci
 
       - name: Restore disk cache
@@ -140,7 +156,7 @@ jobs:
       # Only prune after a complete build: after a failure, untouched entries
       # may still be needed by actions that never got to run.
       - name: Prune unused disk cache entries
-        if: steps.build.outcome == 'success'
+        if: inputs.save_disk_cache && steps.build.outcome == 'success'
         shell: bash
         run: |
           dir="${{ env.DISK_CACHE_DIR }}"
@@ -149,7 +165,7 @@ jobs:
           echo "Disk cache: $before -> $(du -sh "$dir" | cut -f1)"
 
       - name: Save disk cache
-        if: always() && steps.restore-disk-cache.outputs.cache-hit != 'true'
+        if: always() && inputs.save_disk_cache && steps.restore-disk-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.DISK_CACHE_DIR }}
