@@ -3,7 +3,7 @@
     "strip_prefix": "qthttpserver-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qthttpserver-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-EN1/ROFtfaizAse49/PaPenzUEZZSUKQG5B0ETyMG7s=",
+        "BUILD.bazel": "sha256-l2QfiHyhWSuixY7DVLXK8+4SCOjWQs0B0R4bzyqmf8w=",
         "MODULE.bazel": "sha256-T33CI0mdEg3GwhjzgP3jExNzMg4LgLvZOIz4rV3YEnk="
     }
 }

@@ -4,40 +4,59 @@ common --registry=https://bcr.bazel.build
 
 # Tolchain properties
 common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --repo_env=ANDROID_HOME=
 common --incompatible_strict_action_env
 common --incompatible_enable_cc_toolchain_resolution
 common --@llvm//config:experimental_stub_libgcc_s=False
 common --features=system_include_paths
 common --experimental_platform_in_output_dir
+common --macos_minimum_os=14.0
 
-# This needs to change if you are not compiling from linux, or you
-# want to target a different glibc version. Use one of the `host_*`
-# configs below to override it (CI does this per runner).
-common --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
-build --platforms=@llvm//platforms:linux_amd64_gnu.2.39
-build --macos_minimum_os=14.0
+# Mirrors for flaky upstream download hosts (BCR modules we cannot annotate).
+common --downloader_config=bazel_downloader.cfg
 
-# Host (execution) platform presets
-common:host_linux_amd64 --host_platform=@llvm//platforms:linux_amd64_gnu.2.39
-common:host_linux_arm64 --host_platform=@llvm//platforms:linux_arm64_gnu.2.39
-common:host_macos_amd64 --host_platform=@llvm//platforms:macos_amd64
-common:host_macos_arm64 --host_platform=@llvm//platforms:macos_arm64
-common:host_windows_amd64 --host_platform=@llvm//platforms:windows_amd64
-common:host_windows_arm64 --host_platform=@llvm//platforms:windows_arm64
+# Lets Bazel auto-apply the `linux` / `macos` / `windows` configs below.
+common --enable_platform_specific_config
 
-# Target platform presets
-build:linux_amd64 --platforms=@llvm//platforms:linux_amd64_gnu.2.39
-build:linux_arm64 --platforms=@llvm//platforms:linux_arm64_gnu.2.39
-build:macos_amd64 --platforms=@llvm//platforms:macos_amd64
-build:macos_arm64 --platforms=@llvm//platforms:macos_arm64
-build:windows_amd64 --platforms=@llvm//platforms:windows_amd64
-build:windows_arm64 --platforms=@llvm//platforms:windows_arm64
+# Native Linux builds target glibc 2.34 on the host's CPU (see
+# platforms/BUILD.bazel). macOS and Windows need no pin: Bazel's auto-detected
+# @platforms//host already resolves to the right @llvm toolchain there. To
+# cross-compile, pass an explicit --platforms=@llvm//platforms:<os>_<arch>[...]
+# (see .github/workflows/pull_request.yaml); it overrides this.
+build:linux --platforms=//platforms:linux
+
+# Pin the action environment that --incompatible_strict_action_env produces.
+# Bazel 10 changed its defaults (PATH=/bin:/usr/bin:/sbin:/usr/sbin plus
+# LC_CTYPE=C.UTF-8, vs. PATH=/bin:/usr/bin:/usr/local/bin in Bazel 9). The
+# environment is part of every action's cache key, so without this pin the
+# 9.x and last_rc CI jobs cannot share a disk cache. Exec-config (tool)
+# actions take --host_action_env, so pin both.
+common:linux --action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:linux --action_env=LC_CTYPE=C.UTF-8
+common:linux --host_action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:linux --host_action_env=LC_CTYPE=C.UTF-8
+common:macos --action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:macos --action_env=LC_CTYPE=C.UTF-8
+common:macos --host_action_env=PATH=/bin:/usr/bin:/usr/local/bin
+common:macos --host_action_env=LC_CTYPE=C.UTF-8
+
+# Windows' CreateProcessW caps command lines at 32767 chars; QML module compile
+# actions (many -I/-isystem dirs) exceed this, so route all compiler args via
+# @params files on Windows. The feature is defined by the patched @llvm
+# toolchain (patches/llvm/windows_compiler_param_file.patch).
+build:windows --features=compiler_param_file
 
 # CI defaults (see .github/workflows/pull_request.yaml)
 common:ci --announce_rc
 common:ci --show_timestamps
+common:ci --http_timeout_scaling=3
+common:ci --http_connector_attempts=12
+common:ci --experimental_repository_downloader_retries=10
 build:ci --verbose_failures
 test:ci --test_output=errors
+# Without a console (as under Bazel on Windows) Qt routes qDebug/QTest output
+# to OutputDebugString, leaving test.log empty. Force it to stderr/stdout.
+test --test_env=QT_FORCE_STDERR_LOGGING=1
 
 # Address sanitizer
 common:asan --strip=never

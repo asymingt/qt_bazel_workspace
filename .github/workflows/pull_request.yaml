@@ -1,12 +1,19 @@
 # Pull request CI.
 #
-# Matrix: {ubuntu, macos, windows} x {amd64, arm64} x {bazel 8.x, bazel 9.x}
-# (12 jobs). Each job:
-#   1. builds and runs every test natively on the runner
-#      (`--config=host_<os>_<arch> --config=<os>_<arch>`), and
-#   2. cross-compiles everything for the *other* architecture of the same OS
-#      (`--platforms=@llvm//platforms:<os>_<other-arch>`) using the hermetic
-#      LLVM toolchain, so a PR cannot break either architecture of any OS.
+# Structured into two sequential stages (`bazel 9.x` followed by `bazel last_rc`)
+# so that `last_rc` reuses the per-(host, target) disk caches populated by `9.x`.
+#
+# Within each stage:
+#   1. `native-*`: Matrix over {linux, darwin, windows} x {amd64, arm64} (6 jobs).
+#      Runs native analyze, build, and test (no `--platforms` flag; Bazel
+#      auto-detects the host via @platforms//host, and .bazelrc pins Linux to
+#      glibc 2.34 via //platforms:linux).
+#   2. `cross-*`: Every host above cross-compiling (analyze + build) to every
+#      other {os} x {arch} target via `--platforms=@llvm//platforms:...`
+#      (6 hosts x 5 targets = 30 jobs).
+#
+# Every job runs the reusable workflow in bazel.yaml, which also documents how
+# the per-(host, target) Bazel disk caches are keyed, restored, pruned and saved.
 #
 # `push` on main is included only so that the Bazel caches get seeded from the
 # default branch; PR runs then restore from those caches (actions/cache scope).
@@ -26,100 +33,113 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
-    name: ${{ matrix.os }}-${{ matrix.arch }} / bazel ${{ matrix.bazel }}
-    runs-on: ${{ matrix.runner }}
-    # A cold Qt build on a hosted runner takes hours; later runs are mostly
-    # disk-cache hits.
-    timeout-minutes: 360
+  # ---------------------------------------------------------------------------
+  # Stage 1: Bazel 9.x (blocking)
+  # ---------------------------------------------------------------------------
+  native-9x:
+    name: native ${{ matrix.host }} / bazel 9.x
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
-        arch: [amd64, arm64]
-        bazel: ["8.x", "9.x"]
-        include:
-          # Per-(os, arch) runner image, native platform config and the
-          # other-architecture platform config used for the cross-compile check.
-          - os: ubuntu
-            arch: amd64
-            runner: ubuntu-24.04
-            platform: linux_amd64
-            cross: linux_arm64
-          - os: ubuntu
-            arch: arm64
-            runner: ubuntu-24.04-arm
-            platform: linux_arm64
-            cross: linux_amd64
-          - os: macos
-            arch: amd64
-            runner: macos-15-intel
-            platform: macos_amd64
-            cross: macos_arm64
-          - os: macos
-            arch: arm64
-            runner: macos-15
-            platform: macos_arm64
-            cross: macos_amd64
-          - os: windows
-            arch: amd64
-            runner: windows-2025
-            platform: windows_amd64
-            cross: windows_arm64
-          - os: windows
-            arch: arm64
-            runner: windows-11-arm
-            platform: windows_arm64
-            cross: windows_amd64
+        host: [linux-amd64, linux-arm64, darwin-amd64, darwin-arm64, windows-amd64, windows-arm64]
+        include: &hosts
+          - { host: linux-amd64, runner: ubuntu-24.04 }
+          - { host: linux-arm64, runner: ubuntu-24.04-arm }
+          - { host: darwin-amd64, runner: macos-15-intel }
+          - { host: darwin-arm64, runner: macos-15 }
+          - { host: windows-amd64, runner: windows-2025 }
+          - { host: windows-arm64, runner: windows-11-arm }
+    uses: ./.github/workflows/bazel.yaml
+    with:
+      runner: ${{ matrix.runner }}
+      bazel_version: "9.x"
+      stage: 9x
+      host: ${{ matrix.host }}
+      target: ${{ matrix.host }}
+      test: true
 
-    env:
-      # Bazelisk honours this over .bazelversion.
-      USE_BAZEL_VERSION: ${{ matrix.bazel }}
+  cross-9x:
+    name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel 9.x
+    strategy:
+      fail-fast: false
+      matrix:
+        host: &all [linux-amd64, linux-arm64, darwin-amd64, darwin-arm64, windows-amd64, windows-arm64]
+        target: *all
+        # Same-platform pairs are covered by the native jobs.
+        exclude: &native_pairs
+          - { host: linux-amd64, target: linux-amd64 }
+          - { host: linux-arm64, target: linux-arm64 }
+          - { host: darwin-amd64, target: darwin-amd64 }
+          - { host: darwin-arm64, target: darwin-arm64 }
+          - { host: windows-amd64, target: windows-amd64 }
+          - { host: windows-arm64, target: windows-arm64 }
+        # `include` entries that only name `host` (or only `target`) extend
+        # every matching combination with the runner (or platform).
+        include: &hosts_and_targets
+          - { host: linux-amd64, runner: ubuntu-24.04 }
+          - { host: linux-arm64, runner: ubuntu-24.04-arm }
+          - { host: darwin-amd64, runner: macos-15-intel }
+          - { host: darwin-arm64, runner: macos-15 }
+          - { host: windows-amd64, runner: windows-2025 }
+          - { host: windows-arm64, runner: windows-11-arm }
+          - { target: linux-amd64, platform: "@llvm//platforms:linux_amd64_gnu.2.34" }
+          - { target: linux-arm64, platform: "@llvm//platforms:linux_arm64_gnu.2.34" }
+          - { target: darwin-amd64, platform: "@llvm//platforms:macos_amd64" }
+          - { target: darwin-arm64, platform: "@llvm//platforms:macos_arm64" }
+          - { target: windows-amd64, platform: "@llvm//platforms:windows_amd64" }
+          - { target: windows-arm64, platform: "@llvm//platforms:windows_arm64" }
+    uses: ./.github/workflows/bazel.yaml
+    with:
+      runner: ${{ matrix.runner }}
+      bazel_version: "9.x"
+      stage: 9x
+      host: ${{ matrix.host }}
+      target: ${{ matrix.target }}
+      platform: ${{ matrix.platform }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # ---------------------------------------------------------------------------
+  # Stage 2: Bazel last_rc (non-blocking, reuses caches from Stage 1)
+  # ---------------------------------------------------------------------------
+  native-last-rc:
+    name: native ${{ matrix.host }} / bazel last_rc
+    needs: [native-9x]
+    strategy:
+      fail-fast: false
+      matrix:
+        host: *all
+        include: *hosts
+    uses: ./.github/workflows/bazel.yaml
+    with:
+      runner: ${{ matrix.runner }}
+      bazel_version: last_rc
+      stage: lastrc
+      host: ${{ matrix.host }}
+      target: ${{ matrix.host }}
+      test: true
+      allow_failure: true
+      # Restores the 9.x entry for the same commit; saving its own (nearly
+      # identical) copy would double cache storage per commit.
+      save_disk_cache: false
 
-      - name: Set up Bazel
-        uses: bazel-contrib/setup-bazel@0.15.0
-        with:
-          # All caches below are backed by actions/cache and keyed per matrix
-          # cell so that a given (os, arch, bazel) combination restores its own
-          # artifacts on subsequent runs.
-          bazelisk-cache: true
-          disk-cache: ${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
-          repository-cache: true
-          cache-version: 1
-          # Keep output paths short on Windows (MAX_PATH) and avoid writing
-          # the output base into the checkout on any OS.
-          bazelrc: |
-            ${{ runner.os == 'Windows' && 'startup --output_user_root=C:/_bzl' || '' }}
-            common --config=ci
-
-      - name: Bazel version
-        shell: bash
-        run: bazel version
-
-      - name: Build and test (native ${{ matrix.platform }})
-        shell: bash
-        run: >
-          bazel test
-          --config=host_${{ matrix.platform }}
-          --config=${{ matrix.platform }}
-          //...
-
-      - name: Cross-compile (${{ matrix.cross }} from ${{ matrix.platform }})
-        shell: bash
-        run: >
-          bazel build
-          --config=host_${{ matrix.platform }}
-          --config=${{ matrix.cross }}
-          //...
-
-      - name: Upload test logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: testlogs-${{ matrix.os }}-${{ matrix.arch }}-bazel${{ matrix.bazel }}
-          path: bazel-testlogs/**/test.log
-          if-no-files-found: ignore
+  cross-last-rc:
+    name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel last_rc
+    needs: [cross-9x]
+    strategy:
+      fail-fast: false
+      matrix:
+        host: *all
+        target: *all
+        exclude: *native_pairs
+        include: *hosts_and_targets
+    uses: ./.github/workflows/bazel.yaml
+    with:
+      runner: ${{ matrix.runner }}
+      bazel_version: last_rc
+      stage: lastrc
+      host: ${{ matrix.host }}
+      target: ${{ matrix.target }}
+      platform: ${{ matrix.platform }}
+      allow_failure: true
+      # Restores the 9.x entry for the same commit; saving its own (nearly
+      # identical) copy would double cache storage per commit.
+      save_disk_cache: false

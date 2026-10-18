@@ -2,8 +2,13 @@
     "integrity": "sha256-DK+ZsNYJcPgc5Bx7ppTl6q+DMie7LLzbL23JZmpmPFc=",
     "strip_prefix": "xcb-util-cursor-0.1.5",
     "url": "https://xcb.freedesktop.org/dist/xcb-util-cursor-0.1.5.tar.xz",
+    "mirror_urls": [
+        "https://src.fedoraproject.org/repo/pkgs/xcb-util-cursor/xcb-util-cursor-0.1.5.tar.xz/sha512/e2d14c3f0ab117524ba90d1a992b61717ccee04bc9e66c587a6a0f10571f15e89fc5db3413882ca7ce14ebc07b6b7b0a4ddecd59ba910e6ca654ea9b1c705ed5/xcb-util-cursor-0.1.5.tar.xz",
+        "https://www.x.org/releases/individual/xcb/xcb-util-cursor-0.1.5.tar.xz",
+        "https://ftp.x.org/pub/individual/xcb/xcb-util-cursor-0.1.5.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-EEBHGHO8KEwpCMn5LW8IDTK9fUcM1rYAODdSbtmQ370=",
+        "BUILD.bazel": "sha256-7Vb9VBCT9M/eWf+m2rRRyGYnTzW7sryoCH5GHy1tcZQ=",
         "MODULE.bazel": "sha256-+v3gy1zVWHlDNMM+/uiDgsNSwuXbFc11qs96uBu7SwI="
     }
 }

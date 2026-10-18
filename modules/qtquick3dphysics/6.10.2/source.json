@@ -3,7 +3,7 @@
     "strip_prefix": "qtquick3dphysics-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtquick3dphysics-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-Hn9Vn9xvgG+AxOYUHLorkkuGvo8DHR10FFoLqh6BPbo=",
+        "BUILD.bazel": "sha256-Eoz22nvMtJZayIcbOutpvgPjJbva9S5OKiPe+xIsy3Y=",
         "MODULE.bazel": "sha256-d/6Se2ofGBaKRJu0OQamOdzZ1MlHw+ybVtcMypVkliY="
     }
 }

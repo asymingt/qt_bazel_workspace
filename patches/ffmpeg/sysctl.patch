@@ -1,3 +1,4 @@
+diff --git a/ffmpeg_config_checks.bzl b/ffmpeg_config_checks.bzl
 --- a/ffmpeg_config_checks.bzl
 +++ b/ffmpeg_config_checks.bzl
 @@ -248,7 +248,7 @@
@@ -9,3 +10,9 @@
      checks.AC_TRY_LINK(define = "HAVE_SYSCTLBYNAME", code = "long x = (long)sysctlbyname; (void)x;", includes = ["#include <sys/sysctl.h>"]),
      checks.AC_CHECK_FUNC("tempnam", define = "HAVE_TEMPNAM"),
      checks.AC_CHECK_FUNC("usleep", define = "HAVE_USLEEP"),
+diff --git a/VERSION b/VERSION
+deleted file mode 100644
+--- a/VERSION
++++ /dev/null
+@@ -1 +0,0 @@
+-7.1.1

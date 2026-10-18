@@ -1,4 +1,5 @@
 load("@qt//:qt.bzl", "QT_VERSION", "common_copts", "common_defines", "qt_export_header", "qt_internal_library", "qt_qsb", "qt_static_plugin", "qt_sync_headers")
+load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
 load("@qt//:qt_tools.bzl", "moc_gen", "moc_out_copts", "qt_cc_library", "qt_write_file")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@rules_license//rules:license.bzl", "license")
@@ -1112,11 +1113,25 @@ qt_sync_headers(
     version = QT_VERSION,
 )
 
+# qffmpegscreencapture_dxgi.cpp does `#include "D3d11.h"` (capital D) while
+# MinGW ships `d3d11.h`. On a case-sensitive host (Linux cross-compile) we emit
+# a forwarding shim at the package root, found via -iquote. On a case-insensitive
+# host (Windows or macOS) the filesystem finds the real header directly;
+# emitting the shim there is harmful because the package root is also on the
+# -isystem path, so `<d3d11.h>` would resolve to the shim and recurse.
+_HOST_IS_CASE_INSENSITIVE = (
+    "@platforms//os:windows" in HOST_CONSTRAINTS or
+    "@platforms//os:macos" in HOST_CONSTRAINTS or
+    "@platforms//os:osx" in HOST_CONSTRAINTS
+)
+
 qt_write_file(
     name = "win_d3d11_h",
-    out = "generated_win_hdrs/D3d11.h",
-    content = "#include <d3d11.h>\n",
+    out = "D3d11.h",
+    content = "#include_next <d3d11.h>\n",
 )
+
+_WIN_D3D11_SHIM_HDRS = [] if _HOST_IS_CASE_INSENSITIVE else [":win_d3d11_h"]
 
 qt_write_file(
     name = "ffmpeg_win_mfuuid_src",
@@ -1211,15 +1226,13 @@ qt_internal_library(
         "src/3rdparty/signalsmith-stretch/**/*.h",
     ]) + [
         ":ffmpegmediaplugin_impl_sync_headers",
-        ":win_d3d11_h",
-    ],
+    ] + _WIN_D3D11_SHIM_HDRS,
     applicable_licenses = [
         ":license",
         ":license_signalsmith_stretch",
     ],
     create_shared = False,
     includes = [
-        "generated_win_hdrs",
         "src/3rdparty/signalsmith-stretch",
         "src/plugins/multimedia/ffmpeg",
         "src/plugins/multimedia/ffmpeg/darwin",
