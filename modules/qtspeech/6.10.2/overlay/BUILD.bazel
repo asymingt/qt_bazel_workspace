@@ -274,9 +274,11 @@ qt_static_plugin(
     # CLSID_SpVoice-style constant defined but unused by upstream.
     copts = ["-Wno-unused-const-variable"],
     includes = ["src/plugins/tts/sapi"],
+    # No -lsapi: sapi.dll only exports COM registration entry points (and
+    # MinGW ships sapi.def for x86_64 only). SAPI objects are created through
+    # CoCreateInstance (ole32) with the GUIDs from :sapi_win_guids_src.
     linkopts = [
         "-lole32",
-        "-lsapi",
         "-luuid",
     ],
     local_defines = _COMMON_DEFINES,

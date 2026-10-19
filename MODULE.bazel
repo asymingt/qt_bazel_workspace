@@ -23,6 +23,7 @@ single_version_override(
         "//patches:llvm/windows_pkg_dir_symlinks.patch",
         "//patches:llvm/runtime_library_search_directories_dedup.patch",
         "//patches:llvm/mingw_def_extra_tokens.patch",
+        "//patches:llvm/osx_cryptex_frameworks.patch",
     ],
     version = "0.8.24",
 )
@@ -47,11 +48,10 @@ register_toolchains(
     dev_dependency = True,
 )
 
-# NOTE: do not add JavaScriptCore or WebKit here. In the SDK archive they are
-# symlinks into System/Cryptexes (which is not extracted), i.e. dangling links
-# in the sysroot; the darwin sandbox rejects those ("file type ... is not
-# supported") whenever macOS is the execution platform. Nothing in the Qt
-# modules links them.
+# WebKit and JavaScriptCore (QtWebView's macOS plugin) are symlinks into
+# System/Cryptexes/OS in the macOS 26 SDK; patches/llvm/osx_cryptex_frameworks.patch
+# extracts the link targets too, so they resolve (the darwin sandbox rejects
+# dangling links whenever macOS is the execution platform).
 osx = use_extension("@llvm//extensions:osx.bzl", "osx")
 osx.frameworks(
     names = [
@@ -90,6 +90,7 @@ osx.frameworks(
         "IOBluetooth",
         "IOKit",
         "IOSurface",
+        "JavaScriptCore",
         "ImageIO",
         "Kernel",
         "MediaToolbox",
@@ -107,9 +108,14 @@ osx.frameworks(
         "SystemConfiguration",
         "UniformTypeIdentifiers",
         "VideoToolbox",
+        "WebKit",
         "_LocationEssentials",
     ],
 )
+
+# QtPrintSupport on macOS (qcocoaprintdevice.mm) uses the CUPS PPD API and
+# links -lcups; libcups.tbd is not in the default minimal sysroot.
+osx.libraries(names = ["libcups"])
 
 # BCR modules
 
