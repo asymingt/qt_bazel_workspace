@@ -168,7 +168,10 @@ qt_internal_library(
         "QT_BUILD_LANGUAGESERVER_LIB",
         "QT_JSONRPC_LIB",
     ],
-    moc_hdrs = ["src/languageserver/qlspnotifysignals_p.h"],
+    moc_hdrs = [
+        "src/languageserver/qlanguageserverspectypes_p.h",
+        "src/languageserver/qlspnotifysignals_p.h",
+    ],
     deps = [
         ":jsonrpc",
         ":languageserver_sync_headers",

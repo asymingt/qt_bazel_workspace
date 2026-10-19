@@ -1,0 +1,51 @@
+load("@qt//:qt.bzl", "qt_cc_library", "qt_cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+qt_cc_test(
+    name = "gl_context_test",
+    srcs = ["gl_context_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:opengl",
+        "@qtbase//:openglwidgets",
+        "@qtbase//:test",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_cc_library(
+    name = "gl_direct_caller_lib",
+    testonly = True,
+    srcs = ["gl_direct_caller.cc"],
+    hdrs = ["gl_direct_caller.h"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:opengl",
+    ],
+)
+
+qt_cc_test(
+    name = "gl_direct_call_test",
+    srcs = ["gl_direct_call_test.cc"],
+    deps = [
+        ":gl_direct_caller_lib",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:opengl",
+        "@qtbase//:test",
+    ],
+)
+
+qt_cc_test(
+    name = "vulkan_rhi_test",
+    srcs = ["vulkan_rhi_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:test",
+    ],
+)
+

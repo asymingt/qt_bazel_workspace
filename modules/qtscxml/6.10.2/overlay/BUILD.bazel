@@ -116,8 +116,10 @@ qt_cc_library(
         "src/scxml/qscxmltabledata.cpp",
     ],
     hdrs = SCXML_HEADERS,
+    copts = ["-w"],
     includes = ["src/scxml"],
     local_defines = [
+        "QT_BUILDING_QT",
         "QT_BUILD_SCXML_LIB",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",
@@ -352,6 +354,7 @@ qt_cc_library(
         "src/statemachine/qstatemachine.cpp",
     ],
     hdrs = STATEMACHINE_HEADERS,
+    copts = ["-w"],
     included_moc_hdrs = [
         "src/statemachine/gui/qbasickeyeventtransition_p.h",
         "src/statemachine/gui/qbasicmouseeventtransition_p.h",
@@ -371,6 +374,7 @@ qt_cc_library(
         "src/statemachine/gui",
     ],
     local_defines = [
+        "QT_BUILDING_QT",
         "QT_BUILD_STATEMACHINE_LIB",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",

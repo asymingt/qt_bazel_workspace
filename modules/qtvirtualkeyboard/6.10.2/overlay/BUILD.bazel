@@ -190,7 +190,6 @@ qt_qml_module(
         "src/virtualkeyboard/virtualkeyboardattachedtype.cpp",
     ],
     hdrs = VIRTUALKEYBOARD_HEADERS,
-    generate_plugin = False,
     import_name = "QtQuick.VirtualKeyboard.Core",
     import_version = "6.10",
     includes = ["src/virtualkeyboard"],
@@ -202,6 +201,9 @@ qt_qml_module(
         "QT_NO_CAST_TO_ASCII",
         "QT_VIRTUALKEYBOARD_DESKTOP",
     ],
+    past_major_versions = ["1", "2"],
+    plugin_class_name = "QtQuick_VirtualKeyboard_CorePlugin",
+    plugin_target = "virtualkeyboardplugin",
     deps = [
         ":virtualkeyboard_config",
         ":virtualkeyboard_export",
@@ -256,6 +258,7 @@ qt_qml_module(
     ],
     plugin_class_name = "QtQuick_VirtualKeyboard_SettingsPlugin",
     plugin_target = "qtvkbsettingsplugin",
+    past_major_versions = ["1", "2"],
     deps = [
         ":virtualkeyboard",
         "@qtbase//:core",
@@ -273,6 +276,7 @@ qt_qml_module(
     name = "qtvkbcomponents",
     import_name = "QtQuick.VirtualKeyboard.Components",
     import_version = "6.10",
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_ComponentsPlugin",
     plugin_target = "qtvkbcomponentsplugin",
     qml_files = glob(["src/components/*.qml"]),
@@ -306,6 +310,7 @@ qt_qml_module(
     srcs = [":vkb_layouts_qrc"],
     import_name = "QtQuick.VirtualKeyboard.Layouts",
     import_version = "6.10",
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_LayoutsPlugin",
     plugin_target = "qtvkblayoutsplugin",
     deps = [
@@ -323,6 +328,7 @@ qt_generate_qrc(
     name = "vkb_default_style_qrc",
     srcs = glob(["src/styles/builtin/default/**"]),
     prefix = "/qt-project.org/imports/QtQuick/VirtualKeyboard/Styles/Builtin/default",
+    qrc_name = "virtualkeyboard_default_style",
     strip_prefix = "src/styles/builtin/default",
 )
 
@@ -330,6 +336,7 @@ qt_generate_qrc(
     name = "vkb_retro_style_qrc",
     srcs = glob(["src/styles/builtin/retro/**"]),
     prefix = "/qt-project.org/imports/QtQuick/VirtualKeyboard/Styles/Builtin/retro",
+    qrc_name = "virtualkeyboard_retro_style",
     strip_prefix = "src/styles/builtin/retro",
 )
 
@@ -345,6 +352,7 @@ qt_qml_module(
     import_name = "QtQuick.VirtualKeyboard.Styles.Builtin",
     import_version = "6.10",
     includes = ["src/styles/builtin"],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuickVirtualKeyboardStylesBuiltinPlugin",
     plugin_target = "qtvkbbuiltinstylesplugin",
     deps = [
@@ -374,12 +382,14 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuickVirtualKeyboardStylesPlugin",
     plugin_target = "qtvkbstylesplugin",
     qml_files = glob([
         "src/styles/*.qml",
         "src/styles/*.js",
     ]),
+    qml_imports = ["QtQuick.VirtualKeyboard.Styles.Builtin auto"],
     strip_prefix = "src/styles",
     deps = [
         ":qtvkbbuiltinstyles",
@@ -415,6 +425,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_Plugins_HangulPlugin",
     plugin_target = "qtvkbhangulplugin",
     deps = [
@@ -438,6 +449,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_Plugins_ThaiPlugin",
     plugin_target = "qtvkbthaiplugin",
     deps = [
@@ -482,6 +494,7 @@ qt_cc_library(
     ],
     local_defines = [
         "QT_ASCII_CAST_WARNINGS",
+        "QT_BUILDING_QT",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
@@ -502,6 +515,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_Plugins_OpenWNNPlugin",
     plugin_target = "qtvkbopenwnnplugin",
     deps = [
@@ -557,6 +571,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_Plugins_PinyinPlugin",
     plugin_target = "qtvkbpinyinplugin",
     deps = [
@@ -612,6 +627,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_Plugins_TCImePlugin",
     plugin_target = "qtvkbtcimeplugin",
     deps = [
@@ -627,14 +643,27 @@ qt_qml_module(
     name = "qtvkbplugins",
     import_name = "QtQuick.VirtualKeyboard.Plugins",
     import_version = "6.10",
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboard_PluginsPlugin",
     plugin_target = "qtvkbpluginsplugin",
+    qml_imports = [
+        "QtQuick.VirtualKeyboard.Plugins.Hangul auto",
+        "QtQuick.VirtualKeyboard.Plugins.OpenWNN auto",
+        "QtQuick.VirtualKeyboard.Plugins.Pinyin auto",
+        "QtQuick.VirtualKeyboard.Plugins.TCIme auto",
+        "QtQuick.VirtualKeyboard.Plugins.Thai auto",
+    ],
     deps = [
         ":qtvkbhangul",
+        ":qtvkbhangulplugin",
         ":qtvkbopenwnn",
+        ":qtvkbopenwnnplugin",
         ":qtvkbpinyin",
+        ":qtvkbpinyinplugin",
         ":qtvkbtcime",
+        ":qtvkbtcimeplugin",
         ":qtvkbthai",
+        ":qtvkbthaiplugin",
         ":virtualkeyboard",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
@@ -655,6 +684,7 @@ qt_qml_module(
         "QT_NO_CAST_FROM_BYTEARRAY",
         "QT_NO_CAST_TO_ASCII",
     ],
+    past_major_versions = ["1", "2"],
     plugin_class_name = "QtQuick_VirtualKeyboardPlugin",
     plugin_target = "qtvkbplugin",
     qml_files = [
@@ -662,13 +692,28 @@ qt_qml_module(
         "src/virtualkeyboard/HandwritingInputPanel.qml",
         "src/virtualkeyboard/InputPanel.qml",
     ],
+    qml_imports = [
+        "QtQuick.VirtualKeyboard.Core auto",
+        "QtQuick.VirtualKeyboard.Components auto",
+        "QtQuick.VirtualKeyboard.Layouts auto",
+        "QtQuick.VirtualKeyboard.Plugins auto",
+        "QtQuick.VirtualKeyboard.Settings auto",
+        "QtQuick.VirtualKeyboard.Styles auto",
+    ],
     strip_prefix = "src/virtualkeyboard",
     deps = [
         ":qtvkbcomponents",
+        ":qtvkbcomponentsplugin",
         ":qtvkblayouts",
+        ":qtvkblayoutsplugin",
         ":qtvkbplugins",
+        ":qtvkbpluginsplugin",
+        ":qtvkbsettingsplugin",
         ":qtvkbstyles",
+        ":qtvkbstylesplugin",
         ":virtualkeyboard",
+        ":virtualkeyboardplugin",
+        ":virtualkeyboardsettings",
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
@@ -689,6 +734,7 @@ qt_plugin_FixMe(
     ],
     plugin_class_name = "QVirtualKeyboardPlugin",
     deps = [
+        ":qtvkbplugin",
         ":virtualkeyboard",
         ":virtualkeyboardqml",
         "@qtbase//:core",

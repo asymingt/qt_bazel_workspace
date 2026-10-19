@@ -1,0 +1,10 @@
+--- a/zlib-1.3.2/BUILD.bazel
++++ b/zlib-1.3.2/BUILD.bazel
+@@ -80,6 +80,7 @@
+ 
+ cc_library(
+     name = "z",
++    tags = ["LINKABLE_MORE_THAN_ONCE"],
+     srcs = [
+         "adler32.c",
+         "compress.c",

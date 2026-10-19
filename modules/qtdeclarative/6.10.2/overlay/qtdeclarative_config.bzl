@@ -18,14 +18,14 @@ _QTQML_CONFIG_P_H = """#ifndef QT_QML_CONFIG_P_H
 
 #include "qtqml-config.h"
 
-#if (defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64)) && !defined(_WIN32)
+#if defined(__x86_64__) || defined(_M_X64) || ((defined(__aarch64__) || defined(_M_ARM64)) && !defined(_WIN32))
 #  define QT_FEATURE_qml_jit 1
 #else
 #  define QT_FEATURE_qml_jit -1
 #endif
 
-#define QT_FEATURE_qml_profiler -1
-#define QT_FEATURE_qml_preview -1
+#define QT_FEATURE_qml_profiler 1
+#define QT_FEATURE_qml_preview 1
 #define QT_FEATURE_qml_xml_http_request 1
 #define QT_FEATURE_qml_locale 1
 #define QT_FEATURE_qml_animation 1
@@ -144,9 +144,18 @@ _QTQUICKCONTROLS2_CONFIG_P_H = """#ifndef QT_QUICKCONTROLS2_CONFIG_P_H
 #define QT_FEATURE_quickcontrols2_material 1
 #define QT_FEATURE_quickcontrols2_universal 1
 #define QT_FEATURE_quickcontrols2_fluentwinui3 1
-#define QT_FEATURE_quickcontrols2_macos -1
-#define QT_FEATURE_quickcontrols2_ios -1
-#define QT_FEATURE_quickcontrols2_windows -1
+#if defined(__APPLE__)
+#  define QT_FEATURE_quickcontrols2_macos 1
+#  define QT_FEATURE_quickcontrols2_ios 1
+#else
+#  define QT_FEATURE_quickcontrols2_macos -1
+#  define QT_FEATURE_quickcontrols2_ios -1
+#endif
+#if defined(_WIN32)
+#  define QT_FEATURE_quickcontrols2_windows 1
+#else
+#  define QT_FEATURE_quickcontrols2_windows -1
+#endif
 
 #endif // QT_QUICKCONTROLS2_CONFIG_P_H
 """

@@ -1,0 +1,96 @@
+load("@qt//:qt.bzl", "qt_cc_library", "qt_cc_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# F-ABI-1: QtGui baseline code must not contain AVX2/VEX instructions.
+qt_cc_test(
+    name = "no_avx2_test",
+    srcs = ["no_avx2_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# F-LNX-3: Linux compiled-in default QPA must be xcb.
+qt_cc_test(
+    name = "default_qpa_test",
+    srcs = ["default_qpa_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# F-INF-8: testonly helper library depended on by qt_cc_library and qt_cc_test.
+cc_library(
+    name = "testonly_marker",
+    testonly = True,
+    defines = ["TESTONLY_MARKER_PRESENT=1"],
+)
+
+# F-INF-7 & F-INF-8: Public qt_cc_library with testonly = True and no QT_BUILDING_QT.
+qt_cc_library(
+    name = "consumer_lib",
+    testonly = True,
+    srcs = ["consumer_lib.cc"],
+    hdrs = ["consumer_lib.h"],
+    deps = [
+        ":testonly_marker",
+        "@qtbase//:core",
+    ],
+)
+
+# F-DEP-1: Simulate a non-Qt shared library (like librclcpp.so in ROS 2) that
+# exports @rules_cc//cc/runfiles:runfiles and @zlib in the same binary graph
+# as @qtbase//:core_shared.
+cc_library(
+    name = "non_qt_shared_helper",
+    testonly = True,
+    srcs = ["non_qt_shared_helper.cc"],
+    deps = [
+        "@rules_cc//cc/runfiles",
+        "@zlib",
+    ],
+)
+
+cc_shared_library(
+    name = "non_qt_shared_helper_shared",
+    testonly = True,
+    exports_filter = [
+        "@rules_cc//cc/runfiles",
+        "@zlib",
+    ],
+    deps = [":non_qt_shared_helper"],
+)
+
+qt_cc_test(
+    name = "downstream_consumer_test",
+    srcs = ["downstream_consumer_test.cc"],
+    dynamic_deps = [":non_qt_shared_helper_shared"],
+    deps = [
+        ":consumer_lib",
+        ":non_qt_shared_helper",
+        ":testonly_marker",
+        "@qtbase//:core",
+    ],
+)
+
+# F-VKB-2: Verify VKB Builtin Styles & Styles plugins link together and register
+# their QRC resources and static plugin instances.
+qt_cc_test(
+    name = "vkb_styles_test",
+    srcs = ["vkb_styles_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtsvg//:svg",
+        "@qtvirtualkeyboard//:qtvkbbuiltinstyles",
+        "@qtvirtualkeyboard//:qtvkbstyles",
+        "@qtvirtualkeyboard//:virtualkeyboard",
+    ],
+)

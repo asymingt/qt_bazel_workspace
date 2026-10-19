@@ -3,7 +3,7 @@
     "strip_prefix": "qtwayland-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwayland-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-FMtOYQiy1puWSQmrFn3MESkd7tKJ/m21Ea4cMtG0FCQ=",
+        "BUILD.bazel": "sha256-9o8dm+2g7Yz6+YTTf9Qa5CA9fLDc3V9GgG445tscyiU=",
         "MODULE.bazel": "sha256-ab85WxPUeYXT0HWtl6Hlfuaer4rLoK3IgLk0xYZAyjc="
     }
 }

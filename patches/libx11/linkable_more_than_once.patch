@@ -1,0 +1,10 @@
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -112,6 +112,7 @@
+ 
+ cc_library(
+     name = "x11",
++    tags = ["LINKABLE_MORE_THAN_ONCE"],
+     srcs = glob(
+         [
+             "src/*.c",

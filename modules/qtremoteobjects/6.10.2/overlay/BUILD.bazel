@@ -157,12 +157,14 @@ qt_cc_library(
         "src/remoteobjects/qremoteobjectnode.h",
         "src/remoteobjects/qremoteobjectpendingcall.h",
     ],
+    copts = ["-w"],
     includes = [
         "rep_lalr",
         "src/remoteobjects",
         "src/repparser",
     ],
     local_defines = [
+        "QT_BUILDING_QT",
         "QT_BUILD_REMOTEOBJECTS_LIB",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_FROM_BYTEARRAY",

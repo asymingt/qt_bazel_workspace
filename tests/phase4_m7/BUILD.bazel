@@ -1,0 +1,49 @@
+load("@qt//:qt.bzl", "qt_cc_binary", "qt_cc_test")
+load("@qt//:qt_deploy.bzl", "qt_deploy")
+
+# F-ABI-4 / F-INF-10: ELF symbol versioning and REMOVED_SINCE exports.
+qt_cc_test(
+    name = "abi_test",
+    srcs = ["abi_test.cc"],
+    linkopts = ["-ldl"],
+    deps = ["@qtbase//:core"],
+)
+
+# F-RT-1 / F-RT-2 / F-TOOL-4: relocatable deployment with qt.conf + translations.
+qt_cc_binary(
+    name = "deploy_probe",
+    srcs = ["deploy_probe.cc"],
+    deps = ["@qtbase//:core"],
+)
+
+qt_deploy(
+    name = "probe_deploy",
+    binary = ":deploy_probe",
+    package_name = "probe_pkg",
+    translations = ["@qttranslations//:qm_files"],
+)
+
+qt_cc_test(
+    name = "deploy_test",
+    srcs = ["deploy_test.cc"],
+    data = [":probe_deploy"],
+    deps = ["@qtbase//:core"],
+)
+
+# F-RT-2: GUI-subsystem Windows binary and macOS .app layout (built on every
+# host; the platform-specific bits are no-ops elsewhere).
+qt_cc_binary(
+    name = "win_gui_probe",
+    srcs = ["deploy_probe.cc"],
+    win32_gui = True,
+    deps = ["@qtbase//:core"],
+)
+
+qt_deploy(
+    name = "probe_app_bundle",
+    binary = ":deploy_probe",
+    bundle_id = "org.qt-project.deployprobe",
+    macos_app = True,
+    package_name = "DeployProbe",
+    translations = ["@qttranslations//:qm_files"],
+)

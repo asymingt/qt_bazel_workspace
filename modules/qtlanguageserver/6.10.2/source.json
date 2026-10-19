@@ -3,7 +3,7 @@
     "strip_prefix": "qtlanguageserver-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtlanguageserver-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-0lKLm29CT/hxYgzqjcjJetPdXONrlCpbDx4SZStZY8U=",
+        "BUILD.bazel": "sha256-6dCPtQne0oPhbbB7p6p1zpw6hxQkZM1dVX4mNfZLQ58=",
         "MODULE.bazel": "sha256-zX5pE5oE+3hRBAOyTsOUMOGS0pHEEo6oW34d8Fqoy+o="
     }
 }

@@ -178,6 +178,7 @@ qt_cc_library(
         "src/positioning/qwebmercator.cpp",
     ],
     hdrs = POSITIONING_HEADERS,
+    copts = ["-w"],
     included_moc_hdrs = [
         "src/positioning/qgeoareamonitorsource.h",
         "src/positioning/qgeocircle.h",
@@ -198,6 +199,7 @@ qt_cc_library(
     ],
     includes = ["src/positioning"],
     local_defines = [
+        "QT_BUILDING_QT",
         "QT_BUILD_POSITIONING_LIB",
         "QT_NO_CONTEXTLESS_CONNECT",
     ],
@@ -316,10 +318,12 @@ cc_shared_library(
         "@qtdeclarative//:qml_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:gui_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:network_shared",
         "@qtbase//:core_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     shared_lib_name = select({
         "@platforms//os:windows": "libpositioningquick_shared.dll",
         "//conditions:default": "",
@@ -331,6 +335,7 @@ cc_shared_library(
 qt_plugin_FixMe(
     name = "positioningquickplugin",
     srcs = ["src/positioningquick/positioningplugin.cpp"],
+    moc_opts = ["-Muri=QtPositioning"],
     plugin_class_name = "QtPositioningDeclarativeModule",
     deps = [
         ":positioning",
@@ -361,6 +366,7 @@ qt_plugin_FixMe(
     ],
     includes = ["src/plugins/position/positionpoll"],
     plugin_class_name = "QGeoPositionInfoSourceFactoryPoll",
+    textual_hdrs = ["src/plugins/position/positionpoll/plugin.json"],
     deps = [
         ":positioning",
         "@qtbase//:core",
@@ -384,6 +390,7 @@ qt_plugin_FixMe(
     includes = ["src/plugins/position/nmea"],
     local_defines = ["QT_NMEA_PLUGIN_HAS_SERIALPORT"],
     plugin_class_name = "QGeoPositionInfoSourceFactoryNmea",
+    textual_hdrs = ["src/plugins/position/nmea/plugin.json"],
     deps = [
         ":positioning",
         "@qtbase//:core",
@@ -442,6 +449,7 @@ qt_plugin_FixMe(
     includes = ["src/plugins/position/geoclue2"],
     plugin_class_name = "QGeoPositionInfoSourceFactoryGeoclue2",
     target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = ["src/plugins/position/geoclue2/plugin.json"],
     deps = [
         ":geoclue2_dbus",
         ":positioning",
@@ -449,3 +457,46 @@ qt_plugin_FixMe(
         "@qtbase//:dbus",
     ],
 )
+
+qt_plugin_FixMe(
+    name = "qtposition_cl",
+    srcs = [
+        "src/plugins/position/corelocation/qgeopositioninfosource_cl.mm",
+        "src/plugins/position/corelocation/qgeopositioninfosourcefactory_cl.mm",
+    ],
+    hdrs = [
+        "src/plugins/position/corelocation/qgeopositioninfosource_cl_p.h",
+        "src/plugins/position/corelocation/qgeopositioninfosourcefactory_cl.h",
+    ],
+    included_moc_hdrs = [
+        "src/plugins/position/corelocation/qgeopositioninfosource_cl_p.h",
+        "src/plugins/position/corelocation/qgeopositioninfosourcefactory_cl.h",
+    ],
+    includes = ["src/plugins/position/corelocation"],
+    linkopts = [
+        "-framework",
+        "CoreLocation",
+        "-framework",
+        "Foundation",
+    ],
+    plugin_class_name = "QGeoPositionInfoSourceFactoryCL",
+    target_compatible_with = ["@platforms//os:macos"],
+    textual_hdrs = ["src/plugins/position/corelocation/plugin.json"],
+    deps = [
+        ":positioning",
+        "@qtbase//:core",
+    ],
+)
+
+cc_library(
+    name = "position_plugins",
+    deps = [
+        ":qtposition_nmea",
+        ":qtposition_positionpoll",
+    ] + select({
+        "@platforms//os:linux": [":qtposition_geoclue2"],
+        "@platforms//os:macos": [":qtposition_cl"],
+        "//conditions:default": [],
+    }),
+)
+

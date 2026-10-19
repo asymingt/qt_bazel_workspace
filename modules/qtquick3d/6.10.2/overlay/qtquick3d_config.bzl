@@ -27,3 +27,27 @@ void Q_QUICK3D_EXPORT qml_register_types_QtQuick3D() {}
 QT_END_NAMESPACE
 """,
     )
+    qt_write_file(
+        name = "gen_qtquick3dxr_config_h",
+        out = "generated_config/qtquick3dxr-config.h",
+        content = """#ifndef QTQUICK3DXR_CONFIG_H
+#define QTQUICK3DXR_CONFIG_H
+
+#endif // QTQUICK3DXR_CONFIG_H
+""",
+    )
+    qt_write_file(
+        name = "gen_qtquick3dxr_config_p_h",
+        out = "generated_config/qtquick3dxr-config_p.h",
+        content = """#ifndef QTQUICK3DXR_CONFIG_P_H
+#define QTQUICK3DXR_CONFIG_P_H
+
+#include <QtQuick3DXr/qtquick3dxr-config.h>
+
+#define QT_FEATURE_quick3dxr_openxr 1
+#define QT_FEATURE_system_openxr -1
+
+#endif // QTQUICK3DXR_CONFIG_P_H
+""",
+    )
+

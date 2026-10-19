@@ -3,8 +3,8 @@
     "strip_prefix": "qt3d-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qt3d-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-NnQCTSGVmbdSz+JEnJkOR6o/L41kBNwxsIaYD170AT4=",
+        "BUILD.bazel": "sha256-nqJFiQgVk9y56ZjWEST1zdTYqYOzoxdckkW8e6EGOHg=",
         "MODULE.bazel": "sha256-jYU+Vo7r6wHzNFR/Khjnughi1h36zbXQDqRp4cQoKL8=",
-        "qt3d_config.bzl": "sha256-FWWf5cCFlnQ18r19hUHmiCcG/iFDUTmkAW8GkMBVd+M="
+        "qt3d_config.bzl": "sha256-G7eVKfgYutBhaS/+ZXP8102zjgH/0fJPjNm3vfmB958="
     }
 }

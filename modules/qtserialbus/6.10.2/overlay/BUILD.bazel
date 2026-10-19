@@ -323,6 +323,60 @@ qt_static_plugin(
     ],
 )
 
+qt_static_plugin(
+    name = "qtsysteccanbus",
+    srcs = [
+        "src/plugins/canbus/systeccan/main.cpp",
+        "src/plugins/canbus/systeccan/systeccanbackend.cpp",
+    ],
+    hdrs = [
+        "src/plugins/canbus/systeccan/systeccan_symbols_p.h",
+        "src/plugins/canbus/systeccan/systeccanbackend.h",
+        "src/plugins/canbus/systeccan/systeccanbackend_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/canbus/systeccan"],
+    local_defines = _COMMON_DEFINES + ["QT_PLUGIN"],
+    moc_hdrs = ["src/plugins/canbus/systeccan/systeccanbackend.h"],
+    moc_srcs = ["src/plugins/canbus/systeccan/main.cpp"],
+    moc_unity = True,
+    plugin_class_name = "SystecCanBusPlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    textual_hdrs = ["src/plugins/canbus/systeccan/plugin.json"],
+    deps = [
+        ":serialbus",
+        "@qtbase//:core",
+        "@qtbase//:network",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtvectorcanbus",
+    srcs = [
+        "src/plugins/canbus/vectorcan/main.cpp",
+        "src/plugins/canbus/vectorcan/vectorcanbackend.cpp",
+    ],
+    hdrs = [
+        "src/plugins/canbus/vectorcan/vectorcan_symbols_p.h",
+        "src/plugins/canbus/vectorcan/vectorcanbackend.h",
+        "src/plugins/canbus/vectorcan/vectorcanbackend_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/canbus/vectorcan"],
+    local_defines = _COMMON_DEFINES + ["QT_PLUGIN"],
+    moc_hdrs = ["src/plugins/canbus/vectorcan/vectorcanbackend.h"],
+    moc_srcs = ["src/plugins/canbus/vectorcan/main.cpp"],
+    moc_unity = True,
+    plugin_class_name = "VectorCanBusPlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    textual_hdrs = ["src/plugins/canbus/vectorcan/plugin.json"],
+    deps = [
+        ":serialbus",
+        "@qtbase//:core",
+        "@qtbase//:network",
+    ],
+)
+
 moc_gen(
     name = "canbusutil_moc",
     hdrs = [
@@ -353,8 +407,37 @@ cc_binary(
     includes = ["src/tools/canbusutil"],
     local_defines = _COMMON_DEFINES,
     deps = [
+        ":qtpassthrucanbus",
+        ":qtpeakcanbus",
+        ":qttinycanbus",
+        ":qtvirtualcanbus",
         ":serialbus",
         "@qtbase//:core",
         "@qtbase//:network",
-    ],
+    ] + select({
+        "@platforms//os:linux": [":qtsocketcanbus"],
+        "@platforms//os:windows": [
+            ":qtsysteccanbus",
+            ":qtvectorcanbus",
+        ],
+        "//conditions:default": [],
+    }),
 )
+
+cc_library(
+    name = "canbus_plugins",
+    deps = [
+        ":qtpassthrucanbus",
+        ":qtpeakcanbus",
+        ":qttinycanbus",
+        ":qtvirtualcanbus",
+    ] + select({
+        "@platforms//os:linux": [":qtsocketcanbus"],
+        "@platforms//os:windows": [
+            ":qtsysteccanbus",
+            ":qtvectorcanbus",
+        ],
+        "//conditions:default": [],
+    }),
+)
+

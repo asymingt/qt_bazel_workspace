@@ -32,8 +32,22 @@ license(
     license_text = "src/qdoc/qdoc/src/qdoc/clang/AST/LICENSE.LLVM.txt",
 )
 
+license(
+    name = "license_gumbo",
+    license_kinds = ["@rules_license//licenses/spdx:Apache-2.0"],
+    license_text = "src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/LICENSE",
+)
+
+license(
+    name = "license_litehtml",
+    license_kinds = ["@rules_license//licenses/spdx:BSD-3-Clause"],
+    license_text = "src/assistant/qlitehtml/src/3rdparty/litehtml/LICENSE",
+)
+
 exports_files([
     "LICENSES/LGPL-3.0-only.txt",
+    "src/assistant/qlitehtml/src/3rdparty/litehtml/LICENSE",
+    "src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/LICENSE",
     "src/qdoc/qdoc/src/qdoc/clang/AST/LICENSE.LLVM.txt",
 ])
 
@@ -183,12 +197,14 @@ qt_internal_library(
     defines = ["QT_UITOOLS_LIB"],
     dynamic_deps = [
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:openglwidgets_shared",
         "@qtbase//:widgets_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = [
         "src/designer/src/lib/uilib",
         "src/uitools",
@@ -800,13 +816,15 @@ qt_internal_library(
     defines = ["QT_DESIGNER_LIB"],
     dynamic_deps = [
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:openglwidgets_shared",
         "@qtbase//:widgets_shared",
         "@qtbase//:xml_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = [
         "src/designer/src/lib/components",
         "src/designer/src/lib/extension",
@@ -1243,13 +1261,15 @@ qt_internal_library(
     dynamic_deps = [
         ":designer_lib_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:openglwidgets_shared",
         "@qtbase//:widgets_shared",
         "@qtbase//:xml_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = [
         "src/designer/src/components",
         "src/designer/src/components/buddyeditor",
@@ -1403,7 +1423,6 @@ qt_static_plugin(
     dynamic_deps = [
         ":designer_lib_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -1416,7 +1435,10 @@ qt_static_plugin(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtdeclarative//:quickwidgets_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/designer/src/plugins/qquickwidget"],
     local_defines = COMMON_LOCAL_DEFINES + [
         "QDESIGNER_EXPORT_WIDGETS",
@@ -1562,10 +1584,17 @@ qt_internal_library(
     dynamic_deps = [
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:sql_shared",
         "@qtbase//:widgets_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
+    exports_filter = [
+        "@qtbase//:qsqlite",
+        "@qtbase//:qsqlite_impl",
+        "@qtbase//:sqlite3_bundled",
     ],
     includes = ["src/assistant/help"],
     local_defines = COMMON_LOCAL_DEFINES + [
@@ -1604,8 +1633,36 @@ qt_internal_library(
         "@qtbase//:concurrent",
         "@qtbase//:core",
         "@qtbase//:gui",
+        "@qtbase//:qsqlite",
         "@qtbase//:sql",
         "@qtbase//:widgets",
+    ],
+)
+
+qt_static_plugin(
+    name = "helpplugin",
+    srcs = [
+        "src/assistant/plugins/help/qhelpengineplugin.cpp",
+    ],
+    hdrs = [
+        "src/assistant/plugins/help/qhelpengineplugin.h",
+    ],
+    copts = common_copts,
+    cxxopts = ["-std=gnu++20"],
+    includes = ["src/assistant/plugins/help"],
+    local_defines = COMMON_LOCAL_DEFINES + [
+        "QT_HELP_LIB",
+        "QT_QMLLS_PRIVATE_LIB",
+        "QT_SQL_LIB",
+    ],
+    moc_hdrs = [
+        "src/assistant/plugins/help/qhelpengineplugin.h",
+    ],
+    plugin_class_name = "QHelpEnginePlugin",
+    deps = [
+        ":help",
+        "@qtbase//:core",
+        "@qtdeclarative//:qmlls_lib",
     ],
 )
 
@@ -2298,6 +2355,7 @@ qt_internal_library(
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtbase//:network",
+        "@qtbase//:printsupport",
         "@qtbase//:widgets",
         "@qtbase//:xml",
     ],
@@ -2311,13 +2369,249 @@ qt_cc_binary(
         ":designer_app_lib",
         ":designer_lib",
         ":designercomponents",
+        ":qquickwidgetplugin",
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtbase//:network",
         "@qtbase//:opengl",
         "@qtbase//:openglwidgets",
+        "@qtbase//:printsupport",
         "@qtbase//:widgets",
         "@qtbase//:xml",
+    ],
+)
+
+cc_library(
+    name = "gumbo",
+    srcs = glob(["src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/*.c"]),
+    hdrs = glob(["src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/include/**/*.h"]),
+    applicable_licenses = [":license_gumbo"],
+    copts = [
+        "-w",
+        "-fPIC",
+        "-std=c99",
+    ],
+    includes = [
+        "src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/include",
+        "src/assistant/qlitehtml/src/3rdparty/litehtml/src/gumbo/include/gumbo",
+    ],
+)
+
+cc_library(
+    name = "litehtml",
+    srcs = glob(["src/assistant/qlitehtml/src/3rdparty/litehtml/src/*.cpp"]),
+    hdrs = glob(["src/assistant/qlitehtml/src/3rdparty/litehtml/include/**/*.h"]),
+    applicable_licenses = [":license_litehtml"],
+    copts = [
+        "-w",
+        "-fPIC",
+        "-fno-exceptions",
+    ],
+    includes = [
+        "src/assistant/qlitehtml/src/3rdparty/litehtml/include",
+        "src/assistant/qlitehtml/src/3rdparty/litehtml/include/litehtml",
+        "src/assistant/qlitehtml/src/3rdparty/litehtml/src",
+    ],
+    deps = [":gumbo"],
+)
+
+qt_internal_library(
+    name = "qlitehtml",
+    srcs = [
+        "src/assistant/qlitehtml/src/container_qpainter.cpp",
+        "src/assistant/qlitehtml/src/qlitehtmlwidget.cpp",
+    ],
+    hdrs = [
+        "src/assistant/qlitehtml/src/container_qpainter.h",
+        "src/assistant/qlitehtml/src/container_qpainter_p.h",
+        "src/assistant/qlitehtml/src/qlitehtml_global.h",
+        "src/assistant/qlitehtml/src/qlitehtmlwidget.h",
+    ],
+    copts = common_copts,
+    create_shared = False,
+    cxxopts = ["-std=gnu++20"],
+    includes = ["src/assistant/qlitehtml/src"],
+    local_defines = COMMON_LOCAL_DEFINES + [
+        "QLITEHTML_LIBRARY",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_RESTRICTED_CAST_FROM_ASCII",
+    ],
+    moc_hdrs = [
+        "src/assistant/qlitehtml/src/qlitehtmlwidget.h",
+    ],
+    moc_unity = True,
+    deps = [
+        ":litehtml",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:printsupport",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_ui_library(
+    name = "assistant_app_ui",
+    uis = [
+        "src/assistant/assistant/bookmarkdialog.ui",
+        "src/assistant/assistant/bookmarkmanagerwidget.ui",
+        "src/assistant/assistant/bookmarkwidget.ui",
+        "src/assistant/assistant/helpdocsettingswidget.ui",
+        "src/assistant/assistant/preferencesdialog.ui",
+        "src/assistant/assistant/topicchooser.ui",
+    ],
+    deps = [],
+)
+
+qt_generate_qrc(
+    name = "assistant_app_resources",
+    srcs = glob(["src/assistant/assistant/images/**/*.png"]),
+    prefix = "/qt-project.org/assistant",
+    qrc_name = "assistant_images",
+    strip_prefix = "src/assistant/assistant",
+)
+
+qt_internal_library(
+    name = "assistant_app_lib",
+    srcs = [
+        "src/assistant/assistant/aboutdialog.cpp",
+        "src/assistant/assistant/bookmarkdialog.cpp",
+        "src/assistant/assistant/bookmarkfiltermodel.cpp",
+        "src/assistant/assistant/bookmarkitem.cpp",
+        "src/assistant/assistant/bookmarkmanager.cpp",
+        "src/assistant/assistant/bookmarkmanagerwidget.cpp",
+        "src/assistant/assistant/bookmarkmodel.cpp",
+        "src/assistant/assistant/centralwidget.cpp",
+        "src/assistant/assistant/cmdlineparser.cpp",
+        "src/assistant/assistant/contentwindow.cpp",
+        "src/assistant/assistant/findwidget.cpp",
+        "src/assistant/assistant/globalactions.cpp",
+        "src/assistant/assistant/helpbrowsersupport.cpp",
+        "src/assistant/assistant/helpdocsettings.cpp",
+        "src/assistant/assistant/helpdocsettingswidget.cpp",
+        "src/assistant/assistant/helpenginewrapper.cpp",
+        "src/assistant/assistant/helpviewer.cpp",
+        "src/assistant/assistant/helpviewerimpl.cpp",
+        "src/assistant/assistant/helpviewerimpl_qtb.cpp",
+        "src/assistant/assistant/indexwindow.cpp",
+        "src/assistant/assistant/main.cpp",
+        "src/assistant/assistant/mainwindow.cpp",
+        "src/assistant/assistant/openpagesmanager.cpp",
+        "src/assistant/assistant/openpagesmodel.cpp",
+        "src/assistant/assistant/openpagesswitcher.cpp",
+        "src/assistant/assistant/openpageswidget.cpp",
+        "src/assistant/assistant/preferencesdialog.cpp",
+        "src/assistant/assistant/qtdocinstaller.cpp",
+        "src/assistant/assistant/remotecontrol.cpp",
+        "src/assistant/assistant/searchwidget.cpp",
+        "src/assistant/assistant/topicchooser.cpp",
+        "src/assistant/assistant/xbelsupport.cpp",
+        "src/assistant/shared/collectionconfiguration.cpp",
+        "src/shared/fontpanel/fontpanel.cpp",
+    ] + select({
+        "@platforms//os:windows": [
+            "src/assistant/assistant/stdinlistener_win.cpp",
+        ],
+        "//conditions:default": [
+            "src/assistant/assistant/stdinlistener.cpp",
+        ],
+    }),
+    hdrs = glob([
+        "src/assistant/assistant/*.h",
+    ]) + [
+        "src/assistant/shared/collectionconfiguration.h",
+        "src/shared/fontpanel/fontpanel_p.h",
+    ],
+    copts = common_copts,
+    create_shared = False,
+    cxxopts = ["-std=gnu++20"],
+    includes = [
+        "src/assistant/assistant",
+        "src/assistant/shared",
+        "src/shared/fontpanel",
+    ],
+    local_defines = COMMON_LOCAL_DEFINES + [
+        "BROWSER_QTEXTBROWSER",
+        "QT_GUI_LIB",
+        "QT_HELP_LIB",
+        "QT_NETWORK_LIB",
+        "QT_PRINTSUPPORT_LIB",
+        "QT_SQL_LIB",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = [
+        "src/assistant/assistant/aboutdialog.h",
+        "src/assistant/assistant/bookmarkdialog.h",
+        "src/assistant/assistant/bookmarkfiltermodel.h",
+        "src/assistant/assistant/bookmarkmanager.h",
+        "src/assistant/assistant/bookmarkmanagerwidget.h",
+        "src/assistant/assistant/bookmarkmodel.h",
+        "src/assistant/assistant/centralwidget.h",
+        "src/assistant/assistant/contentwindow.h",
+        "src/assistant/assistant/findwidget.h",
+        "src/assistant/assistant/globalactions.h",
+        "src/assistant/assistant/helpdocsettingswidget.h",
+        "src/assistant/assistant/helpenginewrapper.h",
+        "src/assistant/assistant/helpviewer.h",
+        "src/assistant/assistant/helpviewerimpl.h",
+        "src/assistant/assistant/helpviewerimpl_p.h",
+        "src/assistant/assistant/indexwindow.h",
+        "src/assistant/assistant/mainwindow.h",
+        "src/assistant/assistant/openpagesmanager.h",
+        "src/assistant/assistant/openpagesmodel.h",
+        "src/assistant/assistant/openpagesswitcher.h",
+        "src/assistant/assistant/openpageswidget.h",
+        "src/assistant/assistant/preferencesdialog.h",
+        "src/assistant/assistant/qtdocinstaller.h",
+        "src/assistant/assistant/remotecontrol.h",
+        "src/assistant/assistant/searchwidget.h",
+        "src/assistant/assistant/topicchooser.h",
+        "src/shared/fontpanel/fontpanel_p.h",
+    ] + select({
+        "@platforms//os:windows": [
+            "src/assistant/assistant/stdinlistener_win.h",
+        ],
+        "//conditions:default": [
+            "src/assistant/assistant/stdinlistener.h",
+        ],
+    }),
+    moc_srcs = [
+        "src/assistant/assistant/helpenginewrapper.cpp",
+    ],
+    moc_unity = True,
+    rcc_targets = [":assistant_app_resources"],
+    deps = [
+        ":assistant_app_ui",
+        ":help",
+        ":qlitehtml",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+        "@qtbase//:printsupport",
+        "@qtbase//:qsqlite",
+        "@qtbase//:sql",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_cc_binary(
+    name = "assistant",
+    linkopts = select({
+        "@platforms//os:windows": ["-lshell32"],
+        "//conditions:default": [],
+    }),
+    moc_hdrs = [],
+    moc_srcs = [],
+    deps = [
+        ":assistant_app_lib",
+        ":help",
+        ":qlitehtml",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+        "@qtbase//:printsupport",
+        "@qtbase//:qsqlite",
+        "@qtbase//:sql",
+        "@qtbase//:widgets",
     ],
 )
 
@@ -2360,6 +2654,7 @@ qt_internal_library(
         "src/linguist/linguist/phrasebookbox.cpp",
         "src/linguist/linguist/phrasemodel.cpp",
         "src/linguist/linguist/phraseview.cpp",
+        "src/linguist/linguist/printout.cpp",
         "src/linguist/linguist/qmlformpreviewview.cpp",
         "src/linguist/linguist/recentfiles.cpp",
         "src/linguist/linguist/sourcecodeview.cpp",
@@ -2420,10 +2715,7 @@ qt_internal_library(
         "src/linguist/shared/translatormessage.h",
         "src/linguist/shared/xmlparser.h",
     ],
-    copts = common_copts + [
-        "-include",
-        "linguist_no_printsupport.h",
-    ],
+    copts = common_copts,
     create_shared = False,
     cxxopts = ["-std=gnu++20"],
     includes = [
@@ -2458,7 +2750,6 @@ qt_internal_library(
         "src/linguist/linguist/uiformpreviewview.h",
     ],
     moc_opts = [
-        "--include=linguist_no_printsupport.h",
         "-DQFORMINTERNAL_NAMESPACE",
         "-DQT_KEYWORDS",
     ],
@@ -2467,10 +2758,10 @@ qt_internal_library(
     rcc_targets = [":linguist_app_resources"],
     deps = [
         ":linguist_app_ui",
-        ":linguist_no_printsupport_h",
         ":uitools",
         "@qtbase//:core",
         "@qtbase//:gui",
+        "@qtbase//:printsupport",
         "@qtbase//:widgets",
         "@qtbase//:xml",
         "@qtdeclarative//:quicklayouts",
@@ -2489,10 +2780,31 @@ qt_cc_binary(
         "@qtbase//:gui",
         "@qtbase//:opengl",
         "@qtbase//:openglwidgets",
+        "@qtbase//:printsupport",
         "@qtbase//:widgets",
         "@qtbase//:xml",
+        "@qtdeclarative//:qquicklayoutsplugin",
+        "@qtdeclarative//:qtquick2plugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleplugin",
+        "@qtdeclarative//:qtquickcontrols2fluentwinui3styleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2fluentwinui3styleplugin",
+        "@qtdeclarative//:qtquickcontrols2fusionstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2fusionstyleplugin",
+        "@qtdeclarative//:qtquickcontrols2imaginestyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2imaginestyleplugin",
+        "@qtdeclarative//:qtquickcontrols2implplugin",
+        "@qtdeclarative//:qtquickcontrols2materialstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2materialstyleplugin",
+        "@qtdeclarative//:qtquickcontrols2plugin",
+        "@qtdeclarative//:qtquickcontrols2universalstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2universalstyleplugin",
+        "@qtdeclarative//:qtquickdialogs2quickimplplugin",
+        "@qtdeclarative//:qtquickdialogsplugin",
+        "@qtdeclarative//:qtquicktemplates2plugin",
         "@qtdeclarative//:quicklayouts",
         "@qtdeclarative//:quickwidgets",
+        "@qtdeclarative//:quickwindow",
     ],
 )
 

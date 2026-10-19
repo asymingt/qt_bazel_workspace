@@ -137,6 +137,12 @@ single_version_override(
 
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+single_version_override(
+    module_name = "rules_cc",
+    patch_strip = 1,
+    patches = ["//patches:rules_cc/runfiles_linkable_more_than_once.patch"],
+    version = "0.2.26",
+)
 
 # Not a direct dependency: pulled in by ffmpeg/xkbcommon/dbus/... but pinned
 # here because < 0.27.0 fails to compile its config checker with libc++ on a
@@ -155,6 +161,39 @@ single_version_override(
     version = "2.7.1.bcr.1",
 )
 
+bazel_dep(name = "freetype", version = "2.14.1.bcr.1")
+single_version_override(
+    module_name = "freetype",
+    patch_strip = 1,
+    patches = ["//patches:freetype/linkable_more_than_once.patch"],
+    version = "2.14.1.bcr.1",
+)
+
+bazel_dep(name = "libjpeg_turbo", version = "3.1.3.bcr.4")
+bazel_dep(name = "libpng", version = "1.6.58.bcr.1")
+single_version_override(
+    module_name = "libpng",
+    patch_strip = 1,
+    patches = ["//patches:libpng/linkable_more_than_once.patch"],
+    version = "1.6.58.bcr.1",
+)
+
+bazel_dep(name = "libx11", version = "1.8.12.bcr.5")
+single_version_override(
+    module_name = "libx11",
+    patch_strip = 1,
+    patches = ["//patches:libx11/linkable_more_than_once.patch"],
+    version = "1.8.12.bcr.5",
+)
+
+bazel_dep(name = "zlib", version = "1.3.2.bcr.2")
+single_version_override(
+    module_name = "zlib",
+    patch_strip = 1,
+    patches = ["//patches:zlib/linkable_more_than_once.patch"],
+    version = "1.3.2.bcr.2",
+)
+
 # Not a direct dependency (openssl -> rules_perl), but overridden to add a
 # windows/arm64 Perl toolchain (x86_64 Strawberry Perl under Windows-on-Arm
 # emulation) so OpenSSL's Perl code generation works when the execution
@@ -168,6 +207,7 @@ single_version_override(
 )
 
 bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "vulkan_headers", version = "1.4.349")
 bazel_dep(name = "wayland", version = "1.24.0.bcr.1")
 
 # Not a direct dependency (pulled in by qtbase for Linux targets), but

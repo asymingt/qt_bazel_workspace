@@ -24,7 +24,7 @@ def declare_qttools_config_targets():
 
 #include <QtTools/qttools-config.h>
 
-#define QT_FEATURE_assistant -1
+#define QT_FEATURE_assistant 1
 #define QT_FEATURE_clang 1
 #define QT_FEATURE_clang_rtti 1
 #define QT_FEATURE_qdoc 1

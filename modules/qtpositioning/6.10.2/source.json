@@ -3,7 +3,7 @@
     "strip_prefix": "qtpositioning-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtpositioning-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-jb9USkZthGFsCL7l9GOmUrvbcHn63HqLEsOf153Skus=",
+        "BUILD.bazel": "sha256-NhvttR8D5MbOFWQdlpb3pzXXlJD4NnBLC0T2SZ7QK7c=",
         "MODULE.bazel": "sha256-c01t6UZk62uoEQHh7s0G3wdjBiTz9brQ0B4QMnon0b0="
     }
 }

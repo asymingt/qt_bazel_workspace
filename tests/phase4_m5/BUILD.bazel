@@ -1,0 +1,60 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+qt_cc_test(
+    name = "multimedia_backends_test",
+    srcs = ["multimedia_backends_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtmultimedia//:multimedia",
+        "@qtmultimedia//:multimedia_plugins",
+        "@qtspeech//:tts",
+        "@qtspeech//:tts_plugins",
+        "@qtwebview//:webview",
+        "@qtwebview//:webview_plugins",
+    ],
+)
+
+qt_cc_test(
+    name = "connectivity_io_test",
+    srcs = ["connectivity_io_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtconnectivity//:bluetooth",
+        "@qtconnectivity//:nfc",
+        "@qtpositioning//:positioning",
+        "@qtpositioning//:position_plugins",
+        "@qtsensors//:sensors",
+        "@qtsensors//:sensors_plugins",
+        "@qtsensors//:sensorsquick",
+        "@qtsensors//:sensorsquickplugin",
+        "@qtserialbus//:serialbus",
+        "@qtserialbus//:canbus_plugins",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:qtquick2plugin",
+    ],
+)
+
+qt_cc_test(
+    name = "quick3d_xr_and_help_test",
+    srcs = ["quick3d_xr_and_help_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:qtquick2plugin",
+        "@qtdeclarative//:quickwindow",
+        "@qtquick3d//:quick3d",
+        "@qtquick3d//:qquick3dplugin",
+        "@qtquick3d//:assetutils",
+        "@qtquick3d//:qtquick3dassetutilsplugin",
+        "@qtquick3d//:quick3dxr",
+        "@qtquick3d//:quick3dxrplugin",
+        "@qtquick3d//:qmldbg_quick3dprofiler",
+        "@qttools//:help",
+        "@qttools//:helpplugin",
+    ],
+)

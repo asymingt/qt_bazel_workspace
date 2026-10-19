@@ -3,6 +3,7 @@ load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load(
     "@qt//:qt_tools.bzl",
     "qt_cc_library",
+    "qt_dbus_interface",
     "qt_depends_header",
     "qt_export_header",
     "qt_generate_qrc",
@@ -49,7 +50,6 @@ common_copts = [
 ]
 
 common_defines = [
-    "QT_NO_DEBUG",
     "QT_NO_VERSION_TAGGING",
     "QT_VERSION_MAJOR=6",
     "QT_VERSION_MINOR=10",
@@ -59,6 +59,9 @@ common_defines = [
     "_LARGEFILE_SOURCE",
     "_REENTRANT",
 ] + select({
+    "@qt//:debug_build": [],
+    "//conditions:default": ["QT_NO_DEBUG"],
+}) + select({
     "@platforms//os:windows": [
         "UNICODE",
         "_UNICODE",
@@ -81,6 +84,13 @@ cc_binary(
     srcs = ["qt_mime_database_gen.cc"],
     visibility = ["//visibility:private"],
     deps = ["@zlib"],
+)
+
+cc_binary(
+    name = "qt_gl_stub_gen",
+    srcs = ["qt_gl_stub_gen.cc"],
+    linkstatic = True,
+    visibility = ["//visibility:private"],
 )
 
 declare_qtbase_config_targets()
@@ -190,11 +200,13 @@ qt_sync_headers(
     hdrs = glob(["src/gui/**/*.h"]),
     generated_private_hdrs = [
         ":gen_qtgui_config_p_h",
+        ":qvulkanfunctions_p_h",
     ],
     generated_public_hdrs = [
         ":gen_qtgui_config_h",
         ":qtguiexports_h",
         ":qtgui_depends_h",
+        ":qvulkanfunctions_h",
     ],
     module_name = "QtGui",
     qpa_filter = "^qplatform.+\\.h|^qwindowsystem.+\\.h$",
@@ -207,7 +219,14 @@ qt_sync_headers(
         ":dbus_sync_headers",
         "@egl-registry//:EGL_headers",
         "@opengl-registry//:OpenGL_headers",
-    ],
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [
+            ":atspi_headers",
+            ":glx_h",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 qt_export_header(
@@ -232,7 +251,6 @@ qt_sync_headers(
         exclude = [
             "src/opengl/qopenglcompositor*.h",
             "src/opengl/qopenglfunctions_es2.h",
-            "src/opengl/qvkconvenience_p.h",
         ],
     ),
     generated_public_hdrs = [
@@ -246,7 +264,11 @@ qt_sync_headers(
         ":core_sync_headers",
         ":gui_sync_headers",
         "@opengl-registry//:OpenGL_headers",
-    ],
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [":glx_h"],
+        "//conditions:default": [],
+    }),
 )
 
 qt_export_header(
@@ -317,6 +339,44 @@ qt_sync_headers(
         ":opengl_sync_headers",
         ":widgets_sync_headers",
         "@opengl-registry//:OpenGL_headers",
+    ],
+)
+
+qt_export_header(
+    name = "qtprintsupportexports_h",
+    out = "generated_exports/qtprintsupportexports.h",
+    module_infix = "PRINTSUPPORT",
+)
+
+qt_depends_header(
+    name = "qtprintsupport_depends_h",
+    out = "generated_exports/QtPrintSupportDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtWidgets",
+    ],
+)
+
+qt_sync_headers(
+    name = "printsupport_sync_headers",
+    hdrs = glob(["src/printsupport/**/*.h"]),
+    generated_private_hdrs = [
+        ":gen_qtprintsupport_config_p_h",
+    ],
+    generated_public_hdrs = [
+        ":gen_qtprintsupport_config_h",
+        ":qtprintsupportexports_h",
+        ":qtprintsupport_depends_h",
+    ],
+    module_name = "QtPrintSupport",
+    qpa_filter = "^qplatform.+\\.h$",
+    source_dir = "src/printsupport",
+    version = QT_VERSION,
+    deps = [
+        ":core_sync_headers",
+        ":gui_sync_headers",
+        ":widgets_sync_headers",
     ],
 )
 
@@ -882,6 +942,41 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "qvkgen",
+    srcs = ["src/tools/qvkgen/qvkgen.cpp"],
+    copts = [
+        "-w",
+        "-fPIC",
+        "-DQT_BUILDING_QT",
+        "-std=gnu++20",
+    ],
+    linkstatic = True,
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_EXPLICIT_QFILE_CONSTRUCTION_FROM_PATH",
+        "QT_LEAN_HEADERS=1",
+        "QT_NO_DEBUG",
+        "QT_NO_EXCEPTIONS",
+        "QT_NO_FOREACH",
+        "QT_NO_JAVA_STYLE_ITERATORS",
+        "QT_NO_NARROWING_CONVERSIONS_IN_CONNECT",
+        "QT_NO_QASCONST",
+        "QT_NO_QEXCHANGE",
+        "QT_NO_QSNPRINTF",
+        "QT_NO_VERSION_TAGGING",
+        "QT_USE_NODISCARD_FILE_OPEN",
+        "QT_USE_QSTRINGBUILDER",
+        "_GLIBCXX_ASSERTIONS",
+        "_LARGEFILE64_SOURCE",
+        "_LARGEFILE_SOURCE",
+    ],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+    ],
+)
+
 # =============================================================================
 # QtCore (:core + :core_shared)
 # =============================================================================
@@ -1163,6 +1258,7 @@ qt_internal_library(
         "src/corelib/tools/qtyperevision.cpp",
         "src/corelib/tools/quniquehandle_types.cpp",
         "src/corelib/tools/qversionnumber.cpp",
+        "src/corelib/tracing/qctf.cpp",
     ] + select({
         "@qt//:unix": [
             "src/corelib/io/forkfd_qt.c",
@@ -1298,8 +1394,6 @@ qt_internal_library(
         # Qt5Compat's QIcuCodec and others depend on the same targets.
         "@icu//icu4c/source:__subpackages__",
         "@@pcre2+//:pcre2",  # transitive via @glib; not in @qtbase's repo mapping
-        "@rules_cc//cc/runfiles:runfiles",
-        "@zlib//zlib-1.3.2:z",
     ],
     includes = [
         "src/3rdparty/blake2/src",
@@ -1474,6 +1568,7 @@ qt_internal_library(
         "src/corelib/tools/qcryptographichash.h",
         "src/corelib/tools/qeasingcurve.h",
         "src/corelib/tools/qtimeline.h",
+        "src/corelib/tracing/qctf_p.h",
     ] + select({
         "@qt//:unix": [
             "src/corelib/kernel/qeventdispatcher_unix_p.h",
@@ -1878,6 +1973,43 @@ qt_static_plugin(
     ],
 )
 
+qt_static_plugin(
+    name = "qsqlodbc",
+    srcs = [
+        "src/plugins/sqldrivers/odbc/main.cpp",
+        "src/plugins/sqldrivers/odbc/qsql_odbc.cpp",
+    ],
+    hdrs = ["src/plugins/sqldrivers/odbc/qsql_odbc_p.h"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/sqldrivers/odbc"],
+    linkopts = ["-lodbc32"],
+    local_defines = _SQL_LOCAL_DEFINES + [
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_NO_CONTEXTLESS_CONNECT",
+        "QT_SQL_LIB",
+    ],
+    moc_hdrs = ["src/plugins/sqldrivers/odbc/qsql_odbc_p.h"],
+    moc_srcs = ["src/plugins/sqldrivers/odbc/main.cpp"],
+    plugin_class_name = "QODBCDriverPlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    textual_hdrs = ["src/plugins/sqldrivers/odbc/odbc.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":sql",
+        ":sql_internal_cfg",
+    ],
+)
+
+cc_library(
+    name = "sqldriver_plugins",
+    deps = [":qsqlite"] + select({
+        "@platforms//os:windows": [":qsqlodbc"],
+        "//conditions:default": [],
+    }),
+)
+
 # =============================================================================
 # QtNetwork (:network + :network_shared)
 #
@@ -2034,7 +2166,7 @@ qt_internal_library(
         "@platforms//os:windows": [
             "src/network/kernel/qdnslookup_win.cpp",
             "src/network/kernel/qhostinfo_win.cpp",
-            "src/network/kernel/qnetconmonitor_stub.cpp",
+            "src/network/kernel/qnetconmonitor_win.cpp",
             "src/network/kernel/qnetworkinterface_win.cpp",
             "src/network/kernel/qnetworkproxy_win.cpp",
             "src/network/socket/qlocalserver_win.cpp",
@@ -2081,6 +2213,8 @@ qt_internal_library(
             "-ladvapi32",
             "-ldnsapi",
             "-liphlpapi",
+            "-lole32",
+            "-loleaut32",
             "-lsecur32",
             "-lwinhttp",
             "-lws2_32",
@@ -2183,14 +2317,55 @@ qt_internal_library(
     ],
 )
 
+cc_library(
+    name = "tls_shared_private",
+    srcs = [
+        "src/plugins/tls/shared/qasn1element.cpp",
+        "src/plugins/tls/shared/qdtls_base.cpp",
+        "src/plugins/tls/shared/qsslsocket_qt.cpp",
+        "src/plugins/tls/shared/qtlskey_base.cpp",
+        "src/plugins/tls/shared/qtlskey_generic.cpp",
+        "src/plugins/tls/shared/qx509_base.cpp",
+        "src/plugins/tls/shared/qx509_generic.cpp",
+    ] + select({
+        "@platforms//os:macos": [
+            "src/plugins/tls/shared/qsslsocket_mac_shared.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = glob(["src/plugins/tls/shared/*.h"]),
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/tls/shared"],
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-framework",
+            "CoreFoundation",
+            "-framework",
+            "Security",
+        ],
+        "//conditions:default": [],
+    }),
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+    ],
+)
+
 # OpenSSL TLS backend plugin (src/plugins/tls/openssl, PLUGIN_TYPE tls). Linked
 # statically via Q_IMPORT_PLUGIN; QSslSocket::supportsSsl() is false without it.
 qt_static_plugin(
     name = "qopensslbackend",
     srcs = [
-        "src/plugins/tls/shared/qasn1element.cpp",
-        "src/plugins/tls/shared/qtlskey_base.cpp",
-        "src/plugins/tls/shared/qx509_base.cpp",
         "src/plugins/tls/openssl/qtlsbackend_openssl.cpp",
         "src/plugins/tls/openssl/qx509_openssl.cpp",
         "src/plugins/tls/openssl/qtlskey_openssl.cpp",
@@ -2200,11 +2375,7 @@ qt_static_plugin(
         "src/plugins/tls/openssl/qsslsocket_openssl_symbols.cpp",
         # QT_FEATURE_dtls
         "src/plugins/tls/openssl/qdtls_openssl.cpp",
-        "src/plugins/tls/shared/qdtls_base.cpp",
     ] + select({
-        "@platforms//os:macos": [
-            "src/plugins/tls/shared/qsslsocket_mac_shared.cpp",
-        ],
         "@platforms//os:windows": [
             "src/plugins/tls/openssl/qwindowscarootfetcher.cpp",
         ],
@@ -2260,8 +2431,286 @@ qt_static_plugin(
         ":core_internal_cfg",
         ":network",
         ":network_internal_cfg",
+        ":tls_shared_private",
         "@openssl//:ssl",
     ],
+)
+
+qt_static_plugin(
+    name = "qcertonlybackend",
+    srcs = [
+        "src/plugins/tls/certonly/qtlsbackend_cert.cpp",
+    ],
+    hdrs = [
+        "src/plugins/tls/certonly/qtlsbackend_cert_p.h",
+        "src/plugins/tls/shared/qasn1element_p.h",
+        "src/plugins/tls/shared/qx509_base_p.h",
+        "src/plugins/tls/shared/qx509_generic_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = [
+        "src/plugins/tls/certonly",
+        "src/plugins/tls/shared",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/tls/certonly/qtlsbackend_cert_p.h"],
+    plugin_class_name = "QTlsBackendCertOnly",
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+        ":tls_shared_private",
+    ],
+)
+
+qt_static_plugin(
+    name = "qsecuretransportbackend",
+    srcs = [
+        "src/plugins/tls/securetransport/qtls_st.cpp",
+        "src/plugins/tls/securetransport/qtlsbackend_st.cpp",
+        "src/plugins/tls/securetransport/qtlskey_st.cpp",
+        "src/plugins/tls/securetransport/qx509_st.cpp",
+    ],
+    hdrs = [
+        "src/plugins/tls/securetransport/qtls_st_p.h",
+        "src/plugins/tls/securetransport/qtlsbackend_st_p.h",
+        "src/plugins/tls/securetransport/qtlskey_st_p.h",
+        "src/plugins/tls/securetransport/qx509_st_p.h",
+        "src/plugins/tls/shared/qasn1element_p.h",
+        "src/plugins/tls/shared/qtlskey_base_p.h",
+        "src/plugins/tls/shared/qtlskey_generic_p.h",
+        "src/plugins/tls/shared/qx509_base_p.h",
+        "src/plugins/tls/shared/qx509_generic_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = [
+        "src/plugins/tls/securetransport",
+        "src/plugins/tls/shared",
+    ],
+    linkopts = [
+        "-framework",
+        "CoreFoundation",
+        "-framework",
+        "Security",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/tls/securetransport/qtlsbackend_st_p.h"],
+    plugin_class_name = "QSecureTransportBackend",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+        ":tls_shared_private",
+    ],
+)
+
+qt_static_plugin(
+    name = "qschannelbackend",
+    srcs = [
+        "src/plugins/tls/schannel/qtls_schannel.cpp",
+        "src/plugins/tls/schannel/qtlskey_schannel.cpp",
+        "src/plugins/tls/schannel/qx509_schannel.cpp",
+    ],
+    hdrs = [
+        "src/plugins/tls/schannel/qtls_schannel_p.h",
+        "src/plugins/tls/schannel/qtlsbackend_schannel_p.h",
+        "src/plugins/tls/schannel/qtlskey_schannel_p.h",
+        "src/plugins/tls/schannel/qx509_schannel_p.h",
+        "src/plugins/tls/shared/qasn1element_p.h",
+        "src/plugins/tls/shared/qtlskey_base_p.h",
+        "src/plugins/tls/shared/qtlskey_generic_p.h",
+        "src/plugins/tls/shared/qwincrypt_p.h",
+        "src/plugins/tls/shared/qx509_base_p.h",
+        "src/plugins/tls/shared/qx509_generic_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = [
+        "src/plugins/tls/schannel",
+        "src/plugins/tls/shared",
+    ],
+    linkopts = [
+        "-lbcrypt",
+        "-lcrypt32",
+        "-lncrypt",
+        "-lsecur32",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/tls/schannel/qtlsbackend_schannel_p.h"],
+    plugin_class_name = "QSchannelBackend",
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+        ":tls_shared_private",
+    ],
+)
+
+cc_library(
+    name = "tls_plugins",
+    deps = [
+        ":qcertonlybackend",
+        ":qopensslbackend",
+    ] + select({
+        "@platforms//os:macos": [":qsecuretransportbackend"],
+        "@platforms//os:windows": [":qschannelbackend"],
+        "//conditions:default": [],
+    }),
+)
+
+qt_static_plugin(
+    name = "qglib",
+    srcs = ["src/plugins/networkinformation/glib/qglibnetworkinformationbackend.cpp"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/networkinformation/glib"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_NO_SIGNALS_SLOTS_KEYWORDS",
+        "QT_PLUGIN",
+    ],
+    moc_srcs = ["src/plugins/networkinformation/glib/qglibnetworkinformationbackend.cpp"],
+    plugin_class_name = "QGlibNetworkInformationBackendFactory",
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+        "@glib//gio",
+        "@glib//glib",
+        "@glib//gobject",
+    ],
+)
+
+qt_static_plugin(
+    name = "qnetworkmanager",
+    srcs = [
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagernetworkinformationbackend.cpp",
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagerservice.cpp",
+    ],
+    hdrs = [
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagernetworkinformationbackend.h",
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagerservice.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/networkinformation/networkmanager"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_DBUS_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = [
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagernetworkinformationbackend.h",
+        "src/plugins/networkinformation/networkmanager/qnetworkmanagerservice.h",
+    ],
+    moc_srcs = ["src/plugins/networkinformation/networkmanager/qnetworkmanagernetworkinformationbackend.cpp"],
+    plugin_class_name = "QNetworkManagerNetworkInformationBackendFactory",
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":dbus",
+        ":network",
+        ":network_internal_cfg",
+    ],
+)
+
+qt_static_plugin(
+    name = "qapplenetworkinformation",
+    srcs = ["src/plugins/networkinformation/apple/qapplenetworkinformationbackend.mm"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/networkinformation/apple"],
+    linkopts = [
+        "-framework",
+        "Network",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_srcs = ["src/plugins/networkinformation/apple/qapplenetworkinformationbackend.mm"],
+    plugin_class_name = "QAppleNetworkInformationBackendFactory",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+    ],
+)
+
+qt_static_plugin(
+    name = "qnetworklistmanager",
+    srcs = [
+        "src/plugins/networkinformation/networklistmanager/qnetworklistmanagerevents.cpp",
+        "src/plugins/networkinformation/networklistmanager/qnetworklistmanagernetworkinformationbackend.cpp",
+    ],
+    hdrs = ["src/plugins/networkinformation/networklistmanager/qnetworklistmanagerevents.h"],
+    copts = common_copts + [
+        "-std=gnu++20",
+        "-fexceptions",
+    ],
+    includes = ["src/plugins/networkinformation/networklistmanager"],
+    linkopts = [
+        "-lole32",
+        "-loleaut32",
+        "-lruntimeobject",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/networkinformation/networklistmanager/qnetworklistmanagerevents.h"],
+    moc_srcs = ["src/plugins/networkinformation/networklistmanager/qnetworklistmanagernetworkinformationbackend.cpp"],
+    plugin_class_name = "QNetworkListManagerNetworkInformationBackendFactory",
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
+    ],
+)
+
+cc_library(
+    name = "networkinformation_plugins",
+    deps = select({
+        "@platforms//os:linux": [
+            ":qglib",
+            ":qnetworkmanager",
+        ],
+        "@platforms//os:macos": [":qapplenetworkinformation"],
+        "@platforms//os:windows": [":qnetworklistmanager"],
+        "//conditions:default": [],
+    }),
 )
 
 # =============================================================================
@@ -2311,6 +2760,7 @@ qt_internal_library(
     dynamic_deps = [":core_shared"],
     includes = ["src/dbus"] + mkspec_includes,
     linkopts = select({
+        "@platforms//os:linux": ["-Wl,--exclude-libs,ALL"],
         "@platforms//os:windows": [
             "-ladvapi32",
             "-lnetapi32",
@@ -2419,18 +2869,20 @@ qt_rcc_internal(
     qrc_name = "gui_shaders",
 )
 
-# Shared X11 client stack used by both QtGui (qxkbcommon, qtx11extras) and the
-# xcb QPA plugin. libxcb/xkbcommon only exist as static libraries in BCR; linking
-# them into one cc_shared_library (roots are linked --whole-archive) gives both
-# consumers a single exported copy, which cc_shared_library requires.
+# Shared X11 client stack used by both QtGui (qxkbcommon, qtx11extras,
+# qglxconvenience) and the xcb QPA plugin. libxcb/libx11/xkbcommon only exist
+# as static libraries in BCR; linking them into one cc_shared_library (roots
+# are linked --whole-archive) gives all consumers a single exported copy,
+# including XGetXCBConnection/XSetEventQueueOwner from libX11's x11_xcb.c.
 cc_shared_library(
     name = "x11_shared",
-    # libxau is only reached through libxcb, so the objects libxcb needs are
-    # already pulled in here; declare it exported to keep dependents from
-    # relinking it.
-    exports_filter = ["@@libxau+//:xau"],
+    exports_filter = [
+        "@@libxau+//:xau",
+        "@@libxtrans+//:xtrans",
+    ],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
+        "@libx11",
         "@libxcb",
         "@xkbcommon",
     ],
@@ -2463,6 +2915,251 @@ qt_write_file(
 #include <dxgi1_5.h>
 #include <dxgi1_6.h>
 """,
+)
+
+_GUI_HDRS = glob([
+    "src/corelib/kernel/**/*.h",
+    "src/gui/**/*.h",
+    "src/dbus/**/*.h",
+    "src/3rdparty/md4c/**/*.h",
+    "src/3rdparty/D3D12MemoryAllocator/**/*.h",
+    "src/3rdparty/VulkanMemoryAllocator/**/*.h",
+])
+
+qt_dbus_interface(
+    name = "gui_atspi_adaptors",
+    srcs = [
+        "src/gui/accessible/linux/dbusxml/Cache.xml",
+        "src/gui/accessible/linux/dbusxml/DeviceEventController.xml",
+    ],
+    adaptor = True,
+    flags = [
+        "-i",
+        "QtGui/private/qspi_struct_marshallers_p.h",
+        "--namespace",
+        "QtGuiPrivate",
+    ],
+    qdbusxml2cpp_tool = ":qdbusxml2cpp",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+filegroup(
+    name = "gui_atspi_adaptors_hdrs",
+    srcs = [":gui_atspi_adaptors"],
+    output_group = "headers",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+filegroup(
+    name = "gui_atspi_adaptors_srcs",
+    srcs = [":gui_atspi_adaptors"],
+    output_group = "sources",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+qt_dbus_interface(
+    name = "gui_atspi_interfaces",
+    srcs = [
+        "src/gui/accessible/linux/dbusxml/Bus.xml",
+        "src/gui/accessible/linux/dbusxml/Socket.xml",
+        "src/gui/accessible/linux/dbusxml/org.freedesktop.DBus.Properties.xml",
+    ],
+    adaptor = False,
+    flags = [
+        "-i",
+        "QtGui/private/qspi_struct_marshallers_p.h",
+        "--namespace",
+        "QtGuiPrivate",
+    ],
+    qdbusxml2cpp_tool = ":qdbusxml2cpp",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+filegroup(
+    name = "gui_atspi_interfaces_hdrs",
+    srcs = [":gui_atspi_interfaces"],
+    output_group = "headers",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+filegroup(
+    name = "gui_atspi_interfaces_srcs",
+    srcs = [":gui_atspi_interfaces"],
+    output_group = "sources",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+_GUI_BASE_COPTS = [
+    "-fPIC",
+    "-DNDEBUG",
+    "-O2",
+    "-fvisibility=hidden",
+    "-Wall",
+    "-Wextra",
+    "-fno-exceptions",
+    "-U_FORTIFY_SOURCE",
+    "-D_FORTIFY_SOURCE=3",
+    "-Wno-ctad-maybe-unsupported",
+    "-Wno-non-virtual-dtor",
+    "-Wno-string-conversion",
+]
+
+_GUI_INCLUDES = [
+    "src/3rdparty/D3D12MemoryAllocator",
+    "src/3rdparty/VulkanMemoryAllocator",
+    "src/3rdparty/md4c",
+    "src/corelib/kernel",
+    "src/gui",
+    "src/gui/accessible/linux",
+    "src/gui/opengl",
+    "src/gui/text",
+    "src/gui/vulkan",
+] + mkspec_includes
+
+_GUI_LOCAL_DEFINES = select({
+    "@qt//:unix_x86_64": ["ENABLE_PIXMAN_DRAWHELPERS"],
+    "//conditions:default": [],
+}) + [
+    "ENABLE_HARFBUZZ_NG",
+    "Gui_EXPORTS",
+    "MD4C_USE_UTF8",
+    "QT_ASCII_CAST_WARNINGS",
+    "QT_BUILDING_QT",
+    "QT_BUILD_GUI_LIB",
+    "QT_CORE_LIB",
+    "QT_DEPRECATED_WARNINGS",
+    "QT_DISABLE_DEPRECATED_BEFORE=0x050000",
+    "QT_EXPLICIT_QFILE_CONSTRUCTION_FROM_PATH",
+    "QT_LEAN_HEADERS=1",
+    "QT_MOC_COMPAT",
+    "QT_NO_CAST_TO_ASCII",
+    "QT_NO_DEBUG",
+    "QT_NO_EXCEPTIONS",
+    "QT_NO_FOREACH",
+    "QT_NO_JAVA_STYLE_ITERATORS",
+    "QT_NO_NARROWING_CONVERSIONS_IN_CONNECT",
+    "QT_NO_QASCONST",
+    "QT_NO_QEXCHANGE",
+    "QT_NO_QSNPRINTF",
+    "QT_NO_USING_NAMESPACE",
+    "QT_USE_NODISCARD_FILE_OPEN",
+    "QT_USE_QSTRINGBUILDER",
+    "_LARGEFILE_SOURCE",
+] + select({
+    "@platforms//os:linux": [
+        "QT_DBUS_LIB",
+        'QT_QPA_DEFAULT_PLATFORM_NAME=\\"xcb\\"',
+        "_GLIBCXX_ASSERTIONS",
+        "_LARGEFILE64_SOURCE",
+    ],
+    "@platforms//os:macos": [
+        'QT_QPA_DEFAULT_PLATFORM_NAME=\\"cocoa\\"',
+    ],
+    "@platforms//os:windows": [
+        'QT_QPA_DEFAULT_PLATFORM_NAME=\\"windows\\"',
+    ],
+    "//conditions:default": [],
+})
+
+cc_library(
+    name = "gui_ssse3",
+    srcs = select({
+        "@platforms//cpu:x86_64": [
+            "src/gui/image/qimage_ssse3.cpp",
+            "src/gui/painting/qdrawhelper_ssse3.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = _GUI_HDRS,
+    copts = _GUI_BASE_COPTS + select({
+        "@platforms//cpu:x86_64": ["-mssse3"],
+        "//conditions:default": [],
+    }),
+    cxxopts = ["-std=gnu++20"],
+    defines = common_defines + ["QT_GUI_LIB"],
+    includes = _GUI_INCLUDES,
+    local_defines = _GUI_LOCAL_DEFINES,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui_internal_cfg",
+        ":gui_sync_headers",
+        "@egl-registry//:EGL_headers",
+        "@opengl-registry//:OpenGL_headers",
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [":glx_h"],
+        "//conditions:default": [],
+    }),
+    alwayslink = True,
+)
+
+cc_library(
+    name = "gui_sse4_1",
+    srcs = select({
+        "@platforms//cpu:x86_64": [
+            "src/gui/painting/qdrawhelper_sse4.cpp",
+            "src/gui/painting/qimagescale_sse4.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = _GUI_HDRS,
+    copts = _GUI_BASE_COPTS + select({
+        "@platforms//cpu:x86_64": ["-msse4.1"],
+        "//conditions:default": [],
+    }),
+    cxxopts = ["-std=gnu++20"],
+    defines = common_defines + ["QT_GUI_LIB"],
+    includes = _GUI_INCLUDES,
+    local_defines = _GUI_LOCAL_DEFINES,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui_internal_cfg",
+        ":gui_sync_headers",
+        "@egl-registry//:EGL_headers",
+        "@opengl-registry//:OpenGL_headers",
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [":glx_h"],
+        "//conditions:default": [],
+    }),
+    alwayslink = True,
+)
+
+cc_library(
+    name = "gui_avx2",
+    srcs = select({
+        "@platforms//cpu:x86_64": [
+            "src/gui/painting/qdrawhelper_avx2.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = _GUI_HDRS,
+    copts = _GUI_BASE_COPTS + select({
+        "@platforms//cpu:x86_64": ["-march=core-avx2"],
+        "//conditions:default": [],
+    }),
+    cxxopts = ["-std=gnu++20"],
+    defines = common_defines + ["QT_GUI_LIB"],
+    includes = _GUI_INCLUDES,
+    local_defines = _GUI_LOCAL_DEFINES,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui_internal_cfg",
+        ":gui_sync_headers",
+        "@egl-registry//:EGL_headers",
+        "@opengl-registry//:OpenGL_headers",
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [":glx_h"],
+        "//conditions:default": [],
+    }),
+    alwayslink = True,
 )
 
 qt_internal_library(
@@ -2603,8 +3300,16 @@ qt_internal_library(
         "src/gui/painting/qtriangulator.cpp",
         "src/gui/rhi/qrhi.cpp",
         "src/gui/rhi/qrhinull.cpp",
+        "src/gui/rhi/qrhivulkan.cpp",
         "src/gui/rhi/qshader.cpp",
         "src/gui/rhi/qshaderdescription.cpp",
+        "src/gui/vulkan/qbasicvulkanplatforminstance.cpp",
+        "src/gui/vulkan/qplatformvulkaninstance.cpp",
+        "src/gui/vulkan/qvulkandefaultinstance.cpp",
+        "src/gui/vulkan/qvulkanfunctions.cpp",
+        "src/gui/vulkan/qvulkaninstance.cpp",
+        "src/gui/vulkan/qvulkanwindow.cpp",
+        ":qvulkanfunctions_p_cpp",
         "src/gui/text/qabstracttextdocumentlayout.cpp",
         "src/gui/text/qdistancefield.cpp",
         "src/gui/text/qfont.cpp",
@@ -2669,12 +3374,6 @@ qt_internal_library(
         "src/gui/kernel/qshortcutmap.cpp",
         "src/gui/image/qmovie.cpp",
         "src/gui/image/qpnghandler.cpp",
-        "src/gui/painting/qdrawhelper_sse2.cpp",
-        "src/gui/image/qimage_ssse3.cpp",
-        "src/gui/painting/qdrawhelper_ssse3.cpp",
-        "src/gui/painting/qdrawhelper_sse4.cpp",
-        "src/gui/painting/qimagescale_sse4.cpp",
-        "src/gui/painting/qdrawhelper_avx2.cpp",
         "src/gui/painting/qdrawhelper_neon.cpp",
         "src/gui/painting/qimagescale_neon.cpp",
         "src/gui/image/qimage_neon.cpp",
@@ -2702,6 +3401,11 @@ qt_internal_library(
         "src/gui/opengl/qopenglprogrambinarycache.cpp",
         "src/gui/rhi/qrhigles2.cpp",
     ] + select({
+        "@platforms//cpu:x86_64": [
+            "src/gui/painting/qdrawhelper_sse2.cpp",
+        ],
+        "//conditions:default": [],
+    }) + select({
         "@qt//:unix": [
             "src/gui/platform/unix/qdesktopunixservices.cpp",
             "src/gui/platform/unix/qgenericunixeventdispatcher.cpp",
@@ -2711,6 +3415,16 @@ qt_internal_library(
         "//conditions:default": [],
     }) + select({
         "@platforms//os:linux": [
+            # QT_FEATURE_accessibility_atspi_bridge
+            "src/gui/accessible/linux/atspiadaptor.cpp",
+            "src/gui/accessible/linux/dbusconnection.cpp",
+            "src/gui/accessible/linux/qspi_constant_mappings.cpp",
+            "src/gui/accessible/linux/qspi_struct_marshallers.cpp",
+            "src/gui/accessible/linux/qspiaccessiblebridge.cpp",
+            "src/gui/accessible/linux/qspiapplicationadaptor.cpp",
+            "src/gui/accessible/linux/qspidbuscache.cpp",
+            ":gui_atspi_adaptors_srcs",
+            ":gui_atspi_interfaces_srcs",
             "src/gui/text/unix/qfontconfigdatabase.cpp",
             "src/gui/text/unix/qfontenginemultifontconfig.cpp",
             "src/gui/platform/unix/qeventdispatcher_glib.cpp",
@@ -2738,7 +3452,8 @@ qt_internal_library(
             "src/gui/opengl/platform/egl/qeglpbuffer.cpp",
             "src/gui/opengl/platform/egl/qeglplatformcontext.cpp",
             "src/gui/opengl/platform/egl/qeglstreamconvenience.cpp",
-            ":gen_qopengl_gl1_stubs_cpp",
+            # QT_FEATURE_xcb_glx_plugin
+            "src/gui/opengl/platform/unix/qglxconvenience.cpp",
         ],
         "@platforms//os:macos": [
             "src/gui/accessible/qaccessiblecache_mac.mm",
@@ -2778,32 +3493,14 @@ qt_internal_library(
         ],
         "//conditions:default": [],
     }),
-    hdrs = glob([
-        "src/corelib/kernel/**/*.h",
-        "src/gui/**/*.h",
-        "src/dbus/**/*.h",
-        "src/3rdparty/md4c/**/*.h",
-        "src/3rdparty/D3D12MemoryAllocator/**/*.h",
-    ]),
-    copts = [
-        "-fPIC",
-        "-DNDEBUG",
-        "-O2",
-        "-fvisibility=hidden",
-        "-Wall",
-        "-Wextra",
-        "-fno-exceptions",
-        "-U_FORTIFY_SOURCE",
-        "-D_FORTIFY_SOURCE=3",
-        "-Wno-ctad-maybe-unsupported",
-        "-Wno-non-virtual-dtor",
-        "-Wno-string-conversion",
-    ] + select({
-        "@platforms//cpu:x86_64": [
-            "-march=core-avx2",
+    hdrs = _GUI_HDRS + select({
+        "@platforms//os:linux": [
+            ":gui_atspi_adaptors_hdrs",
+            ":gui_atspi_interfaces_hdrs",
         ],
         "//conditions:default": [],
     }),
+    copts = _GUI_BASE_COPTS,
     cxxopts = ["-std=gnu++20"],
     defines = common_defines + ["QT_GUI_LIB"],
     dynamic_deps = [
@@ -2817,21 +3514,16 @@ qt_internal_library(
     # visibility, so their symbols are exported). xcb_qpa_shared and other Qt
     # shared libraries must reuse them rather than link a second copy.
     exports_filter = [
+        ":gui_avx2",
+        ":gui_sse4_1",
+        ":gui_ssse3",
         "@@libexpat+//:expat",
         "@fontconfig//:fontconfig",
-        "@freetype//:freetype",
         "@harfbuzz//:harfbuzz",
-        "@libpng//:libpng",
     ],
-    includes = [
-        "src/3rdparty/D3D12MemoryAllocator",
-        "src/3rdparty/md4c",
-        "src/corelib/kernel",
-        "src/gui",
-        "src/gui/opengl",
-        "src/gui/text",
-    ] + mkspec_includes,
+    includes = _GUI_INCLUDES,
     linkopts = select({
+        "@platforms//os:linux": ["-Wl,--exclude-libs,ALL"],
         "@platforms//os:macos": [
             "-framework",
             "AppKit",
@@ -2873,51 +3565,7 @@ qt_internal_library(
         ],
         "//conditions:default": [],
     }),
-    local_defines = select({
-        "@qt//:unix_x86_64": ["ENABLE_PIXMAN_DRAWHELPERS"],
-        "//conditions:default": [],
-    }) + [
-        "ENABLE_HARFBUZZ_NG",
-        "Gui_EXPORTS",
-        "MD4C_USE_UTF8",
-        "QT_ASCII_CAST_WARNINGS",
-        "QT_BUILDING_QT",
-        "QT_BUILD_GUI_LIB",
-        "QT_CORE_LIB",
-        "QT_DEPRECATED_WARNINGS",
-        "QT_DISABLE_DEPRECATED_BEFORE=0x050000",
-        "QT_EXPLICIT_QFILE_CONSTRUCTION_FROM_PATH",
-        "QT_LEAN_HEADERS=1",
-        "QT_MOC_COMPAT",
-        "QT_NO_CAST_TO_ASCII",
-        "QT_NO_DEBUG",
-        "QT_NO_EXCEPTIONS",
-        "QT_NO_FOREACH",
-        "QT_NO_JAVA_STYLE_ITERATORS",
-        "QT_NO_NARROWING_CONVERSIONS_IN_CONNECT",
-        "QT_NO_QASCONST",
-        "QT_NO_QEXCHANGE",
-        "QT_NO_QSNPRINTF",
-        "QT_NO_USING_NAMESPACE",
-        "QT_USE_NODISCARD_FILE_OPEN",
-        "QT_USE_QSTRINGBUILDER",
-        "_LARGEFILE_SOURCE",
-    ] + select({
-        "@platforms//os:linux": [
-            "QT_DBUS_LIB",
-            "QT_EGL_NO_X11",
-            'QT_QPA_DEFAULT_PLATFORM_NAME=\\"offscreen\\"',
-            "_GLIBCXX_ASSERTIONS",
-            "_LARGEFILE64_SOURCE",
-        ],
-        "@platforms//os:macos": [
-            'QT_QPA_DEFAULT_PLATFORM_NAME=\\"cocoa\\"',
-        ],
-        "@platforms//os:windows": [
-            'QT_QPA_DEFAULT_PLATFORM_NAME=\\"windows\\"',
-        ],
-        "//conditions:default": [],
-    }),
+    local_defines = _GUI_LOCAL_DEFINES,
     moc_hdrs = [
         "src/gui/accessible/qaccessible_base.h",
         "src/gui/accessible/qaccessiblebridge.h",
@@ -2997,6 +3645,7 @@ qt_internal_library(
         "src/gui/util/qundogroup.h",
         "src/gui/util/qundostack.h",
         "src/gui/util/qvalidator.h",
+        "src/gui/vulkan/qvulkanwindow.h",
     ] + select({
         "@qt//:unix": [
             "src/gui/platform/unix/qunixeventdispatcher_qpa_p.h",
@@ -3004,6 +3653,13 @@ qt_internal_library(
         "//conditions:default": [],
     }) + select({
         "@platforms//os:linux": [
+            "src/gui/accessible/linux/atspiadaptor_p.h",
+            "src/gui/accessible/linux/dbusconnection_p.h",
+            "src/gui/accessible/linux/qspiaccessiblebridge_p.h",
+            "src/gui/accessible/linux/qspiapplicationadaptor_p.h",
+            "src/gui/accessible/linux/qspidbuscache_p.h",
+            ":gui_atspi_adaptors_hdrs",
+            ":gui_atspi_interfaces_hdrs",
             "src/gui/platform/unix/dbusmenu/qdbusmenuadaptor_p.h",
             "src/gui/platform/unix/dbusmenu/qdbusmenubar_p.h",
             "src/gui/platform/unix/dbusmenu/qdbusmenuconnection_p.h",
@@ -3045,18 +3701,28 @@ qt_internal_library(
         ":core",
         ":core_internal_cfg",
         ":emoji_presentation_scanner",
+        ":gui_avx2",
         ":gui_internal_cfg",
+        ":gui_sse4_1",
+        ":gui_ssse3",
         ":gui_sync_headers",
         "@egl-registry//:EGL_headers",
         "@freetype",
         "@harfbuzz",
         "@libpng",
         "@opengl-registry//:OpenGL_headers",
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
     ] + select({
         "@platforms//os:linux": [
+            ":atspi_headers",
             ":dbus",
+            ":glvnd_stubs",
+            ":glx_h",
+            ":gui_atspi_adaptors",
+            ":gui_atspi_interfaces",
             "@fontconfig",
             "@glib//glib",
+            "@libx11",
             "@libxcb",
             "@xkbcommon",
         ],
@@ -3078,7 +3744,6 @@ qt_internal_library(
         exclude = [
             "src/opengl/qopenglcompositor*.cpp",
             "src/opengl/qopenglfunctions_es2.cpp",
-            "src/opengl/qvkconvenience.cpp",
         ],
     ),
     hdrs = glob(
@@ -3086,7 +3751,6 @@ qt_internal_library(
         exclude = [
             "src/opengl/qopenglcompositor*.h",
             "src/opengl/qopenglfunctions_es2.h",
-            "src/opengl/qvkconvenience_p.h",
         ],
     ),
     copts = common_copts + [
@@ -3169,7 +3833,14 @@ qt_internal_library(
         ":opengl_internal_cfg",
         ":opengl_sync_headers",
         "@opengl-registry//:OpenGL_headers",
-    ],
+        "@vulkan_headers//:vulkan_headers_no_prototypes",
+    ] + select({
+        "@platforms//os:linux": [
+            ":glvnd_stubs",
+            ":glx_h",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 # =============================================================================
@@ -3984,18 +4655,31 @@ qt_static_plugin(
         "src/plugins/platforms/offscreen/qoffscreencommon.cpp",
         "src/plugins/platforms/offscreen/qoffscreenintegration.cpp",
         "src/plugins/platforms/offscreen/qoffscreenwindow.cpp",
-    ],
+    ] + select({
+        "@platforms//os:linux": [
+            "src/plugins/platforms/offscreen/qoffscreenintegration_x11.cpp",
+        ],
+        "//conditions:default": [],
+    }),
     hdrs = [
         "src/plugins/platforms/offscreen/qoffscreencommon.h",
         "src/plugins/platforms/offscreen/qoffscreenintegration.h",
         "src/plugins/platforms/offscreen/qoffscreenwindow.h",
-    ],
+    ] + select({
+        "@platforms//os:linux": [
+            "src/plugins/platforms/offscreen/qoffscreenintegration_x11.h",
+        ],
+        "//conditions:default": [],
+    }),
     copts = common_copts + ["-std=gnu++20"],
     dynamic_deps = [
         ":core_shared",
         ":dbus_shared",
         ":gui_shared",
-    ],
+    ] + select({
+        "@platforms//os:linux": [":x11_shared"],
+        "//conditions:default": [],
+    }),
     includes = ["src/plugins/platforms/offscreen"],
     moc_srcs = ["src/plugins/platforms/offscreen/main.cpp"],
     plugin_class_name = "QOffscreenIntegrationPlugin",
@@ -4005,7 +4689,10 @@ qt_static_plugin(
         ":core_internal_cfg",
         ":gui",
         ":gui_internal_cfg",
-    ],
+    ] + select({
+        "@platforms//os:linux": ["@libx11"],
+        "//conditions:default": [],
+    }),
 )
 
 alias(
@@ -4070,6 +4757,7 @@ qt_static_plugin(
         "src/plugins/platforms/cocoa/qcocoasessionmanager.cpp",
         "src/plugins/platforms/cocoa/qcocoasystemtrayicon.mm",
         "src/plugins/platforms/cocoa/qcocoatheme.mm",
+        "src/plugins/platforms/cocoa/qcocoavulkaninstance.mm",
         "src/plugins/platforms/cocoa/qcocoawindow.mm",
         "src/plugins/platforms/cocoa/qcocoawindowmanager.mm",
         "src/plugins/platforms/cocoa/qiosurfacegraphicsbuffer.mm",
@@ -4225,6 +4913,7 @@ qt_static_plugin(
         "src/plugins/platforms/windows/qwindowssystemtrayicon.cpp",
         "src/plugins/platforms/windows/qwindowstabletsupport.cpp",
         "src/plugins/platforms/windows/qwindowstheme.cpp",
+        "src/plugins/platforms/windows/qwindowsvulkaninstance.cpp",
         "src/plugins/platforms/windows/qwindowswindow.cpp",
         "src/plugins/platforms/windows/uiautomation/qwindowsuiaaccessibility.cpp",
         "src/plugins/platforms/windows/uiautomation/qwindowsuiabaseprovider.cpp",
@@ -4367,6 +5056,8 @@ qt_internal_library(
         "src/plugins/platforms/xcb/qxcbscrollingdevice.cpp",
         "src/plugins/platforms/xcb/qxcbsessionmanager.cpp",
         "src/plugins/platforms/xcb/qxcbsystemtraytracker.cpp",
+        "src/plugins/platforms/xcb/qxcbvulkaninstance.cpp",
+        "src/plugins/platforms/xcb/qxcbvulkanwindow.cpp",
         "src/plugins/platforms/xcb/qxcbwindow.cpp",
         "src/plugins/platforms/xcb/qxcbwmsupport.cpp",
         "src/plugins/platforms/xcb/qxcbxsettings.cpp",
@@ -4404,6 +5095,7 @@ qt_internal_library(
         "src/plugins/platforms/xcb",
         "src/plugins/platforms/xcb/gl_integrations",
     ],
+    linkopts = ["-Wl,--exclude-libs,ALL"],
     local_defines = [
         "QT_ASCII_CAST_WARNINGS",
         "QT_BUILDING_QT",
@@ -4470,6 +5162,119 @@ qt_internal_library(
 )
 
 qt_static_plugin(
+    name = "qxcb_glx_integration",
+    srcs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qglxintegration.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qxcbglxintegration.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qxcbglxmain.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qxcbglxnativeinterfacehandler.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qxcbglxwindow.cpp",
+    ],
+    hdrs = glob([
+        "src/plugins/platforms/xcb/*.h",
+        "src/plugins/platforms/xcb/gl_integrations/*.h",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/*.h",
+    ]),
+    copts = common_copts + ["-std=gnu++20"],
+    dynamic_deps = [
+        ":core_shared",
+        ":dbus_shared",
+        ":gui_shared",
+        ":x11_shared",
+        ":xcb_qpa_shared",
+    ],
+    includes = [
+        "src/plugins/platforms/xcb",
+        "src/plugins/platforms/xcb/gl_integrations",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_DEBUG",
+        "QT_NO_EXCEPTIONS",
+        "QT_NO_FOREACH",
+        "QT_PLUGIN",
+        "QT_XCB_QPA_LIB_LIB",
+    ],
+    moc_srcs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/qxcbglxmain.cpp",
+    ],
+    plugin_class_name = "QXcbGlxIntegrationPlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_glx/xcb_glx.json",
+    ],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":glvnd_stubs",
+        ":glx_h",
+        ":gui",
+        ":gui_internal_cfg",
+        ":xcb_qpa",
+        "@libx11",
+        "@libxcb",
+    ],
+)
+
+qt_static_plugin(
+    name = "qxcb_egl_integration",
+    srcs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/qxcbeglintegration.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/qxcbeglmain.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/qxcbeglnativeinterfacehandler.cpp",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/qxcbeglwindow.cpp",
+    ],
+    hdrs = glob([
+        "src/plugins/platforms/xcb/*.h",
+        "src/plugins/platforms/xcb/gl_integrations/*.h",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/*.h",
+    ]),
+    copts = common_copts + ["-std=gnu++20"],
+    dynamic_deps = [
+        ":core_shared",
+        ":dbus_shared",
+        ":gui_shared",
+        ":x11_shared",
+        ":xcb_qpa_shared",
+    ],
+    includes = [
+        "src/plugins/platforms/xcb",
+        "src/plugins/platforms/xcb/gl_integrations",
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_DEBUG",
+        "QT_NO_EXCEPTIONS",
+        "QT_NO_FOREACH",
+        "QT_PLUGIN",
+        "QT_XCB_QPA_LIB_LIB",
+    ],
+    moc_srcs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/qxcbeglmain.cpp",
+    ],
+    plugin_class_name = "QXcbEglIntegrationPlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = [
+        "src/plugins/platforms/xcb/gl_integrations/xcb_egl/xcb_egl.json",
+    ],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":glvnd_stubs",
+        ":gui",
+        ":gui_internal_cfg",
+        ":xcb_qpa",
+        "@egl-registry//:EGL_headers",
+        "@libx11",
+        "@libxcb",
+    ],
+)
+
+qt_static_plugin(
     name = "xcb",
     srcs = [
         "src/plugins/platforms/xcb/qxcbmain.cpp",
@@ -4483,6 +5288,7 @@ qt_static_plugin(
         ":core_shared",
         ":dbus_shared",
         ":gui_shared",
+        ":x11_shared",
         ":xcb_qpa_shared",
     ],
     includes = [
@@ -4524,6 +5330,8 @@ qt_static_plugin(
         ":core_internal_cfg",
         ":gui",
         ":gui_internal_cfg",
+        ":qxcb_egl_integration",
+        ":qxcb_glx_integration",
         ":xcb_qpa",
     ],
 )
@@ -4754,6 +5562,8 @@ qt_internal_library(
         "src/plugins/platforms/wayland/qwaylandtextinputv2.cpp",
         "src/plugins/platforms/wayland/qwaylandtextinputv3.cpp",
         "src/plugins/platforms/wayland/qwaylandviewport.cpp",
+        "src/plugins/platforms/wayland/qwaylandvulkaninstance.cpp",
+        "src/plugins/platforms/wayland/qwaylandvulkanwindow.cpp",
         "src/plugins/platforms/wayland/qwaylandwindow.cpp",
         "src/plugins/platforms/wayland/qwaylandwindowmanagerintegration.cpp",
         "src/plugins/platforms/wayland/shared/qwaylandinputmethodeventbuilder.cpp",
@@ -4806,6 +5616,7 @@ qt_internal_library(
         "src/plugins/platforms/wayland/shared",
         "src/plugins/platforms/wayland/shellintegration",
     ],
+    linkopts = ["-Wl,--exclude-libs,ALL"],
     local_defines = [
         "QT_ASCII_CAST_WARNINGS",
         "QT_BUILDING_QT",
@@ -5384,5 +6195,646 @@ qt_static_plugin(
         ":wayland_client",
         "@egl-registry//:EGL_headers",
         "@wayland//:wayland_client",
+    ],
+)
+
+# =============================================================================
+# Image Format Plugins (:qgif, :qico, :qjpeg, :imageformats)
+# =============================================================================
+
+qt_static_plugin(
+    name = "qgif",
+    srcs = [
+        "src/plugins/imageformats/gif/main.cpp",
+        "src/plugins/imageformats/gif/qgifhandler.cpp",
+    ],
+    hdrs = ["src/plugins/imageformats/gif/qgifhandler_p.h"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/imageformats/gif"],
+    moc_srcs = ["src/plugins/imageformats/gif/main.cpp"],
+    plugin_class_name = "QGifPlugin",
+    textual_hdrs = ["src/plugins/imageformats/gif/gif.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+    ],
+)
+
+qt_static_plugin(
+    name = "qico",
+    srcs = [
+        "src/plugins/imageformats/ico/main.cpp",
+        "src/plugins/imageformats/ico/qicohandler.cpp",
+    ],
+    hdrs = ["src/plugins/imageformats/ico/qicohandler.h"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/imageformats/ico"],
+    moc_srcs = ["src/plugins/imageformats/ico/main.cpp"],
+    plugin_class_name = "QICOPlugin",
+    textual_hdrs = ["src/plugins/imageformats/ico/ico.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+    ],
+)
+
+qt_static_plugin(
+    name = "qjpeg",
+    srcs = [
+        "src/plugins/imageformats/jpeg/main.cpp",
+        "src/plugins/imageformats/jpeg/qjpeghandler.cpp",
+    ],
+    hdrs = ["src/plugins/imageformats/jpeg/qjpeghandler_p.h"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/imageformats/jpeg"],
+    moc_srcs = ["src/plugins/imageformats/jpeg/main.cpp"],
+    plugin_class_name = "QJpegPlugin",
+    textual_hdrs = ["src/plugins/imageformats/jpeg/jpeg.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+        "@libjpeg_turbo//:jpeg",
+    ],
+)
+
+cc_library(
+    name = "imageformats",
+    deps = [
+        ":qgif",
+        ":qico",
+        ":qjpeg",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# QtPrintSupport (F-BASE-3)
+# ---------------------------------------------------------------------------
+
+qt_ui_library(
+    name = "qpagesetupwidget_ui",
+    src = "src/printsupport/dialogs/qpagesetupwidget.ui",
+    deps = [],
+)
+
+qt_ui_library(
+    name = "qprintpropertieswidget_ui",
+    src = "src/printsupport/dialogs/qprintpropertieswidget.ui",
+    deps = [],
+)
+
+qt_ui_library(
+    name = "qprintsettingsoutput_ui",
+    src = "src/printsupport/dialogs/qprintsettingsoutput.ui",
+    deps = [],
+)
+
+qt_ui_library(
+    name = "qprintwidget_ui",
+    src = "src/printsupport/dialogs/qprintwidget.ui",
+    deps = [],
+)
+
+qt_generate_qrc(
+    name = "qprintdialog_qrc",
+    srcs = [
+        "src/printsupport/dialogs/images/go-first-24.png",
+        "src/printsupport/dialogs/images/go-first-32.png",
+        "src/printsupport/dialogs/images/go-last-24.png",
+        "src/printsupport/dialogs/images/go-last-32.png",
+        "src/printsupport/dialogs/images/go-next-24.png",
+        "src/printsupport/dialogs/images/go-next-32.png",
+        "src/printsupport/dialogs/images/go-previous-24.png",
+        "src/printsupport/dialogs/images/go-previous-32.png",
+        "src/printsupport/dialogs/images/layout-landscape-24.png",
+        "src/printsupport/dialogs/images/layout-landscape-32.png",
+        "src/printsupport/dialogs/images/layout-portrait-24.png",
+        "src/printsupport/dialogs/images/layout-portrait-32.png",
+        "src/printsupport/dialogs/images/page-setup-24.png",
+        "src/printsupport/dialogs/images/page-setup-32.png",
+        "src/printsupport/dialogs/images/printer-24.png",
+        "src/printsupport/dialogs/images/printer-32.png",
+        "src/printsupport/dialogs/images/view-pages-facing-24.png",
+        "src/printsupport/dialogs/images/view-pages-facing-32.png",
+        "src/printsupport/dialogs/images/view-pages-overview-24.png",
+        "src/printsupport/dialogs/images/view-pages-overview-32.png",
+        "src/printsupport/dialogs/images/view-pages-single-24.png",
+        "src/printsupport/dialogs/images/view-pages-single-32.png",
+        "src/printsupport/dialogs/images/zoom-fit-page-24.png",
+        "src/printsupport/dialogs/images/zoom-fit-page-32.png",
+        "src/printsupport/dialogs/images/zoom-fit-width-24.png",
+        "src/printsupport/dialogs/images/zoom-fit-width-32.png",
+        "src/printsupport/dialogs/images/zoom-in-24.png",
+        "src/printsupport/dialogs/images/zoom-in-32.png",
+        "src/printsupport/dialogs/images/zoom-out-24.png",
+        "src/printsupport/dialogs/images/zoom-out-32.png",
+    ],
+    out = "generated_qrc/printsupport/qprintdialog.qrc",
+    prefix = "/qt-project.org/dialogs/qprintpreviewdialog",
+    strip_prefix = "src/printsupport/dialogs",
+)
+
+qt_rcc_internal(
+    name = "qprintdialog_rcc",
+    data = [
+        "src/printsupport/dialogs/images/go-first-24.png",
+        "src/printsupport/dialogs/images/go-first-32.png",
+        "src/printsupport/dialogs/images/go-last-24.png",
+        "src/printsupport/dialogs/images/go-last-32.png",
+        "src/printsupport/dialogs/images/go-next-24.png",
+        "src/printsupport/dialogs/images/go-next-32.png",
+        "src/printsupport/dialogs/images/go-previous-24.png",
+        "src/printsupport/dialogs/images/go-previous-32.png",
+        "src/printsupport/dialogs/images/layout-landscape-24.png",
+        "src/printsupport/dialogs/images/layout-landscape-32.png",
+        "src/printsupport/dialogs/images/layout-portrait-24.png",
+        "src/printsupport/dialogs/images/layout-portrait-32.png",
+        "src/printsupport/dialogs/images/page-setup-24.png",
+        "src/printsupport/dialogs/images/page-setup-32.png",
+        "src/printsupport/dialogs/images/printer-24.png",
+        "src/printsupport/dialogs/images/printer-32.png",
+        "src/printsupport/dialogs/images/view-pages-facing-24.png",
+        "src/printsupport/dialogs/images/view-pages-facing-32.png",
+        "src/printsupport/dialogs/images/view-pages-overview-24.png",
+        "src/printsupport/dialogs/images/view-pages-overview-32.png",
+        "src/printsupport/dialogs/images/view-pages-single-24.png",
+        "src/printsupport/dialogs/images/view-pages-single-32.png",
+        "src/printsupport/dialogs/images/zoom-fit-page-24.png",
+        "src/printsupport/dialogs/images/zoom-fit-page-32.png",
+        "src/printsupport/dialogs/images/zoom-fit-width-24.png",
+        "src/printsupport/dialogs/images/zoom-fit-width-32.png",
+        "src/printsupport/dialogs/images/zoom-in-24.png",
+        "src/printsupport/dialogs/images/zoom-in-32.png",
+        "src/printsupport/dialogs/images/zoom-out-24.png",
+        "src/printsupport/dialogs/images/zoom-out-32.png",
+    ],
+    qrc = ":qprintdialog_qrc",
+    qrc_name = "qprintdialog",
+)
+
+qt_generate_qrc(
+    name = "qprintdialog1_qrc",
+    srcs = [
+        "src/printsupport/dialogs/images/status-color.png",
+        "src/printsupport/dialogs/images/status-gray-scale.png",
+    ],
+    out = "generated_qrc/printsupport/qprintdialog1.qrc",
+    prefix = "/qt-project.org/dialogs/qprintdialog",
+    strip_prefix = "src/printsupport/dialogs",
+)
+
+qt_rcc_internal(
+    name = "qprintdialog1_rcc",
+    data = [
+        "src/printsupport/dialogs/images/status-color.png",
+        "src/printsupport/dialogs/images/status-gray-scale.png",
+    ],
+    qrc = ":qprintdialog1_qrc",
+    qrc_name = "qprintdialog1",
+)
+
+qt_internal_library(
+    name = "printsupport",
+    srcs = [
+        "src/printsupport/dialogs/qabstractprintdialog.cpp",
+        "src/printsupport/dialogs/qpagesetupdialog.cpp",
+        "src/printsupport/dialogs/qprintpreviewdialog.cpp",
+        "src/printsupport/kernel/qpaintengine_alpha.cpp",
+        "src/printsupport/kernel/qpaintengine_preview.cpp",
+        "src/printsupport/kernel/qplatformprintdevice.cpp",
+        "src/printsupport/kernel/qplatformprintersupport.cpp",
+        "src/printsupport/kernel/qplatformprintplugin.cpp",
+        "src/printsupport/kernel/qprint.cpp",
+        "src/printsupport/kernel/qprintdevice.cpp",
+        "src/printsupport/kernel/qprintengine.cpp",
+        "src/printsupport/kernel/qprintengine_pdf.cpp",
+        "src/printsupport/kernel/qprinter.cpp",
+        "src/printsupport/kernel/qprinterinfo.cpp",
+        "src/printsupport/widgets/qprintpreviewwidget.cpp",
+    ] + select({
+        "@platforms//os:linux": [
+            "src/printsupport/dialogs/qpagesetupdialog_unix.cpp",
+            "src/printsupport/dialogs/qprintdialog_unix.cpp",
+        ],
+        "@platforms//os:macos": [
+            "src/printsupport/dialogs/qpagesetupdialog_mac.mm",
+            "src/printsupport/dialogs/qprintdialog_mac.mm",
+            "src/printsupport/platform/macos/qcocoaprintdevice.mm",
+            "src/printsupport/platform/macos/qcocoaprintersupport.mm",
+            "src/printsupport/platform/macos/qpaintengine_mac.mm",
+            "src/printsupport/platform/macos/qprintengine_mac.mm",
+        ],
+        "@platforms//os:windows": [
+            "src/printsupport/dialogs/qpagesetupdialog_win.cpp",
+            "src/printsupport/dialogs/qprintdialog_win.cpp",
+            "src/printsupport/platform/windows/qprintengine_win.cpp",
+            "src/printsupport/platform/windows/qwindowsprintdevice.cpp",
+            "src/printsupport/platform/windows/qwindowsprintersupport.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = glob([
+        "src/printsupport/**/*.h",
+        "src/plugins/printsupport/cups/*.h",
+    ]),
+    copts = common_copts + select({
+        "@platforms//os:macos": ["-std=gnu++20"],
+        "@platforms//os:windows": ["-std=gnu++20"],
+        "//conditions:default": ["-std=gnu++20"],
+    }),
+    defines = common_defines + ["QT_PRINTSUPPORT_LIB"],
+    dynamic_deps = [
+        ":core_shared",
+        ":dbus_shared",
+        ":gui_shared",
+        ":widgets_shared",
+    ] + select({
+        "@platforms//os:linux": [":x11_shared"],
+        "//conditions:default": [],
+    }),
+    includes = [
+        "src/printsupport",
+        "src/printsupport/dialogs",
+        "src/printsupport/kernel",
+        "src/printsupport/widgets",
+    ] + select({
+        "@platforms//os:linux": ["src/plugins/printsupport/cups"],
+        "@platforms//os:macos": ["src/printsupport/platform/macos"],
+        "@platforms//os:windows": ["src/printsupport/platform/windows"],
+        "//conditions:default": [],
+    }) + mkspec_includes,
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-framework",
+            "AppKit",
+            "-framework",
+            "ApplicationServices",
+            "-lcups",
+        ],
+        "@platforms//os:windows": [
+            "-lcomdlg32",
+            "-lgdi32",
+            "-luser32",
+            "-lwinspool",
+        ],
+        "//conditions:default": [],
+    }),
+    local_defines = [
+        "PrintSupport_EXPORTS",
+        "QT_ASCII_CAST_WARNINGS",
+        "QT_BUILDING_QT",
+        "QT_BUILD_PRINTSUPPORT_LIB",
+        "QT_CORE_LIB",
+        "QT_DEPRECATED_WARNINGS",
+        "QT_EXPLICIT_QFILE_CONSTRUCTION_FROM_PATH",
+        "QT_GUI_LIB",
+        "QT_MOC_COMPAT",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_NO_CONTEXTLESS_CONNECT",
+        "QT_NO_DEBUG",
+        "QT_NO_EXCEPTIONS",
+        "QT_NO_FOREACH",
+        "QT_NO_JAVA_STYLE_ITERATORS",
+        "QT_NO_NARROWING_CONVERSIONS_IN_CONNECT",
+        "QT_NO_QASCONST",
+        "QT_NO_QEXCHANGE",
+        "QT_NO_QSNPRINTF",
+        "QT_NO_USING_NAMESPACE",
+        "QT_USE_NODISCARD_FILE_OPEN",
+        "QT_USE_QSTRINGBUILDER",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = [
+        "src/printsupport/dialogs/qabstractprintdialog.h",
+        "src/printsupport/dialogs/qpagesetupdialog.h",
+        "src/printsupport/dialogs/qprintdialog.h",
+        "src/printsupport/dialogs/qprintpreviewdialog.h",
+        "src/printsupport/kernel/qplatformprintplugin.h",
+        "src/printsupport/widgets/qprintpreviewwidget.h",
+    ] + select({
+        "@platforms//os:linux": ["src/printsupport/dialogs/qpagesetupdialog_unix_p.h"],
+        "//conditions:default": [],
+    }),
+    moc_srcs = [
+        "src/printsupport/dialogs/qprintpreviewdialog.cpp",
+        "src/printsupport/widgets/qprintpreviewwidget.cpp",
+    ] + select({
+        "@platforms//os:linux": ["src/printsupport/dialogs/qprintdialog_unix.cpp"],
+        "@platforms//os:macos": ["src/printsupport/platform/macos/qcocoaprintersupport.mm"],
+        "@platforms//os:windows": ["src/printsupport/platform/windows/qwindowsprintersupport.cpp"],
+        "//conditions:default": [],
+    }),
+    rcc_targets = [
+        ":qprintdialog_rcc",
+        ":qprintdialog1_rcc",
+    ],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+        ":printsupport_internal_cfg",
+        ":printsupport_sync_headers",
+        ":qpagesetupwidget_ui",
+        ":widgets",
+        ":widgets_internal_cfg",
+    ] + select({
+        "@platforms//os:linux": [
+            ":qprintpropertieswidget_ui",
+            ":qprintsettingsoutput_ui",
+            ":qprintwidget_ui",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+# ---------------------------------------------------------------------------
+# Widget Styles (F-BASE-2)
+# ---------------------------------------------------------------------------
+
+qt_static_plugin(
+    name = "qmacstyle",
+    srcs = [
+        "src/plugins/styles/mac/main.mm",
+        "src/plugins/styles/mac/qmacstyle_mac.mm",
+    ],
+    hdrs = [
+        "src/plugins/styles/mac/qmacstyle_mac_p.h",
+        "src/plugins/styles/mac/qmacstyle_mac_p_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/styles/mac"],
+    linkopts = [
+        "-framework",
+        "AppKit",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = ["src/plugins/styles/mac/qmacstyle_mac_p.h"],
+    moc_srcs = ["src/plugins/styles/mac/main.mm"],
+    plugin_class_name = "QMacStylePlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    textual_hdrs = ["src/plugins/styles/mac/macstyle.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+        ":widgets",
+        ":widgets_internal_cfg",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmodernwindowsstyle",
+    srcs = [
+        "src/plugins/styles/modernwindows/main.cpp",
+        "src/plugins/styles/modernwindows/qwindows11style.cpp",
+        "src/plugins/styles/modernwindows/qwindowsthemedata.cpp",
+        "src/plugins/styles/modernwindows/qwindowsvistaanimation.cpp",
+        "src/plugins/styles/modernwindows/qwindowsvistastyle.cpp",
+    ],
+    hdrs = [
+        "src/plugins/styles/modernwindows/qwindows11style_p.h",
+        "src/plugins/styles/modernwindows/qwindowsthemedata_p.h",
+        "src/plugins/styles/modernwindows/qwindowsvistaanimation_p.h",
+        "src/plugins/styles/modernwindows/qwindowsvistastyle_p.h",
+        "src/plugins/styles/modernwindows/qwindowsvistastyle_p_p.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/styles/modernwindows"],
+    linkopts = [
+        "-lgdi32",
+        "-luser32",
+        "-luxtheme",
+    ],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/styles/modernwindows/qwindows11style_p.h",
+        "src/plugins/styles/modernwindows/qwindowsvistaanimation_p.h",
+        "src/plugins/styles/modernwindows/qwindowsvistastyle_p.h",
+    ],
+    moc_srcs = ["src/plugins/styles/modernwindows/main.cpp"],
+    plugin_class_name = "QModernWindowsStylePlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    textual_hdrs = ["src/plugins/styles/modernwindows/modernwindowsstyles.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+        ":widgets",
+        ":widgets_internal_cfg",
+    ],
+)
+
+cc_library(
+    name = "style_plugins",
+    deps = select({
+        "@platforms//os:macos": [":qmacstyle"],
+        "@platforms//os:windows": [":qmodernwindowsstyle"],
+        "//conditions:default": [],
+    }),
+)
+
+# ---------------------------------------------------------------------------
+# Linux Desktop Integration Plugins (F-LNX-4)
+# ---------------------------------------------------------------------------
+
+qt_static_plugin(
+    name = "composeplatforminputcontextplugin",
+    srcs = [
+        "src/plugins/platforminputcontexts/compose/qcomposeplatforminputcontext.cpp",
+        "src/plugins/platforminputcontexts/compose/qcomposeplatforminputcontextmain.cpp",
+    ],
+    hdrs = ["src/plugins/platforminputcontexts/compose/qcomposeplatforminputcontext.h"],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/platforminputcontexts/compose"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/platforminputcontexts/compose/qcomposeplatforminputcontext.h"],
+    moc_srcs = ["src/plugins/platforminputcontexts/compose/qcomposeplatforminputcontextmain.cpp"],
+    plugin_class_name = "QComposePlatformInputContextPlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = ["src/plugins/platforminputcontexts/compose/compose.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":gui",
+        ":gui_internal_cfg",
+        "@xkbcommon",
+    ],
+)
+
+qt_static_plugin(
+    name = "ibusplatforminputcontextplugin",
+    srcs = [
+        "src/plugins/platforminputcontexts/ibus/main.cpp",
+        "src/plugins/platforminputcontexts/ibus/qibusinputcontextproxy.cpp",
+        "src/plugins/platforminputcontexts/ibus/qibusplatforminputcontext.cpp",
+        "src/plugins/platforminputcontexts/ibus/qibusproxy.cpp",
+        "src/plugins/platforminputcontexts/ibus/qibusproxyportal.cpp",
+        "src/plugins/platforminputcontexts/ibus/qibustypes.cpp",
+    ],
+    hdrs = [
+        "src/plugins/platforminputcontexts/ibus/qibusinputcontextproxy.h",
+        "src/plugins/platforminputcontexts/ibus/qibusplatforminputcontext.h",
+        "src/plugins/platforminputcontexts/ibus/qibusproxy.h",
+        "src/plugins/platforminputcontexts/ibus/qibusproxyportal.h",
+        "src/plugins/platforminputcontexts/ibus/qibustypes.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/platforminputcontexts/ibus"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_DBUS_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = [
+        "src/plugins/platforminputcontexts/ibus/qibusinputcontextproxy.h",
+        "src/plugins/platforminputcontexts/ibus/qibusplatforminputcontext.h",
+        "src/plugins/platforminputcontexts/ibus/qibusproxy.h",
+        "src/plugins/platforminputcontexts/ibus/qibusproxyportal.h",
+    ],
+    moc_srcs = ["src/plugins/platforminputcontexts/ibus/main.cpp"],
+    plugin_class_name = "QIbusPlatformInputContextPlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = ["src/plugins/platforminputcontexts/ibus/ibus.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":dbus",
+        ":gui",
+        ":gui_internal_cfg",
+        "@xkbcommon",
+    ],
+)
+
+cc_library(
+    name = "platforminputcontext_plugins",
+    deps = select({
+        "@platforms//os:linux": [
+            ":composeplatforminputcontextplugin",
+            ":ibusplatforminputcontextplugin",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+qt_static_plugin(
+    name = "qxdgdesktopportal",
+    srcs = [
+        "src/plugins/platformthemes/xdgdesktopportal/main.cpp",
+        "src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportalfiledialog.cpp",
+        "src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportaltheme.cpp",
+    ],
+    hdrs = [
+        "src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportalfiledialog_p.h",
+        "src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportaltheme.h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/platformthemes/xdgdesktopportal"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_DBUS_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = ["src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportalfiledialog_p.h"],
+    moc_srcs = [
+        "src/plugins/platformthemes/xdgdesktopportal/main.cpp",
+        "src/plugins/platformthemes/xdgdesktopportal/qxdgdesktopportaltheme.cpp",
+    ],
+    plugin_class_name = "QXdgDesktopPortalThemePlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = ["src/plugins/platformthemes/xdgdesktopportal/xdgdesktopportal.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":dbus",
+        ":gui",
+        ":gui_internal_cfg",
+    ],
+)
+
+cc_library(
+    name = "platformtheme_plugins",
+    deps = select({
+        "@platforms//os:linux": [":qxdgdesktopportal"],
+        "//conditions:default": [],
+    }),
+)
+
+# ---------------------------------------------------------------------------
+# CTF Tracing Plugin (F-BASE-6)
+# ---------------------------------------------------------------------------
+
+genrule(
+    name = "ctf_metadata_template_h",
+    srcs = ["src/plugins/tracing/metadata_template.txt"],
+    outs = ["src/plugins/tracing/metadata_template.h"],
+    cmd = "printf 'R\"(' > $@ && cat $< >> $@ && printf ')\"' >> $@",
+)
+
+qt_static_plugin(
+    name = "qctf",
+    srcs = [
+        "src/plugins/tracing/qctflib.cpp",
+        "src/plugins/tracing/qctfplugin.cpp",
+        "src/plugins/tracing/qctfserver.cpp",
+    ],
+    hdrs = [
+        "src/plugins/tracing/qctflib_p.h",
+        "src/plugins/tracing/qctfplugin_p.h",
+        "src/plugins/tracing/qctfserver_p.h",
+        ":ctf_metadata_template_h",
+    ],
+    copts = common_copts + ["-std=gnu++20"],
+    includes = ["src/plugins/tracing"],
+    local_defines = [
+        "QT_CORE_LIB",
+        "QT_NETWORK_LIB",
+        "QT_NO_DEBUG",
+        "QT_PLUGIN",
+    ],
+    moc_hdrs = [
+        "src/plugins/tracing/qctflib_p.h",
+        "src/plugins/tracing/qctfserver_p.h",
+    ],
+    moc_srcs = ["src/plugins/tracing/qctfplugin.cpp"],
+    plugin_class_name = "QCtfTracePlugin",
+    textual_hdrs = ["src/plugins/tracing/trace.json"],
+    deps = [
+        ":core",
+        ":core_internal_cfg",
+        ":network",
+        ":network_internal_cfg",
     ],
 )

@@ -1,0 +1,40 @@
+load("@qt//:qt.bzl", "qt_cc_test")
+
+qt_cc_test(
+    name = "printsupport_test",
+    size = "small",
+    srcs = ["printsupport_test.cc"],
+    env = {"QT_QPA_PLATFORM": "offscreen"},
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:printsupport",
+        "@qtbase//:test",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_cc_test(
+    name = "desktop_plugins_test",
+    size = "small",
+    srcs = ["desktop_plugins_test.cc"],
+    env = {"QT_QPA_PLATFORM": "offscreen"},
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+        "@qtbase//:networkinformation_plugins",
+        "@qtbase//:platforminputcontext_plugins",
+        "@qtbase//:platformtheme_plugins",
+        "@qtbase//:qcertonlybackend",
+        "@qtbase//:qctf",
+        "@qtbase//:qopensslbackend",
+        "@qtbase//:qsqlite",
+        "@qtbase//:sql",
+        "@qtbase//:sqldriver_plugins",
+        "@qtbase//:style_plugins",
+        "@qtbase//:test",
+        "@qtbase//:tls_plugins",
+        "@qtbase//:widgets",
+    ],
+)
