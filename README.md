@@ -15,16 +15,21 @@ them directly from here.
 
 ## Build status
 
-Latest `main` build with Bazel 9.x, by host (rows) and target (columns). The
-diagonal is a native build plus the full test suite; every other cell
-cross-compiles `//...` for the target platform. Cross builds only start once
-every native build is green, so a native failure shows the row's cross builds
-as skipped.
+Latest `main` build, by host (rows) and target (columns), once with Bazel 9.x
+and once with Bazel's latest release candidate (`last_rc`). The diagonal is a
+native build plus the full test suite; every other cell cross-compiles `//...`
+for the target platform. Cross builds only start once the jobs they depend on
+are green (all native builds for 9.x, all 9.x cross builds for `last_rc`), so a
+failure there shows them as skipped.
 
-[![Build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain)
+| Bazel 9.x | Bazel `last_rc` |
+| :---: | :---: |
+| [![Bazel 9.x build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_9x.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain) | [![Bazel last_rc build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_last_rc.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain) |
 
 The same data is available as
-[`build_status.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status.json).
+[`build_status_9x.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_9x.json)
+and
+[`build_status_last_rc.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_last_rc.json).
 
 ## Why build Qt from source?
 
@@ -165,17 +170,16 @@ is a different thing:
    Windows, x86_64 and arm64.
 2. **Cross** (30 jobs): every host cross-compiles `//...` for every other
    platform. These only start once all native jobs are green.
-3. **Status** (`main` only): publishes the [build status](#build-status)
-   matrix to the `status` branch.
-
-A second stage that repeats the matrix with Bazel's latest release candidate
-(`last_rc`) is temporarily disabled while CI is stabilised on Bazel 9.x.
+3. **`last_rc`**: repeats the native and cross matrix with Bazel's latest
+   release candidate. Its failures are reported but never fail the run.
+4. **Status** (`main` only): publishes one [build status](#build-status)
+   matrix per Bazel version to the `status` branch.
 
 Each job keeps a Bazel disk cache in GitHub's Actions cache, keyed by host,
 target and commit and pruned to what the build used. GitHub lets every pull
 request restore caches saved on `main`, but never another pull request's, so
-`main` seeds the shared caches (pushes to `main` only build; they skip the
-tests and are never cancelled by a later merge). A pull request saves its own
+`main` seeds the shared caches (runs on `main` are never cancelled by a later
+merge, and only the 9.x stage saves). A pull request saves its own
 caches for quick re-runs, and `cache_cleanup.yaml` deletes them once it is
 merged or closed.
 

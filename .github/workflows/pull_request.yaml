@@ -15,12 +15,12 @@
 # Every job runs the reusable workflow in bazel.yaml, which also documents how
 # the per-(host, target) Bazel disk caches are keyed, restored, pruned and saved.
 #
-# `push` on main is included only so that the Bazel caches get seeded from the
-# default branch: GitHub lets every PR restore caches saved on main, but a PR
-# can never read another PR's caches. A main run therefore only builds and
-# saves (no tests, no `last_rc` stage, which never saves); PR runs then restore
-# from those caches (actions/cache scope). cache_cleanup.yaml deletes a PR's
-# own caches when it is closed.
+# `push` on main runs the full matrix (both stages, with tests) and also seeds
+# the Bazel caches from the default branch: GitHub lets every PR restore caches
+# saved on main, but a PR can never read another PR's caches. Only the 9.x
+# stage saves; PR runs then restore from those caches (actions/cache scope).
+# cache_cleanup.yaml deletes a PR's own caches when it is closed. Main runs
+# also publish one build status matrix per stage (see `status`).
 name: Pull Request
 
 on:
@@ -68,8 +68,7 @@ jobs:
       stage: 9x
       host: ${{ matrix.host }}
       target: ${{ matrix.host }}
-      # Main runs only seed the caches; PRs already ran the tests.
-      test: ${{ github.event_name != 'push' }}
+      test: true
 
   cross-9x:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel 9.x
@@ -114,15 +113,15 @@ jobs:
       platform: ${{ matrix.platform }}
 
   # ---------------------------------------------------------------------------
-  # Build status matrix (main only)
+  # Build status matrices (main only)
   # ---------------------------------------------------------------------------
-  # Renders the host x target outcome of this run's bazel 9.x jobs as an SVG
-  # and publishes it (plus a JSON copy) to the orphan `status` branch, which
-  # the README embeds. Uses only GITHUB_TOKEN; pushes made with it do not
-  # trigger workflows.
+  # Renders the host x target outcome of this run's jobs as one SVG per stage
+  # (bazel 9.x and last_rc) and publishes them (plus JSON copies) to the
+  # orphan `status` branch, which the README embeds. Uses only GITHUB_TOKEN;
+  # pushes made with it do not trigger workflows.
   status:
-    name: Publish build status matrix
-    needs: [native-9x, cross-9x]
+    name: Publish build status matrices
+    needs: [native-9x, cross-9x, native-last-rc, cross-last-rc]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
@@ -134,17 +133,17 @@ jobs:
         with:
           sparse-checkout: .github/scripts
 
-      - name: Render build status matrix
+      - name: Render build status matrices
         env:
           GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           mkdir -p out
           gh api --paginate \
             "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
             --jq '.jobs[]' > jobs.jsonl
-          python3 .github/scripts/render_build_status.py jobs.jsonl out \
-            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            "${{ github.sha }}"
+          python3 .github/scripts/render_build_status.py jobs.jsonl out "$RUN_URL" "${{ github.sha }}" 9.x build_status_9x
+          python3 .github/scripts/render_build_status.py jobs.jsonl out "$RUN_URL" "${{ github.sha }}" last_rc build_status_last_rc
 
       - name: Publish to the status branch
         working-directory: out
@@ -152,7 +151,7 @@ jobs:
           git init -q -b status
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add build_status.svg build_status.json
+          git add build_status_*.svg build_status_*.json
           git commit -q -m "Build status for ${{ github.sha }}"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" status
 
@@ -162,9 +161,6 @@ jobs:
   native-last-rc:
     name: native ${{ matrix.host }} / bazel last_rc
     needs: [native-9x]
-    # TEMPORARILY DISABLED while CI is being stabilised on bazel 9.x.
-    # Restore `if: github.event_name != 'push'` to re-enable.
-    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -186,9 +182,6 @@ jobs:
   cross-last-rc:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel last_rc
     needs: [cross-9x]
-    # TEMPORARILY DISABLED while CI is being stabilised on bazel 9.x.
-    # Restore `if: github.event_name != 'push'` to re-enable.
-    if: false
     strategy:
       fail-fast: false
       matrix:
