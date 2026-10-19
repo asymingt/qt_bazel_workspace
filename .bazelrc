@@ -13,6 +13,14 @@ common --features=system_include_paths
 common --experimental_platform_in_output_dir
 common --macos_minimum_os=14.0
 
+# The @llvm toolchain enables -Wthread-safety by default; upstream Qt does not.
+# Clang's per-function analysis cannot follow locks returned by Qt's
+# qt_scoped_lock() or taken in VulkanMemoryAllocator's Lock()/Unlock()
+# wrappers, so Qt sources produce only false positives. Exec-config (tool)
+# compiles take --host_per_file_copt, so set both.
+common --per_file_copt=external/qt[^/]*[+]/.*@-Wno-thread-safety-analysis
+common --host_per_file_copt=external/qt[^/]*[+]/.*@-Wno-thread-safety-analysis
+
 # Mirrors for flaky upstream download hosts (BCR modules we cannot annotate).
 common --downloader_config=bazel_downloader.cfg
 

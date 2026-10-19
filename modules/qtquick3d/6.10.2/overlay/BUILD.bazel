@@ -2734,7 +2734,14 @@ qt_static_plugin(
     ],
     copts = common_copts + ["-fexceptions"],
     includes = ["src/plugins/assetimporters/assimp"],
-    local_defines = [d for d in common_local_defines if d != "QT_NO_EXCEPTIONS"] + [
+    # QT_ASCII_CAST_WARNINGS only adds deprecation warnings, and this plugin
+    # relies on QString(const char *) (upstream marks it
+    # QT_SKIP_WARNINGS_ARE_ERRORS for the same reason).
+    local_defines = [
+        d
+        for d in common_local_defines
+        if d not in ("QT_ASCII_CAST_WARNINGS", "QT_NO_EXCEPTIONS")
+    ] + [
         "QT_GUI_LIB",
         "QT_NETWORK_LIB",
         "QT_QMLINTEGRATION_LIB",

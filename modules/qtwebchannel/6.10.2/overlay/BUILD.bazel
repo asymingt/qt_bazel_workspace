@@ -200,9 +200,9 @@ qt_internal_library(
     moc_unity = True,
     qml_args = {
         "foreign_types": [
-            "@qtbase//:core",
-            "@qtdeclarative//:qml",
-            ":webchannel",
+            "@qtbase//:core_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            ":webchannel_moc_hdrs",
         ],
         "import_name": "QtWebChannel",
         "past_major_versions": ["1"],
