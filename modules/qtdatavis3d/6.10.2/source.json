@@ -3,7 +3,7 @@
     "strip_prefix": "qtdatavis3d-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtdatavis3d-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-ufJW6Ujxc5WztyebgNNHfBk2pLU/o64xlYKOqB3iUyM=",
+        "BUILD.bazel": "sha256-xI19FM3Zkw6NlSJcSBJIl/8pDS5MAj11rEnFHtLZNYI=",
         "MODULE.bazel": "sha256-LEGTi0004XfNsKc2FIzdM2DuuLGP0WXEjLsvyOwtV1o="
     }
 }

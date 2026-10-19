@@ -555,7 +555,34 @@ qt_internal_library(
         "src/graphs3d/qml/qquickgraphstexturedata_p.h",
         "src/graphs3d/utils/qgraphs3dnamespace.h",
     ],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-Bsymbolic"],
+        "//conditions:default": [],
+    }),
     moc_unity = True,
+    qml_args = {
+        "uri": "QtGraphs",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "foreign_types": [
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+            "@qtdeclarative//:quickshapes_moc_hdrs",
+            "@qtquick3d//:quick3d_moc_hdrs",
+        ],
+        "qmldir_content": "\n".join([
+            "module QtGraphs",
+            "linktarget Graphs",
+            "optional plugin graphsplugin",
+            "classname GraphsPlugin",
+            "typeinfo plugins.qmltypes",
+            "prefer :/qt-project.org/imports/QtGraphs/",
+            "",
+        ]),
+    },
     rcc_targets = [
         ":graphsshaders2D_res",
         ":graphsshaders_res",
@@ -605,6 +632,7 @@ qt_static_plugin(
         "@qtquick3d//:utils_shared",
     ],
     local_defines = _QT_INTERNAL_DEFINES + ["QT_PLUGIN"],
+    moc_opts = ["-Muri=QtGraphs"],
     moc_srcs = [":graphsplugin_gen"],
     plugin_class_name = "GraphsPlugin",
     deps = [
@@ -709,6 +737,7 @@ qt_internal_library(
     ],
     deps = [
         ":graphs",
+        ":graphsplugin",
         ":graphswidgets_sync_headers",
         "@qtbase//:core",
         "@qtbase//:gui",

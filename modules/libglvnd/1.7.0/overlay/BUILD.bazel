@@ -1,0 +1,38 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_license//rules:license.bzl", "license")
+
+package(
+    default_applicable_licenses = [":license"],
+)
+
+license(
+    name = "license",
+    license_kinds = [
+        "@rules_license//licenses/spdx:MIT",
+    ],
+    license_text = "README.md",
+)
+
+exports_files(["README.md"])
+
+# <GL/glx.h>, the GLX client API header that distributions install from
+# libglvnd. Only glx.h is exported: libglvnd's copies of the Khronos headers
+# (GL/gl.h, GL/glext.h, GL/glxext.h, EGL/, GLES*/, KHR/) come from
+# @opengl-registry and @egl-registry instead, so there is a single copy of
+# each on the include path.
+cc_library(
+    name = "glx_headers",
+    hdrs = ["include/GL/glx.h"],
+    strip_include_prefix = "include",
+    target_compatible_with = select({
+        "@platforms//os:linux": [],
+        "@platforms//os:freebsd": [],
+        "@platforms//os:openbsd": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [
+        "@libx11",
+        "@opengl-registry//:OpenGL_headers",
+    ],
+)

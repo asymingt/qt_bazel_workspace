@@ -73,6 +73,8 @@ exports_files([
     "LICENSES/GPL-3.0-only.txt",
     "src/3rdparty/embree/LICENSE.txt",
     "src/3rdparty/meshoptimizer/LICENSE.md",
+    "src/3rdparty/openxr/LICENSE",
+    "src/3rdparty/openxr/src/external/jsoncpp/LICENSE",
     "src/3rdparty/xatlas/LICENSE",
     "src/3rdparty/tinyexr/LICENSE",
     "src/helpers/LICENSE.GODOT.txt",
@@ -265,6 +267,92 @@ cc_library(
     deps = ["@zlib"],
 )
 
+license(
+    name = "license_openxr",
+    license_kinds = [
+        "@rules_license//licenses/spdx:Apache-2.0",
+    ],
+    license_text = "src/3rdparty/openxr/LICENSE",
+)
+
+license(
+    name = "license_openxr_jsoncpp",
+    license_kinds = [
+        "@rules_license//licenses/spdx:MIT",
+    ],
+    license_text = "src/3rdparty/openxr/src/external/jsoncpp/LICENSE",
+)
+
+cc_library(
+    name = "BundledOpenXR",
+    srcs = [
+        "src/3rdparty/openxr/src/common/filesystem_utils.cpp",
+        "src/3rdparty/openxr/src/common/object_info.cpp",
+        "src/3rdparty/openxr/src/external/jsoncpp/src/lib_json/json_reader.cpp",
+        "src/3rdparty/openxr/src/external/jsoncpp/src/lib_json/json_value.cpp",
+        "src/3rdparty/openxr/src/external/jsoncpp/src/lib_json/json_writer.cpp",
+        "src/3rdparty/openxr/src/loader/android_utilities.cpp",
+        "src/3rdparty/openxr/src/loader/api_layer_interface.cpp",
+        "src/3rdparty/openxr/src/loader/loader_core.cpp",
+        "src/3rdparty/openxr/src/loader/loader_init_data.cpp",
+        "src/3rdparty/openxr/src/loader/loader_instance.cpp",
+        "src/3rdparty/openxr/src/loader/loader_logger.cpp",
+        "src/3rdparty/openxr/src/loader/loader_logger_recorders.cpp",
+        "src/3rdparty/openxr/src/loader/manifest_file.cpp",
+        "src/3rdparty/openxr/src/loader/runtime_interface.cpp",
+        "src/3rdparty/openxr/src/loader/xr_generated_loader.cpp",
+        "src/3rdparty/openxr/src/xr_generated_dispatch_table_core.c",
+    ],
+    hdrs = glob([
+        "src/3rdparty/openxr/include/openxr/*.h",
+        "src/3rdparty/openxr/src/**/*.h",
+        "src/3rdparty/openxr/src/**/*.hpp",
+    ]),
+    applicable_licenses = [
+        ":license_openxr",
+        ":license_openxr_jsoncpp",
+    ],
+    copts = [
+        "-fPIC",
+        "-fvisibility=hidden",
+        "-fexceptions",
+        "-w",
+    ],
+    includes = [
+        "src/3rdparty/openxr/include",
+        "src/3rdparty/openxr/src",
+        "src/3rdparty/openxr/src/common",
+        "src/3rdparty/openxr/src/external/jsoncpp/include",
+        "src/3rdparty/openxr/src/loader",
+    ],
+    linkopts = select({
+        "@platforms//os:linux": ["-ldl"],
+        "//conditions:default": [],
+    }),
+    local_defines = [
+        "JSON_USE_EXCEPTION=0",
+        "XRLOADER_DISABLE_EXCEPTION_HANDLING",
+    ] + select({
+        "@platforms//os:linux": [
+            "HAVE_SECURE_GETENV",
+            "XR_OS_LINUX",
+        ],
+        "@platforms//os:macos": [
+            "XR_OS_APPLE",
+        ],
+        "@platforms//os:windows": [
+            "NOMINMAX",
+            "XR_OS_WINDOWS",
+            "XR_USE_PLATFORM_WIN32",
+        ],
+        "//conditions:default": [],
+    }),
+    textual_hdrs = [
+        "src/3rdparty/openxr/src/external/jsoncpp/src/lib_json/json_valueiterator.inl",
+    ],
+)
+
+
 # =============================================================================
 # 1. Quick3DGlslParserPrivate (src/glslparser)
 # =============================================================================
@@ -394,7 +482,6 @@ qt_internal_library(
     copts = common_copts,
     dynamic_deps = [
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -403,7 +490,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     exports_filter = [
         ":meshoptimizer_bundled",
         ":xatlas_bundled",
@@ -483,7 +573,6 @@ qt_internal_library(
     dynamic_deps = [
         ":utils_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -492,7 +581,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/assetimport"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DASSETIMPORT_LIB",
@@ -1176,7 +1268,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -1186,7 +1277,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     exports_filter = [
         ":tinyexr_bundled",
     ] + select({
@@ -1373,7 +1467,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -1383,7 +1476,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = [
         "src/quick3d",
         "src/quick3d/extensions",
@@ -1553,7 +1649,7 @@ qt_sync_headers(
 )
 
 qt_internal_library(
-    name = "assetutils",
+    name = "assetutils_lib",
     srcs = [
         "src/assetutils/qquick3druntimeloader.cpp",
         "src/assetutils/qssgqmlutilities.cpp",
@@ -1570,7 +1666,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -1581,7 +1676,10 @@ qt_internal_library(
         "@qtdeclarative//:quick_shared",
         "@qtquicktimeline//:quicktimeline_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/assetutils"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DASSETUTILS_LIB",
@@ -1629,6 +1727,24 @@ qt_internal_library(
     ],
 )
 
+alias(
+    name = "assetutils_shared",
+    actual = ":assetutils_lib_shared",
+)
+
+alias(
+    name = "assetutils_moc_hdrs",
+    actual = ":assetutils_lib_moc_hdrs",
+)
+
+cc_library(
+    name = "assetutils",
+    deps = [
+        ":assetutils_lib",
+        ":assimpimporterplugin",
+    ],
+)
+
 qt_qml_plugin_gen(
     name = "qtquick3dassetutilsplugin_src",
     class_name = "QtQuick3DAssetUtilsPlugin",
@@ -1653,6 +1769,7 @@ qt_static_plugin(
     plugin_class_name = "QtQuick3DAssetUtilsPlugin",
     deps = [
         ":assetutils",
+        ":assimpimporterplugin",
         ":qquick3dplugin",
         ":quick3d",
         "@qtbase//:core",
@@ -1752,7 +1869,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -1762,7 +1878,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/quick3dparticles"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DPARTICLES_LIB",
@@ -2029,7 +2148,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -2039,7 +2157,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/helpers/impl"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DHELPERSIMPL_LIB",
@@ -2217,7 +2338,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -2227,7 +2347,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/helpers"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DHELPERS_LIB",
@@ -2541,7 +2664,6 @@ qt_internal_library(
         ":utils_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -2551,7 +2673,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
         "@qtshadertools//:shadertools_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/iblbaker"],
     local_defines = common_local_defines + [
         "QT_BUILD_QUICK3DIBLBAKER_LIB",
@@ -2609,7 +2734,14 @@ qt_static_plugin(
     ],
     copts = common_copts + ["-fexceptions"],
     includes = ["src/plugins/assetimporters/assimp"],
-    local_defines = [d for d in common_local_defines if d != "QT_NO_EXCEPTIONS"] + [
+    # QT_ASCII_CAST_WARNINGS only adds deprecation warnings, and this plugin
+    # relies on QString(const char *) (upstream marks it
+    # QT_SKIP_WARNINGS_ARE_ERRORS for the same reason).
+    local_defines = [
+        d
+        for d in common_local_defines
+        if d not in ("QT_ASCII_CAST_WARNINGS", "QT_NO_EXCEPTIONS")
+    ] + [
         "QT_GUI_LIB",
         "QT_NETWORK_LIB",
         "QT_QMLINTEGRATION_LIB",
@@ -2628,7 +2760,7 @@ qt_static_plugin(
     textual_hdrs = ["src/plugins/assetimporters/assimp/assimp.json"],
     deps = [
         ":assetimport",
-        ":assetutils",
+        ":assetutils_lib",
         ":quick3d",
         ":runtimerender",
         ":utils",
@@ -2636,6 +2768,302 @@ qt_static_plugin(
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_quick3dprofiler",
+    srcs = [
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapter.cpp",
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapterfactory.cpp",
+    ],
+    hdrs = [
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapter.h",
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapterfactory.h",
+    ],
+    copts = common_copts,
+    includes = ["src/plugins/qmldbg_quick3dprofiler"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK3DUTILS_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapter.h",
+        "src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapterfactory.h",
+    ],
+    plugin_class_name = "QQuick3DProfilerAdapterFactory",
+    textual_hdrs = ["src/plugins/qmldbg_quick3dprofiler/qquick3dprofileradapter.json"],
+    deps = [
+        ":utils",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:packetprotocol",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+    ],
+)
+
+# =============================================================================
+# 13b. Quick3DXr (src/xr/quick3dxr) + quick3dxrplugin
+# =============================================================================
+
+qt_export_header(
+    name = "qtquick3dxrexports_h",
+    out = "generated_exports/qtquick3dxrexports.h",
+    module_infix = "QUICK3DXR",
+)
+
+qt_depends_header(
+    name = "quick3dxr_depends_h",
+    out = "generated_exports/QtQuick3DXrDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuick3D",
+        "QtQuick3DRuntimeRender",
+        "QtQuick3DUtils",
+    ],
+)
+
+qt_sync_headers(
+    name = "quick3dxr_sync_headers",
+    hdrs = glob([
+        "src/xr/quick3dxr/*.h",
+        "src/xr/quick3dxr/openxr/*.h",
+    ]),
+    generated_private_hdrs = [
+        ":gen_qtquick3dxr_config_p_h",
+    ],
+    generated_public_hdrs = [
+        ":gen_qtquick3dxr_config_h",
+        ":qtquick3dxrexports_h",
+        ":quick3dxr_depends_h",
+    ],
+    module_name = "QtQuick3DXr",
+    source_dir = "src/xr/quick3dxr",
+    version = QT_VERSION,
+    deps = [
+        ":quick3d_sync_headers",
+        ":runtimerender_sync_headers",
+        ":utils_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+        "@qtdeclarative//:qml_sync_headers",
+        "@qtdeclarative//:quick_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quick3dxr",
+    srcs = [
+        "src/xr/quick3dxr/openxr/qabstractopenxrgraphics.cpp",
+        "src/xr/quick3dxr/openxr/qopenxrhelpers.cpp",
+        "src/xr/quick3dxr/openxr/qopenxrinputmanager.cpp",
+        "src/xr/quick3dxr/openxr/qquick3dxranchormanager_openxr.cpp",
+        "src/xr/quick3dxr/openxr/qquick3dxrmanager_openxr.cpp",
+        "src/xr/quick3dxr/qquick3dxrabstracthapticeffect.cpp",
+        "src/xr/quick3dxr/qquick3dxractionmapper.cpp",
+        "src/xr/quick3dxr/qquick3dxranimationdriver.cpp",
+        "src/xr/quick3dxr/qquick3dxrcamera.cpp",
+        "src/xr/quick3dxr/qquick3dxrcontroller.cpp",
+        "src/xr/quick3dxr/qquick3dxrhandinput.cpp",
+        "src/xr/quick3dxr/qquick3dxrhandmodel.cpp",
+        "src/xr/quick3dxr/qquick3dxrinputmanager.cpp",
+        "src/xr/quick3dxr/qquick3dxritem.cpp",
+        "src/xr/quick3dxr/qquick3dxrmanager.cpp",
+        "src/xr/quick3dxr/qquick3dxrorigin.cpp",
+        "src/xr/quick3dxr/qquick3dxrruntimeinfo.cpp",
+        "src/xr/quick3dxr/qquick3dxrspatialanchor.cpp",
+        "src/xr/quick3dxr/qquick3dxrspatialanchorlistmodel.cpp",
+        "src/xr/quick3dxr/qquick3dxrview.cpp",
+        "src/xr/quick3dxr/qquick3dxrvirtualmouse.cpp",
+    ] + select({
+        "@platforms//os:linux": [
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_opengl.cpp",
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_vulkan.cpp",
+        ],
+        "@platforms//os:macos": [
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_metal.mm",
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_vulkan.cpp",
+        ],
+        "@platforms//os:windows": [
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_d3d11.cpp",
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_d3d12.cpp",
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_opengl.cpp",
+            "src/xr/quick3dxr/openxr/qopenxrgraphics_vulkan.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = glob([
+        "src/xr/quick3dxr/*.h",
+        "src/xr/quick3dxr/openxr/*.h",
+    ]),
+    copts = common_copts + select({
+        "@platforms//os:macos": ["-x", "objective-c++"],
+        "//conditions:default": [],
+    }),
+    dynamic_deps = [
+        ":quick3d_shared",
+        ":runtimerender_shared",
+        ":utils_shared",
+        "@qtbase//:concurrent_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:opengl_shared",
+        "@qtdeclarative//:qml_shared",
+        "@qtdeclarative//:qmlmeta_shared",
+        "@qtdeclarative//:qmlmodels_shared",
+        "@qtdeclarative//:qmlworkerscript_shared",
+        "@qtdeclarative//:quick_shared",
+        "@qtshadertools//:shadertools_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
+    exports_filter = [":BundledOpenXR"],
+    includes = [
+        "src/xr/quick3dxr",
+        "src/xr/quick3dxr/openxr",
+    ],
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-framework",
+            "Foundation",
+            "-framework",
+            "Metal",
+            "-framework",
+            "QuartzCore",
+        ],
+        "@platforms//os:windows": [
+            "-ld3d11",
+            "-ld3d12",
+            "-ldxgi",
+            "-lgdi32",
+            "-luser32",
+        ],
+        "//conditions:default": [],
+    }),
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICK3DXR_LIB",
+        "QT_GUI_LIB",
+        "QT_NETWORK_LIB",
+        "QT_OPENGL_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMETA_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK3DRUNTIMERENDER_LIB",
+        "QT_QUICK3DUTILS_LIB",
+        "QT_QUICK3D_LIB",
+        "QT_QUICK_LIB",
+    ] + select({
+        "@platforms//os:linux": [
+            "XR_USE_GRAPHICS_API_OPENGL",
+            "XR_USE_GRAPHICS_API_VULKAN",
+            "XR_USE_PLATFORM_WAYLAND",
+        ],
+        "@platforms//os:macos": [
+            "XR_USE_GRAPHICS_API_METAL",
+            "XR_USE_GRAPHICS_API_VULKAN",
+        ],
+        "@platforms//os:windows": [
+            "XR_USE_GRAPHICS_API_D3D11",
+            "XR_USE_GRAPHICS_API_D3D12",
+            "XR_USE_GRAPHICS_API_OPENGL",
+            "XR_USE_GRAPHICS_API_VULKAN",
+            "XR_USE_PLATFORM_WIN32",
+        ],
+        "//conditions:default": [],
+    }),
+    moc_hdrs = [
+        "src/xr/quick3dxr/openxr/qopenxrinputmanager_p.h",
+        "src/xr/quick3dxr/openxr/qquick3dxranchormanager_openxr_p.h",
+        "src/xr/quick3dxr/qquick3dxrabstracthapticeffect_p.h",
+        "src/xr/quick3dxr/qquick3dxractionmapper_p.h",
+        "src/xr/quick3dxr/qquick3dxrcamera_p.h",
+        "src/xr/quick3dxr/qquick3dxrcontroller_p.h",
+        "src/xr/quick3dxr/qquick3dxrhandinput_p.h",
+        "src/xr/quick3dxr/qquick3dxrhandmodel_p.h",
+        "src/xr/quick3dxr/qquick3dxrinputmanager_p.h",
+        "src/xr/quick3dxr/qquick3dxritem_p.h",
+        "src/xr/quick3dxr/qquick3dxrmanager_p.h",
+        "src/xr/quick3dxr/qquick3dxrorigin_p.h",
+        "src/xr/quick3dxr/qquick3dxrruntimeinfo_p.h",
+        "src/xr/quick3dxr/qquick3dxrspatialanchor_p.h",
+        "src/xr/quick3dxr/qquick3dxrspatialanchorlistmodel_p.h",
+        "src/xr/quick3dxr/qquick3dxrview_p.h",
+        "src/xr/quick3dxr/qquick3dxrvirtualmouse_p.h",
+    ],
+    moc_srcs = [
+        "src/xr/quick3dxr/openxr/qquick3dxrmanager_openxr.cpp",
+    ],
+    moc_unity = True,
+    qml_args = {
+        "uri": "QtQuick3D.Xr",
+        "major_version": "6",
+        "minor_version": "10",
+        "foreign_types": [
+            ":quick3d_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+        ],
+        "qml_files": [
+            "src/xr/quick3dxr/XrErrorDialog.qml",
+        ],
+        "qml_strip_prefix": "src/xr/quick3dxr",
+        "qmldir_content": "module QtQuick3D.Xr\nlinktarget Qt6::quick3dxrplugin\nplugin quick3dxrplugin\nclassname QtQuick3DXrPlugin\ntypeinfo plugins.qmltypes\ndepends QtQuick auto\ndepends QtQuick3D auto\nprefer :/qt-project.org/imports/QtQuick3D/Xr/\nXrErrorDialog 6.8 XrErrorDialog.qml\n",
+    },
+    deps = [
+        ":BundledOpenXR",
+        ":quick3d",
+        ":quick3dxr_sync_headers",
+        ":runtimerender",
+        ":utils",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "quick3dxrplugin_src",
+    class_name = "QtQuick3DXrPlugin",
+    plugin_name = "quick3dxrplugin",
+    uri = "QtQuick3D.Xr",
+)
+
+qt_static_plugin(
+    name = "quick3dxrplugin",
+    srcs = [":quick3dxrplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK3DXR_LIB",
+        "QT_QUICK3D_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick3D.Xr"],
+    moc_srcs = [":quick3dxrplugin_src"],
+    plugin_class_name = "QtQuick3DXrPlugin",
+    deps = [
+        ":qquick3dplugin",
+        ":quick3d",
+        ":quick3dxr",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
     ],
 )
 
@@ -3019,13 +3447,29 @@ cc_binary(
         "QT_QUICK_LIB",
     ],
     deps = [
+        ":assimpimporterplugin",
         ":materialeditor_lib",
         ":qquick3dplugin",
+        ":qtquick3dassetutilsplugin",
+        ":qtquick3dhelpersimplplugin",
+        ":qtquick3dhelpersplugin",
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtbase//:network",
         "@qtdeclarative//:qml",
+        "@qtdeclarative//:qquicklayoutsplugin",
+        "@qtdeclarative//:qtlabsplatformplugin",
+        "@qtdeclarative//:qtqmlcoreplugin",
+        "@qtdeclarative//:qtquick2plugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleplugin",
+        "@qtdeclarative//:qtquickcontrols2implplugin",
+        "@qtdeclarative//:qtquickcontrols2plugin",
+        "@qtdeclarative//:qtquickdialogs2quickimplplugin",
+        "@qtdeclarative//:qtquickdialogsplugin",
+        "@qtdeclarative//:qtquicktemplates2plugin",
         "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickwindow",
     ],
 )
 
@@ -3126,6 +3570,16 @@ cc_binary(
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
+        "@qtdeclarative//:qquicklayoutsplugin",
+        "@qtdeclarative//:qtquick2plugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleimplplugin",
+        "@qtdeclarative//:qtquickcontrols2basicstyleplugin",
+        "@qtdeclarative//:qtquickcontrols2implplugin",
+        "@qtdeclarative//:qtquickcontrols2plugin",
+        "@qtdeclarative//:qtquickdialogs2quickimplplugin",
+        "@qtdeclarative//:qtquickdialogsplugin",
+        "@qtdeclarative//:qtquicktemplates2plugin",
         "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickwindow",
     ],
 )

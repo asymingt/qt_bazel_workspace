@@ -7,7 +7,7 @@ load(
     "qt_resource",
 )
 load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS")
-load("@rules_cc//cc:defs.bzl", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -293,8 +293,18 @@ qt_qml_module(
         "QT_BUILD_LOCATION_LIB",
     ],
     plugin_class_name = "QtLocationDeclarativeModule",
+    plugin_deps = [
+        "@qtdeclarative//:labsanimationplugin",
+        "@qtpositioning//:positioningquickplugin",
+    ],
+    plugin_optional = False,
     plugin_target = "declarative_location",
+    qml_depends = ["QtQuick auto"],
     qml_files = ["src/location/maps/MapView.qml"],
+    qml_imports = [
+        "QtPositioning auto",
+        "Qt.labs.animation auto",
+    ],
     strip_prefix = "src/location/maps",
     deps = [
         ":location_export",
@@ -323,10 +333,12 @@ cc_shared_library(
         "@qtdeclarative//:qml_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:gui_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:network_shared",
         "@qtbase//:core_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     shared_lib_name = select({
         "@platforms//os:windows": "liblocation_shared.dll",
         "//conditions:default": "",
@@ -353,6 +365,7 @@ qt_plugin_FixMe(
     ],
     includes = ["src/plugins/geoservices/itemsoverlay"],
     plugin_class_name = "QGeoServiceProviderFactoryItemsOverlay",
+    textual_hdrs = ["src/plugins/geoservices/itemsoverlay/itemsoverlay_plugin.json"],
     deps = [
         ":location",
         "@qtbase//:core",
@@ -398,6 +411,7 @@ qt_plugin_FixMe(
     ],
     includes = ["src/plugins/geoservices/osm"],
     plugin_class_name = "QGeoServiceProviderFactoryOsm",
+    textual_hdrs = ["src/plugins/geoservices/osm/osm_plugin.json"],
     deps = [
         ":location",
         "@qtbase//:core",
@@ -449,6 +463,7 @@ qt_plugin_FixMe(
     ],
     includes = ["src/plugins/geoservices/esri"],
     plugin_class_name = "GeoServiceProviderFactoryEsri",
+    textual_hdrs = ["src/plugins/geoservices/esri/esri_plugin.json"],
     deps = [
         ":location",
         "@qtbase//:core",
@@ -500,6 +515,7 @@ qt_plugin_FixMe(
     ],
     includes = ["src/plugins/geoservices/mapbox"],
     plugin_class_name = "QGeoServiceProviderFactoryMapbox",
+    textual_hdrs = ["src/plugins/geoservices/mapbox/mapbox_plugin.json"],
     deps = [
         ":location",
         "@qtbase//:core",
@@ -576,6 +592,7 @@ qt_plugin_FixMe(
         "src/plugins/geoservices/nokia/placesv2",
     ],
     plugin_class_name = "QGeoServiceProviderFactoryNokia",
+    textual_hdrs = ["src/plugins/geoservices/nokia/nokia_plugin.json"],
     deps = [
         ":location",
         "@qtbase//:core",
@@ -583,3 +600,13 @@ qt_plugin_FixMe(
         "@qtpositioning//:positioning",
     ],
 )
+
+cc_library(
+    name = "geoservices_plugins",
+    deps = [
+        ":qtgeoservices_itemsoverlay",
+        ":qtgeoservices_nokia",
+        ":qtgeoservices_osm",
+    ],
+)
+

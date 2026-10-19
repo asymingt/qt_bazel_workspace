@@ -3,7 +3,7 @@
     "strip_prefix": "qtwebchannel-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwebchannel-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-BnopuJpCbP/q4XnlFI+ixvjSxf/J7WvyxrRUeOeCsIA=",
+        "BUILD.bazel": "sha256-Io9qmSS3M18Os/N5ULx0OYmzbp2PoEHd3zFkDs4Oqq4=",
         "MODULE.bazel": "sha256-BtNZ20vyLZ05ZajCDq9H+8DrAy0AWNrVCfinyUtXh5s="
     }
 }

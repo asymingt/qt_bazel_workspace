@@ -656,17 +656,6 @@ qt_sync_headers(
     ],
 )
 
-qt_write_file(
-    name = "gen_quick3dphysics_qmltypereg_cpp",
-    out = "generated_config/quick3dphysics_qmltyperegistrations.cpp",
-    content = """\
-#include <QtQuick3DPhysics/qtquick3dphysicsglobal.h>
-QT_BEGIN_NAMESPACE
-void Q_QUICK3DPHYSICS_EXPORT qml_register_types_QtQuick3D_Physics() {}
-QT_END_NAMESPACE
-""",
-)
-
 qt_internal_library(
     name = "quick3dphysics",
     srcs = [
@@ -700,7 +689,6 @@ qt_internal_library(
         "src/quick3dphysics/qstaticrigidbody.cpp",
         "src/quick3dphysics/qtrianglemeshshape.cpp",
         "src/quick3dphysics/qtriggerbody.cpp",
-        ":gen_quick3dphysics_qmltypereg_cpp",
     ],
     hdrs = glob(["src/quick3dphysics/**/*.h"]),
     copts = common_copts + [
@@ -758,6 +746,27 @@ qt_internal_library(
     moc_srcs = [
         "src/quick3dphysics/qphysicsworld.cpp",
     ],
+    qml_args = {
+        "uri": "QtQuick3D.Physics",
+        "major_version": "6",
+        "minor_version": "10",
+        "foreign_types": [
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+            "@qtquick3d//:quick3d_moc_hdrs",
+        ],
+        "qmldir_content": "\n".join([
+            "module QtQuick3D.Physics",
+            "linktarget Quick3DPhysics",
+            "optional plugin qquick3dphysicsplugin",
+            "classname QtQuick3DPhysicsPlugin",
+            "typeinfo plugins.qmltypes",
+            "prefer :/qt-project.org/imports/QtQuick3D/Physics/",
+            "",
+        ]),
+    },
     deps = [
         ":physx_bundled",
         ":quick3dphysics_sync_headers",
@@ -793,6 +802,7 @@ qt_static_plugin(
     ],
     includes = ["src/quick3dphysics"],
     local_defines = _QT_INTERNAL_DEFINES + ["QT_PLUGIN"],
+    moc_opts = ["-Muri=QtQuick3D.Physics"],
     moc_srcs = ["src/quick3dphysics/plugin.cpp"],
     plugin_class_name = "QtQuick3DPhysicsPlugin",
     deps = [
@@ -876,6 +886,29 @@ qt_internal_library(
         "QT_BUILD_QUICK3DPHYSICSHELPERS_LIB",
     ],
     moc_hdrs = ["src/helpers/qcapsulegeometry_p.h"],
+    qml_args = {
+        "uri": "QtQuick3D.Physics.Helpers",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "foreign_types": [
+            ":quick3dphysics_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+            "@qtquick3d//:quick3d_moc_hdrs",
+        ],
+        "qmldir_content": "\n".join([
+            "module QtQuick3D.Physics.Helpers",
+            "linktarget Quick3DPhysicsHelpers",
+            "optional plugin qtquick3dphysicshelpersplugin",
+            "classname QtQuick3DPhysicsHelpersPlugin",
+            "typeinfo plugins.qmltypes",
+            "prefer :/qt-project.org/imports/QtQuick3D/Physics/Helpers/",
+            "",
+        ]),
+    },
     deps = [
         ":quick3dphysics",
         ":quick3dphysicshelpers_sync_headers",
@@ -916,6 +949,7 @@ qt_static_plugin(
         "@qtquick3d//:utils_shared",
     ],
     local_defines = _QT_INTERNAL_DEFINES + ["QT_PLUGIN"],
+    moc_opts = ["-Muri=QtQuick3D.Physics.Helpers"],
     moc_srcs = [":qtquick3dphysicshelpersplugin_gen"],
     plugin_class_name = "QtQuick3DPhysicsHelpersPlugin",
     deps = [

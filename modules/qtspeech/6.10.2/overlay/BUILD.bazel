@@ -1,4 +1,6 @@
 load("@qt//:qt.bzl", "QT_VERSION", "common_defines", "qt_internal_library", "qt_qml_plugin_cpp", "qt_static_plugin", "qt_sync_headers")
+load("@qt//:qt_tools.bzl", "qt_write_file")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 load(":qtspeech_config.bzl", "declare_qtspeech_config_targets")
 
@@ -18,7 +20,7 @@ license(
 )
 
 _COMMON_DEFINES = common_defines + [
-    "QT_NO_AS_CONST=1",
+    "QT_NO_QASCONST=1",
     "QT_NO_CONTEXTLESS_CONNECT=1",
     "QT_NO_FOREACH=1",
 ]
@@ -55,11 +57,13 @@ qt_internal_library(
     dynamic_deps = [
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtmultimedia//:multimedia_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/tts"],
     local_defines = _COMMON_DEFINES + ["QTEXTTOSPEECH_LIBRARY"],
     moc_hdrs = [
@@ -97,12 +101,14 @@ qt_internal_library(
         ":tts_shared",
         "@qtbase//:concurrent_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtdeclarative//:qml_shared",
         "@qtmultimedia//:multimedia_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/tts/qml"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_TEXTTOSPEECHQML_LIB"],
     moc_hdrs = [
@@ -172,8 +178,131 @@ qt_static_plugin(
         "src/plugins/tts/mock/qtexttospeech_mock_plugin.h",
     ],
     plugin_class_name = "QTextToSpeechMockPlugin",
+    textual_hdrs = ["src/plugins/tts/mock/mock_plugin.json"],
     deps = [
         ":tts",
         "@qtbase//:core",
     ],
 )
+
+qt_static_plugin(
+    name = "qtexttospeech_speechd",
+    srcs = [
+        "qtexttospeech_speechd_symbolloader.cpp",
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd.cpp",
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd_plugin.cpp",
+    ],
+    hdrs = [
+        "libspeechd.h",
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd.h",
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd_plugin.h",
+    ],
+    includes = [
+        ".",
+        "src/plugins/tts/speechdispatcher",
+    ],
+    local_defines = _COMMON_DEFINES,
+    moc_hdrs = [
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd.h",
+        "src/plugins/tts/speechdispatcher/qtexttospeech_speechd_plugin.h",
+    ],
+    plugin_class_name = "QTextToSpeechSpeechdPlugin",
+    target_compatible_with = ["@platforms//os:linux"],
+    textual_hdrs = ["src/plugins/tts/speechdispatcher/speechd_plugin.json"],
+    deps = [
+        ":tts",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtexttospeech_speechdarwin",
+    srcs = [
+        "src/plugins/tts/darwin/qtexttospeech_darwin.mm",
+        "src/plugins/tts/darwin/qtexttospeech_darwin_plugin.cpp",
+    ],
+    hdrs = [
+        "src/plugins/tts/darwin/qtexttospeech_darwin.h",
+        "src/plugins/tts/darwin/qtexttospeech_darwin_plugin.h",
+    ],
+    includes = ["src/plugins/tts/darwin"],
+    linkopts = [
+        "-framework",
+        "AVFoundation",
+        "-framework",
+        "Foundation",
+    ],
+    local_defines = _COMMON_DEFINES,
+    moc_hdrs = [
+        "src/plugins/tts/darwin/qtexttospeech_darwin.h",
+        "src/plugins/tts/darwin/qtexttospeech_darwin_plugin.h",
+    ],
+    plugin_class_name = "QTextToSpeechDarwinPlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    textual_hdrs = ["src/plugins/tts/darwin/darwin_plugin.json"],
+    deps = [
+        ":tts",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtmultimedia//:multimedia",
+    ],
+)
+
+# SAPI CLSIDs/IIDs are not in MinGW's libsapi/libuuid; compile sapi.h under
+# <initguid.h> to emit the definitions.
+qt_write_file(
+    name = "sapi_win_guids_src",
+    out = "generated_win_hdrs/sapi_win_guids.cpp",
+    content = """\
+#include <windows.h>
+#include <initguid.h>
+#include <sapi.h>
+""",
+)
+
+qt_static_plugin(
+    name = "qtexttospeech_sapi",
+    srcs = [
+        "src/plugins/tts/sapi/qtexttospeech_sapi.cpp",
+        "src/plugins/tts/sapi/qtexttospeech_sapi_plugin.cpp",
+        ":sapi_win_guids_src",
+    ],
+    hdrs = [
+        "src/plugins/tts/sapi/qtexttospeech_sapi.h",
+        "src/plugins/tts/sapi/qtexttospeech_sapi_plugin.h",
+    ],
+    # CLSID_SpVoice-style constant defined but unused by upstream.
+    copts = ["-Wno-unused-const-variable"],
+    includes = ["src/plugins/tts/sapi"],
+    linkopts = [
+        "-lole32",
+        "-lsapi",
+        "-luuid",
+    ],
+    local_defines = _COMMON_DEFINES,
+    moc_hdrs = [
+        "src/plugins/tts/sapi/qtexttospeech_sapi.h",
+        "src/plugins/tts/sapi/qtexttospeech_sapi_plugin.h",
+    ],
+    plugin_class_name = "QTextToSpeechSapiPlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    textual_hdrs = ["src/plugins/tts/sapi/sapi_plugin.json"],
+    deps = [
+        ":tts",
+        "@qtbase//:core",
+        "@qtmultimedia//:multimedia",
+    ],
+)
+
+cc_library(
+    name = "tts_plugins",
+    deps = [
+        ":qtexttospeech_mock",
+    ] + select({
+        "@platforms//os:linux": [":qtexttospeech_speechd"],
+        "@platforms//os:macos": [":qtexttospeech_speechdarwin"],
+        "@platforms//os:windows": [":qtexttospeech_sapi"],
+        "//conditions:default": [],
+    }),
+)
+

@@ -3,8 +3,10 @@
     "strip_prefix": "qtspeech-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtspeech-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-0rMSOGYdgxBkDqPbqC8/wWg7mB/NvPl80xFr2zaX3hI=",
-        "MODULE.bazel": "sha256-Tpi2QYjPTt7QFE3hpjs2gpSEEYN6zjNlh0FwWBM8+yI=",
-        "qtspeech_config.bzl": "sha256-j/nwAPqkX3tWFOL7pLGdYJie22UmIWIkqOfYX0mN/XA="
+        "BUILD.bazel": "sha256-r143ygaeBbyD8bx7m7J7WZo5tnade36jitENYKD6ENI=",
+        "MODULE.bazel": "sha256-R2EG6FJvJjwmDcjUBx1LgXiZ1cyvBzPwQsp4H5+UVQw=",
+        "libspeechd.h": "sha256-KnKjicEd/YOu5XU4/v/sMnH3R7ZxBMlDFAMVUsynUoo=",
+        "qtexttospeech_speechd_symbolloader.cpp": "sha256-IwAZBAlOqfpyFTh/GxIUZ2ek6liZ4vR8WyVn8VadTw0=",
+        "qtspeech_config.bzl": "sha256-cyfp3lxXBPT/nvNnO3Y5Ti48IOOj/xL3GjfbCHb6Eug="
     }
 }

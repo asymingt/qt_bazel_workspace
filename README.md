@@ -86,7 +86,7 @@ bazel build //:app --platforms=@llvm//platforms:linux_arm64_gnu.2.34
 
 ## What's in the box
 
-36 Qt 6.10 modules, all building on Linux, macOS and Windows for both x86_64
+39 Qt 6.10 modules, all building on Linux, macOS and Windows for both x86_64
 and arm64:
 
 | Area | Modules |
@@ -97,6 +97,7 @@ and arm64:
 | Multimedia | `qtmultimedia` (FFmpeg, spatial audio), `qtspeech`, `qtwebview` |
 | Networking / IPC | `qtwebsockets`, `qtwebchannel`, `qthttpserver`, `qtnetworkauth`, `qtgrpc`, `qtremoteobjects` |
 | Devices / Sensors | `qtserialport`, `qtserialbus`, `qtsensors`, `qtpositioning`, `qtlocation`, `qtconnectivity` |
+| IoT / Industrial | `qtmqtt`, `qtcoap`, `qtopcua` (bundled open62541 backend, `QtOpcUa` QML module) |
 | Platform | `qtwayland`, `qtscxml`, plus the shared [`qt`](https://github.com/asymingt/qt_bazel) rules module |
 
 Plus a handful of small X11/D-Bus dependencies that are not (yet) in the BCR.

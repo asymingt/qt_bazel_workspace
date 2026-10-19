@@ -7,6 +7,7 @@ load(
     "qt_qml_plugin_gen",
     "qt_sync_headers",
 )
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 load(":qtwebview_config.bzl", "declare_qtwebview_config_targets")
 
@@ -100,9 +101,11 @@ qt_internal_library(
     defines = ["QT_WEBVIEW_LIB"],
     dynamic_deps = [
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/webview"],
     local_defines = _COMMON_DEFINES + [
         "QT_BUILD_WEBVIEW_LIB",
@@ -175,7 +178,6 @@ qt_internal_library(
     dynamic_deps = [
         ":webview_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -184,7 +186,10 @@ qt_internal_library(
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     includes = ["src/quick"],
     local_defines = _COMMON_DEFINES + [
         "QT_BUILD_WEBVIEWQUICK_LIB",
@@ -248,13 +253,12 @@ qt_qml_plugin_gen(
 qt_static_plugin(
     name = "qtwebviewquickplugin",
     srcs = [":qtwebviewquickplugin_gen"],
-    copts = common_copts + ["-I$(GENDIR)/external/qtwebview+/qtwebviewquickplugin_gen_out"],
+    copts = common_copts,
     cxxopts = ["-std=gnu++20"],
     dynamic_deps = [
         ":webview_shared",
         ":webviewquick_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -263,7 +267,10 @@ qt_static_plugin(
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     local_defines = _COMMON_DEFINES + [
         "QT_CORE_LIB",
         "QT_GUI_LIB",
@@ -283,3 +290,56 @@ qt_static_plugin(
         "@qtdeclarative//:quick",
     ],
 )
+
+qt_static_plugin(
+    name = "qtwebview_darwin",
+    srcs = [
+        "src/plugins/darwin/qdarwinwebview.mm",
+        "src/plugins/darwin/qdarwinwebviewplugin.cpp",
+    ],
+    hdrs = [
+        "src/plugins/darwin/qdarwinwebview_p.h",
+    ],
+    copts = common_copts,
+    cxxopts = ["-std=gnu++20"],
+    includes = ["src/plugins/darwin"],
+    linkopts = [
+        "-framework",
+        "AppKit",
+        "-framework",
+        "Foundation",
+        "-framework",
+        "WebKit",
+    ],
+    local_defines = _COMMON_DEFINES + [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_QUICK_LIB",
+        "QT_WEBVIEW_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/darwin/qdarwinwebview_p.h",
+    ],
+    moc_srcs = [
+        "src/plugins/darwin/qdarwinwebviewplugin.cpp",
+    ],
+    plugin_class_name = "QDarwinWebViewPlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    textual_hdrs = ["src/plugins/darwin/darwin.json"],
+    deps = [
+        ":webview",
+        ":webview_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:quick",
+    ],
+)
+
+cc_library(
+    name = "webview_plugins",
+    deps = select({
+        "@platforms//os:macos": [":qtwebview_darwin"],
+        "//conditions:default": [],
+    }),
+)
+

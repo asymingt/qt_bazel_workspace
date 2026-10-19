@@ -3,8 +3,8 @@
     "strip_prefix": "qtwebview-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwebview-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-HT6ybsKJOmIBcXTN/sS/ITZo//ksvA1Bh+D8vlL4uBE=",
+        "BUILD.bazel": "sha256-reYLCQBcZp/kmM5y3HPA30UvnVQJaFmD217p7jlv4Tk=",
         "MODULE.bazel": "sha256-nRIEJDN5wnXD6dQvFznKeyoqD/AM6wOJRvT5BACA10k=",
-        "qtwebview_config.bzl": "sha256-qqb8QF//bc7p8IQryLSVYjit+HY1x9Vnm27Ws1KCK8I="
+        "qtwebview_config.bzl": "sha256-bkl4itoSWzbd55ipHW/Iai80Pj/t+FbvL0XB9sqbhPw="
     }
 }

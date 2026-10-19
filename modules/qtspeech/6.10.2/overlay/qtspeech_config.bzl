@@ -2,7 +2,11 @@
 
 load("@qt//:qt_tools.bzl", "qt_write_file")
 
-_QTTEXTTOSPEECH_CONFIG_H = """#define QT_FEATURE_speechd -1
+_QTTEXTTOSPEECH_CONFIG_H = """#if defined(__linux__)
+#define QT_FEATURE_speechd 1
+#else
+#define QT_FEATURE_speechd -1
+#endif
 """
 
 _QTTEXTTOSPEECH_CONFIG_P_H = """#include <QtTextToSpeech/qttexttospeech-config.h>

@@ -1,0 +1,18 @@
+--- a/qt.bzl	2026-10-19 06:29:48.562545634 -0700
++++ b/qt.bzl	2026-10-19 06:29:48.576368730 -0700
+@@ -3546,6 +3546,7 @@
+         defines = [],
+         local_defines = [],
+         deps = [],
++        linkopts = [],
+         moc_unity = True,
+         target_compatible_with = None,
+         **kwargs):
+@@ -3584,6 +3585,7 @@
+         defines = defines,
+         local_defines = _with_building_qt(local_defines),
+         deps = deps,
++        linkopts = linkopts,
+         moc_unity = moc_unity,
+         target_compatible_with = target_compatible_with,
+         testonly = testonly,

@@ -3,9 +3,9 @@
     "strip_prefix": "qtdeclarative-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtdeclarative-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-o/wCZqRBY8dSm01/XMQmhCejiinJW7zbvCe5M79C0EI=",
+        "BUILD.bazel": "sha256-MA9W0rnXIxYJdR6vyH3iIHEoinoO8mrHZtBpRBtnMj4=",
         "MODULE.bazel": "sha256-jFwayVIDhe+ntH3prjauw33BOewxA1aTxKFvIdfIIRU=",
         "bazel_prebuilt/yarr/RegExpJitTables.h": "sha256-+7K8PVxdiKJ8GkRfe6qhcjJNQXY6YDVbUsPQZrcFgYQ=",
-        "qtdeclarative_config.bzl": "sha256-9DljMQWMuFzY3N7mbnh/Xn1RMX9YXIwxCTP8eLwivUM="
+        "qtdeclarative_config.bzl": "sha256-dkdPQNbWQpzJkwE3bf98oGOvDgFa6Vju+GKsds5821c="
     }
 }

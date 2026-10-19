@@ -1,11 +1,13 @@
 load(
     "@qt//:qt.bzl",
-    "QT_SHARED_PLATFORM_LINKOPTS",
     "qt_export_header",
+    "qt_generate_qrc",
+    "qt_internal_library",
     "qt_module_headers",
     "qt_qml_module",
+    "qt_static_plugin",
 )
-load("@rules_cc//cc:defs.bzl", "cc_shared_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -103,6 +105,20 @@ qt_qml_module(
         "src/qml/qlottieanimation.cpp",
     ],
     hdrs = LOTTIE_HEADERS,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtdeclarative//:quick_shared",
+        "@qtdeclarative//:qmlmeta_shared",
+        "@qtdeclarative//:qmlmodels_shared",
+        "@qtdeclarative//:qmlworkerscript_shared",
+        "@qtdeclarative//:qml_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:core_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     import_name = "Qt.labs.lottieqt",
     import_version = "6.10",
     includes = [
@@ -115,6 +131,7 @@ qt_qml_module(
     ],
     plugin_class_name = "Qt_labs_lottieqtPlugin",
     plugin_target = "lottieqtplugin",
+    qml_depends = ["QtQuick auto"],
     deps = [
         ":lottie_export",
         ":lottie_headers",
@@ -123,27 +140,6 @@ qt_qml_module(
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
     ],
-)
-
-cc_shared_library(
-    name = "lottie_shared",
-    dynamic_deps = [
-        "@qtdeclarative//:quick_shared",
-        "@qtdeclarative//:qmlmeta_shared",
-        "@qtdeclarative//:qmlmodels_shared",
-        "@qtdeclarative//:qmlworkerscript_shared",
-        "@qtdeclarative//:qml_shared",
-        "@qtbase//:gui_shared",
-        "@qtbase//:dbus_shared",
-        "@qtbase//:network_shared",
-        "@qtbase//:core_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "liblottie_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":lottie"],
 )
 
 # ============================================================================
@@ -171,6 +167,20 @@ qt_qml_module(
     name = "lottievectorimagehelpers",
     srcs = ["src/vectorimagehelpers/qquicklayeritem.cpp"],
     hdrs = LOTTIEVECTORIMAGEHELPERS_HEADERS,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtdeclarative//:quick_shared",
+        "@qtdeclarative//:qmlmeta_shared",
+        "@qtdeclarative//:qmlmodels_shared",
+        "@qtdeclarative//:qmlworkerscript_shared",
+        "@qtdeclarative//:qml_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:core_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     import_name = "Qt.labs.lottieqt.VectorImageHelpers",
     import_version = "6.10",
     included_moc_hdrs = ["src/vectorimagehelpers/qquicklayeritem_p.h"],
@@ -190,23 +200,118 @@ qt_qml_module(
     ],
 )
 
-cc_shared_library(
-    name = "lottievectorimagehelpers_shared",
+# ============================================================================
+# Qt6LottieVectorImageGeneratorPrivate (:lottievectorimagegenerator)
+# ============================================================================
+
+qt_export_header(
+    name = "lottievectorimagegenerator_export",
+    module_Header = "LottieVectorImageGenerator",
+    module_name = "lottievectorimagegenerator",
+)
+
+LOTTIEVECTORIMAGEGENERATOR_HEADERS = [
+    "src/lottiegenerator/qlottievisitor_p.h",
+]
+
+qt_module_headers(
+    name = "lottievectorimagegenerator_headers",
+    hdrs = LOTTIEVECTORIMAGEGENERATOR_HEADERS,
+    extra_deps = [":lottievectorimagegenerator_export"],
+    internal_module = True,
+    module_name = "LottieVectorImageGenerator",
+)
+
+qt_internal_library(
+    name = "lottievectorimagegenerator",
+    srcs = ["src/lottiegenerator/qlottievisitor.cpp"],
+    hdrs = LOTTIEVECTORIMAGEGENERATOR_HEADERS,
+    defines = ["QT_LOTTIEVECTORIMAGEGENERATOR_LIB"],
     dynamic_deps = [
+        ":lottie_shared",
+        ":lottievectorimagehelpers_shared",
+        "@qtdeclarative//:quickvectorimagegenerator_shared",
+        "@qtdeclarative//:quickshapes_shared",
         "@qtdeclarative//:quick_shared",
         "@qtdeclarative//:qmlmeta_shared",
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:qml_shared",
+        "@qtsvg//:svg_shared",
         "@qtbase//:gui_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:network_shared",
         "@qtbase//:core_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "liblottievectorimagehelpers_shared.dll",
-        "//conditions:default": "",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
     }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":lottievectorimagehelpers"],
+    includes = ["src/lottiegenerator"],
+    local_defines = [
+        "QT_BUILD_LOTTIEVECTORIMAGEGENERATOR_LIB",
+    ],
+    deps = [
+        ":lottie",
+        ":lottievectorimagegenerator_export",
+        ":lottievectorimagegenerator_headers",
+        ":lottievectorimagehelpers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickshapes",
+        "@qtdeclarative//:quickvectorimagegenerator",
+    ],
+)
+
+# ============================================================================
+# QLottieVectorImagePlugin (:qlottievectorimage)
+# ============================================================================
+
+qt_static_plugin(
+    name = "qlottievectorimage",
+    srcs = ["src/plugins/vectorimageformats/lottie/main.cpp"],
+    includes = ["src/plugins/vectorimageformats/lottie"],
+    moc_srcs = ["src/plugins/vectorimageformats/lottie/main.cpp"],
+    plugin_class_name = "QLottieVectorImagePlugin",
+    deps = [
+        ":lottie",
+        ":lottievectorimagegenerator",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickvectorimagegenerator",
+    ],
+)
+
+# ============================================================================
+# lottietoqml tool (:lottietoqml)
+# ============================================================================
+
+qt_generate_qrc(
+    name = "lottietoqml_qrc",
+    srcs = ["tools/lottietoqml/main.qml"],
+    prefix = "/",
+    qrc_name = "qml",
+    strip_prefix = "tools/lottietoqml",
+)
+
+cc_binary(
+    name = "lottietoqml",
+    srcs = [
+        "tools/lottietoqml/main.cpp",
+        ":lottietoqml_qrc",
+    ],
+    deps = [
+        ":lottie",
+        ":lottievectorimagegenerator",
+        ":lottievectorimagehelpersplugin",
+        "@qtbase//:core",
+        "@qtbase//:offscreen",
+        "@qtbase//:gui",
+        "@qtdeclarative//:qml",
+        "@qtdeclarative//:qquickvectorimageplugin",
+        "@qtdeclarative//:quick",
+        "@qtdeclarative//:quickvectorimagegenerator",
+    ],
 )

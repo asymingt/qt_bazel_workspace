@@ -2,6 +2,8 @@
 
 load("@qt//:qt_tools.bzl", "qt_write_file")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 
 _QCONFIG_H = """#ifndef QT_QCONFIG_H
 #define QT_QCONFIG_H
@@ -476,7 +478,12 @@ _QTCORE_CONFIG_P_H = """#ifndef QTCORE_CONFIG_P_H
 _QTGUI_CONFIG_H = """#ifndef QTGUI_CONFIG_H
 #define QTGUI_CONFIG_H
 
+#if defined(_WIN32) || defined(__APPLE__)
 #define QT_FEATURE_accessibility_atspi_bridge -1
+#define QT_NO_ACCESSIBILITY_ATSPI_BRIDGE 1
+#else
+#define QT_FEATURE_accessibility_atspi_bridge 1
+#endif
 #define QT_FEATURE_freetype 1
 
 #ifdef _WIN32
@@ -498,12 +505,11 @@ _QTGUI_CONFIG_H = """#ifndef QTGUI_CONFIG_H
 #else
 #define QT_FEATURE_fontconfig 1
 #define QT_FEATURE_xcb 1
-#define QT_FEATURE_xcb_glx_plugin -1
+#define QT_FEATURE_xcb_glx_plugin 1
 #define QT_FEATURE_metal -1
 #define QT_FEATURE_egl 1
 #define QT_FEATURE_wayland 1
 #define QT_FEATURE_waylandscanner 1
-#define QT_EGL_NO_X11 1
 #endif
 
 #define QT_FEATURE_harfbuzz 1
@@ -513,7 +519,7 @@ _QTGUI_CONFIG_H = """#ifndef QTGUI_CONFIG_H
 #define QT_FEATURE_opengles32 -1
 #define QT_FEATURE_dynamicgl -1
 #define QT_FEATURE_opengl 1
-#define QT_FEATURE_vulkan -1
+#define QT_FEATURE_vulkan 1
 #define QT_FEATURE_openvg -1
 #define QT_FEATURE_ico 1
 #define QT_FEATURE_sessionmanager 1
@@ -555,7 +561,6 @@ _QTGUI_CONFIG_H = """#ifndef QTGUI_CONFIG_H
 #define QT_FEATURE_undostack 1
 #define QT_FEATURE_undogroup 1
 #define QT_FEATURE_emojisegmenter 1
-#define QT_NO_ACCESSIBILITY_ATSPI_BRIDGE 1
 
 #endif // QTGUI_CONFIG_H
 """
@@ -563,7 +568,11 @@ _QTGUI_CONFIG_H = """#ifndef QTGUI_CONFIG_H
 _QTGUI_CONFIG_P_H = """#ifndef QTGUI_CONFIG_P_H
 #define QTGUI_CONFIG_P_H
 
+#if defined(_WIN32) || defined(__APPLE__)
 #define QT_FEATURE_accessibility_atspi_bridge -1
+#else
+#define QT_FEATURE_accessibility_atspi_bridge 1
+#endif
 #define QT_FEATURE_directfb -1
 #define QT_FEATURE_freetype 1
 #define QT_FEATURE_system_freetype 1
@@ -584,6 +593,7 @@ _QTGUI_CONFIG_P_H = """#ifndef QTGUI_CONFIG_P_H
 #define QT_FEATURE_xkbcommon -1
 #define QT_FEATURE_xkbcommon_x11 -1
 #define QT_FEATURE_xlib -1
+#define QT_FEATURE_egl_x11 -1
 #define QT_FEATURE_wayland_client -1
 #define QT_FEATURE_wayland_server -1
 #define QT_FEATURE_wayland_egl -1
@@ -617,6 +627,7 @@ _QTGUI_CONFIG_P_H = """#ifndef QTGUI_CONFIG_P_H
 #define QT_FEATURE_xkbcommon -1
 #define QT_FEATURE_xkbcommon_x11 -1
 #define QT_FEATURE_xlib -1
+#define QT_FEATURE_egl_x11 -1
 #define QT_FEATURE_wayland_client -1
 #define QT_FEATURE_wayland_server -1
 #define QT_FEATURE_wayland_egl -1
@@ -643,13 +654,14 @@ _QTGUI_CONFIG_P_H = """#ifndef QTGUI_CONFIG_P_H
 #define QT_FEATURE_evdev 1
 #define QT_FEATURE_fontconfig 1
 #define QT_FEATURE_linuxfb 1
-#define QT_FEATURE_xcb_glx -1
-#define QT_FEATURE_xcb_egl_plugin -1
+#define QT_FEATURE_xcb_glx 1
+#define QT_FEATURE_xcb_egl_plugin 1
 #define QT_FEATURE_xcb_xlib 1
 #define QT_FEATURE_xcb_sm 1
 #define QT_FEATURE_xkbcommon 1
 #define QT_FEATURE_xkbcommon_x11 1
-#define QT_FEATURE_xlib -1
+#define QT_FEATURE_xlib 1
+#define QT_FEATURE_egl_x11 1
 #define QT_FEATURE_wayland_client 1
 #define QT_FEATURE_wayland_server 1
 #define QT_FEATURE_wayland_egl 1
@@ -681,9 +693,8 @@ _QTGUI_CONFIG_P_H = """#ifndef QTGUI_CONFIG_P_H
 #define QT_FEATURE_libinput_hires_wheel_support -1
 #define QT_FEATURE_vsp2 -1
 #define QT_FEATURE_mtdev -1
-#define QT_FEATURE_vkgen -1
+#define QT_FEATURE_vkgen 1
 #define QT_FEATURE_vkkhrdisplay -1
-#define QT_FEATURE_egl_x11 -1
 #define QT_FEATURE_eglfs -1
 #define QT_FEATURE_eglfs_brcm -1
 #define QT_FEATURE_eglfs_egldevice -1
@@ -801,10 +812,19 @@ _QTWIDGETS_CONFIG_P_H = """#ifndef QTWIDGETS_CONFIG_P_H
 
 #define QT_FEATURE_gtk3 -1
 #define QT_FEATURE_style_fusion 1
+#if defined(__APPLE__)
+#define QT_FEATURE_style_mac 1
+#else
 #define QT_FEATURE_style_mac -1
+#endif
 #define QT_FEATURE_style_windows 1
+#if defined(_WIN32)
+#define QT_FEATURE_style_windowsvista 1
+#define QT_FEATURE_style_windows11 1
+#else
 #define QT_FEATURE_style_windowsvista -1
 #define QT_FEATURE_style_windows11 -1
+#endif
 #define QT_FEATURE_style_android -1
 #define QT_FEATURE_effects 1
 #define QT_FEATURE_widgettextcontrol 1
@@ -854,7 +874,7 @@ _QTSQL_CONFIG_P_H = """#ifndef QTSQL_CONFIG_P_H
 #endif // QTSQL_CONFIG_P_H
 """
 
-# src/plugins/sqldrivers/configure.cmake (Linux desktop; only SQLite is built).
+# src/plugins/sqldrivers/configure.cmake (SQLite on all platforms + ODBC on Windows).
 _QTSQLDRIVERS_CONFIG_P_H = """#ifndef QTSQLDRIVERS_CONFIG_P_H
 #define QTSQLDRIVERS_CONFIG_P_H
 
@@ -862,7 +882,11 @@ _QTSQLDRIVERS_CONFIG_P_H = """#ifndef QTSQLDRIVERS_CONFIG_P_H
 #define QT_FEATURE_sql_ibase -1
 #define QT_FEATURE_sql_mysql -1
 #define QT_FEATURE_sql_oci -1
+#ifdef _WIN32
+#define QT_FEATURE_sql_odbc 1
+#else
 #define QT_FEATURE_sql_odbc -1
+#endif
 #define QT_FEATURE_sql_psql -1
 #define QT_FEATURE_sql_sqlite 1
 #define QT_FEATURE_system_sqlite -1
@@ -871,21 +895,26 @@ _QTSQLDRIVERS_CONFIG_P_H = """#ifndef QTSQLDRIVERS_CONFIG_P_H
 #endif // QTSQLDRIVERS_CONFIG_P_H
 """
 
-# src/network/configure.cmake, with OpenSSL linked (PHASE2 decision 6.5).
+# src/network/configure.cmake, with OpenSSL + native TLS backends.
 _QTNETWORK_CONFIG_H = """#ifndef QTNETWORK_CONFIG_H
 #define QTNETWORK_CONFIG_H
 
 #ifdef __APPLE__
 #define QT_FEATURE_getifaddrs 1
 #define QT_FEATURE_ipv6ifname 1
+#define QT_FEATURE_securetransport 1
 #else
 #define QT_FEATURE_getifaddrs -1
 #define QT_NO_GETIFADDRS 1
 #define QT_FEATURE_ipv6ifname -1
 #define QT_NO_IPV6IFNAME 1
-#endif
 #define QT_FEATURE_securetransport -1
+#endif
+#ifdef _WIN32
+#define QT_FEATURE_schannel 1
+#else
 #define QT_FEATURE_schannel -1
+#endif
 #define QT_FEATURE_ssl 1
 #define QT_FEATURE_dtls 1
 #define QT_FEATURE_ocsp 1
@@ -916,21 +945,49 @@ _QTNETWORK_CONFIG_P_H = """#ifndef QTNETWORK_CONFIG_P_H
 #ifdef _WIN32
 #define QT_FEATURE_libresolv -1
 #define QT_FEATURE_linux_netlink -1
+#define QT_FEATURE_networklistmanager 1
 #elif defined(__APPLE__)
 #define QT_FEATURE_libresolv 1
 #define QT_FEATURE_linux_netlink -1
+#define QT_FEATURE_networklistmanager -1
 #else
 #define QT_FEATURE_libresolv 1
 #define QT_FEATURE_linux_netlink 1
+#define QT_FEATURE_networklistmanager -1
 #endif
 #define QT_FEATURE_libproxy -1
 #define QT_FEATURE_res_setservers -1
 #define QT_FEATURE_system_proxies 1
-#define QT_FEATURE_networklistmanager -1
 #define QT_FEATURE_publicsuffix_qt 1
 #define QT_FEATURE_publicsuffix_system -1
 
 #endif // QTNETWORK_CONFIG_P_H
+"""
+
+_QTPRINTSUPPORT_CONFIG_H = """#ifndef QTPRINTSUPPORT_CONFIG_H
+#define QTPRINTSUPPORT_CONFIG_H
+
+#define QT_FEATURE_printer 1
+#define QT_FEATURE_printpreviewwidget 1
+#define QT_FEATURE_printdialog 1
+#define QT_FEATURE_printpreviewdialog 1
+#define QT_FEATURE_cups -1
+#define QT_NO_CUPS 1
+#define QT_FEATURE_cupsjobwidget -1
+#define QT_NO_CUPSJOBWIDGET 1
+
+#endif // QTPRINTSUPPORT_CONFIG_H
+"""
+
+_QTPRINTSUPPORT_CONFIG_P_H = """#ifndef QTPRINTSUPPORT_CONFIG_P_H
+#define QTPRINTSUPPORT_CONFIG_P_H
+
+#include <QtPrintSupport/qtprintsupport-config.h>
+#define QT_FEATURE_cups -1
+#define QT_FEATURE_cupsjobwidget -1
+#define QT_FEATURE_cupspassworddialog 1
+
+#endif // QTPRINTSUPPORT_CONFIG_P_H
 """
 
 _QTWAYLANDGLOBAL_CONFIG_H = """#ifndef QTWAYLANDGLOBAL_CONFIG_H
@@ -991,6 +1048,8 @@ _CONFIG_CONTENTS = {
     "qtsqldrivers-config_p.h": _QTSQLDRIVERS_CONFIG_P_H,
     "qtnetwork-config.h": _QTNETWORK_CONFIG_H,
     "qtnetwork-config_p.h": _QTNETWORK_CONFIG_P_H,
+    "qtprintsupport-config.h": _QTPRINTSUPPORT_CONFIG_H,
+    "qtprintsupport-config_p.h": _QTPRINTSUPPORT_CONFIG_P_H,
     "qtnetwork_tracepoints_p.h": _TRACEPOINTS_P_H,
     "qtcore_tracepoints_p.h": _TRACEPOINTS_P_H,
     "qtgui_tracepoints_p.h": _TRACEPOINTS_P_H,
@@ -1044,6 +1103,167 @@ qt_mime_database = rule(
             cfg = "exec",
         ),
     },
+)
+
+def _qt_vkgen_impl(ctx):
+    out_h = ctx.actions.declare_file("vulkan/qvulkanfunctions.h")
+    out_p_h = ctx.actions.declare_file("vulkan/qvulkanfunctions_p.h")
+    out_p_cpp = ctx.actions.declare_file("vulkan/qvulkanfunctions_p.cpp")
+    prefix = out_h.path[:-2]
+    ctx.actions.run(
+        executable = ctx.executable._qvkgen,
+        arguments = [
+            ctx.file.vk_xml.path,
+            ctx.file.license_header.path,
+            prefix,
+        ],
+        inputs = [ctx.file.vk_xml, ctx.file.license_header],
+        outputs = [out_h, out_p_h, out_p_cpp],
+        mnemonic = "QtVkGen",
+        progress_message = "Generating Qt Vulkan function wrappers",
+    )
+    return [
+        DefaultInfo(files = depset([out_h, out_p_h, out_p_cpp])),
+        OutputGroupInfo(
+            h = depset([out_h]),
+            p_h = depset([out_p_h]),
+            p_cpp = depset([out_p_cpp]),
+        ),
+    ]
+
+qt_vkgen = rule(
+    implementation = _qt_vkgen_impl,
+    attrs = {
+        "vk_xml": attr.label(allow_single_file = True, mandatory = True),
+        "license_header": attr.label(allow_single_file = True, mandatory = True),
+        "_qvkgen": attr.label(
+            default = Label("//:qvkgen"),
+            executable = True,
+            cfg = "exec",
+        ),
+    },
+)
+
+def _qt_glvnd_stubs_impl(ctx):
+    cc_toolchain = find_cc_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
+    out_gl_c = ctx.actions.declare_file(ctx.label.name + "_gl.c")
+    out_glx_c = ctx.actions.declare_file(ctx.label.name + "_glx.c")
+    out_opengl_c = ctx.actions.declare_file(ctx.label.name + "_opengl.c")
+    out_egl_c = ctx.actions.declare_file(ctx.label.name + "_egl.c")
+
+    hdr_depsets = []
+    for dep in ctx.attr.hdr_deps:
+        if CcInfo in dep:
+            hdr_depsets.append(dep[CcInfo].compilation_context.headers)
+        else:
+            hdr_depsets.append(dep[DefaultInfo].files)
+    all_hdrs = depset(transitive = hdr_depsets)
+    hdr_args = [
+        f.path
+        for f in all_hdrs.to_list()
+        if f.path.endswith(".h") and "wgl" not in f.basename
+    ]
+
+    ctx.actions.run(
+        executable = ctx.executable._stub_gen,
+        arguments = [
+            out_gl_c.path,
+            out_glx_c.path,
+            out_opengl_c.path,
+            out_egl_c.path,
+        ] + hdr_args,
+        inputs = all_hdrs,
+        outputs = [out_gl_c, out_glx_c, out_opengl_c, out_egl_c],
+        mnemonic = "QtGlStubGen",
+        progress_message = "Generating Khronos libglvnd stub sources",
+    )
+
+    stub_specs = [
+        ("GL", "libGL.so.1", out_gl_c),
+        ("GLX", "libGLX.so.0", out_glx_c),
+        ("OpenGL", "libOpenGL.so.0", out_opengl_c),
+        ("EGL", "libEGL.so.1", out_egl_c),
+    ]
+
+    linked_sos = []
+    stub_dir = ctx.actions.declare_directory(ctx.label.name + "_lib")
+    copy_cmds = [
+        "set -e",
+        'mkdir -p "{}"'.format(stub_dir.path),
+    ]
+
+    for lib_short, soname, src_c in stub_specs:
+        (_, comp_outputs) = cc_common.compile(
+            name = ctx.label.name + "_" + lib_short,
+            actions = ctx.actions,
+            feature_configuration = feature_configuration,
+            cc_toolchain = cc_toolchain,
+            srcs = [src_c],
+            user_compile_flags = ["-fPIC", "-O2", "-w"],
+        )
+        link_outputs = cc_common.link(
+            name = ctx.label.name + "_" + lib_short,
+            actions = ctx.actions,
+            feature_configuration = feature_configuration,
+            cc_toolchain = cc_toolchain,
+            compilation_outputs = comp_outputs,
+            output_type = "dynamic_library",
+            user_link_flags = ["-Wl,-soname," + soname],
+        )
+        so_file = link_outputs.library_to_link.resolved_symlink_dynamic_library or link_outputs.library_to_link.dynamic_library
+        linked_sos.append(so_file)
+        copy_cmds.append('cp -f "{src}" "{dst}/{soname}"'.format(src = so_file.path, dst = stub_dir.path, soname = soname))
+        copy_cmds.append('ln -sf "{soname}" "{dst}/lib{short}.so"'.format(soname = soname, dst = stub_dir.path, short = lib_short))
+
+    ctx.actions.run_shell(
+        inputs = linked_sos,
+        outputs = [stub_dir],
+        command = "\n".join(copy_cmds),
+        mnemonic = "QtGlStubDir",
+        progress_message = "Staging Khronos libglvnd link-time stub libraries",
+    )
+
+    linker_input = cc_common.create_linker_input(
+        owner = ctx.label,
+        user_link_flags = [
+            "-L" + stub_dir.path,
+            "-Wl,--no-as-needed",
+            "-lGL",
+            "-lGLX",
+            "-lOpenGL",
+            "-lEGL",
+            "-Wl,--as-needed",
+        ],
+        additional_inputs = depset([stub_dir]),
+    )
+    linking_context = cc_common.create_linking_context(
+        linker_inputs = depset([linker_input]),
+    )
+    return [
+        DefaultInfo(files = depset([stub_dir])),
+        CcInfo(linking_context = linking_context),
+    ]
+
+qt_glvnd_stubs = rule(
+    implementation = _qt_glvnd_stubs_impl,
+    attrs = {
+        "hdr_deps": attr.label_list(mandatory = True),
+        "_stub_gen": attr.label(
+            default = Label("//:qt_gl_stub_gen"),
+            executable = True,
+            cfg = "exec",
+        ),
+    },
+    toolchains = use_cc_toolchain(),
+    fragments = ["cpp"],
+    provides = [CcInfo],
 )
 
 def declare_qtbase_config_targets():
@@ -1178,6 +1398,8 @@ def declare_qtbase_config_targets():
         ("qtnetwork-config.h", "generated_cfg/QtNetwork/qtnetwork-config.h"),
         ("qtnetwork-config_p.h", "generated_cfg/QtNetwork/private/qtnetwork-config_p.h"),
         ("qtnetwork_tracepoints_p.h", "generated_cfg/QtNetwork/qtnetwork_tracepoints_p.h"),
+        ("qtprintsupport-config.h", "generated_cfg/QtPrintSupport/qtprintsupport-config.h"),
+        ("qtprintsupport-config_p.h", "generated_cfg/QtPrintSupport/private/qtprintsupport-config_p.h"),
         ("qtopengl_tracepoints_p.h", "generated_cfg/QtOpenGL/qtopengl_tracepoints_p.h"),
         ("qtwaylandglobal-config.h", "generated_cfg/QtWaylandGlobal/qtwaylandglobal-config.h"),
         ("qtwaylandglobal-config_p.h", "generated_cfg/QtWaylandGlobal/private/qtwaylandglobal-config_p.h"),
@@ -1190,6 +1412,17 @@ def declare_qtbase_config_targets():
             out = out,
             template_key = key,
         )
+    cc_library(
+        name = "printsupport_internal_cfg",
+        textual_hdrs = [
+            ":gen_qtprintsupport_config_h",
+            ":gen_qtprintsupport_config_p_h",
+        ],
+        includes = [
+            "generated_cfg/QtPrintSupport",
+            "generated_cfg/QtPrintSupport/private",
+        ],
+    )
     cc_library(
         name = "opengl_internal_cfg",
         textual_hdrs = [":gen_qtopengl_tracepoints_p_h"],
@@ -1235,362 +1468,57 @@ def declare_qtbase_config_targets():
             "generated_cfg/QtTest/private",
         ],
     )
-    qt_write_file(
-        name = "gen_qopengl_gl1_stubs_cpp",
-        out = "generated_cfg/QtOpenGL/qopengl_gl1_stubs.cpp",
-        content = """\
-#ifdef __linux__
-#include <dlfcn.h>
-#include <stdint.h>
-
-#define QT_STUB_EXPORT __attribute__((visibility("default")))
-
-using GLenum = unsigned int;
-using GLboolean = unsigned char;
-using GLbitfield = unsigned int;
-using GLint = int;
-using GLuint = unsigned int;
-using GLsizei = int;
-using GLubyte = unsigned char;
-using GLdouble = double;
-using GLfloat = float;
-
-using EGLBoolean = unsigned int;
-using EGLenum = unsigned int;
-using EGLint = int32_t;
-using EGLAttrib = intptr_t;
-using EGLDisplay = void *;
-using EGLConfig = void *;
-using EGLSurface = void *;
-using EGLContext = void *;
-using EGLClientBuffer = void *;
-using EGLNativeDisplayType = void *;
-using EGLNativePixmapType = uintptr_t;
-using EGLNativeWindowType = uintptr_t;
-using __eglMustCastToProperFunctionPointerType = void (*)(void);
-
-namespace {
-void *resolve_gl_sym(const char *name) {
-    static void *handle = []() {
-        void *h = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
-        if (!h)
-            h = dlopen("libGL.so", RTLD_LAZY | RTLD_LOCAL);
-        return h;
-    }();
-    return handle ? dlsym(handle, name) : dlsym(RTLD_DEFAULT, name);
-}
-
-void *resolve_egl_sym(const char *name) {
-    static void *handle = []() {
-        void *h = dlopen("libEGL.so.1", RTLD_LAZY | RTLD_LOCAL);
-        if (!h)
-            h = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
-        return h;
-    }();
-    return handle ? dlsym(handle, name) : dlsym(RTLD_DEFAULT, name);
-}
-} // namespace
-
-extern "C" {
-
-// --- OpenGL 1.x / 2.0 direct entry points ---
-
-QT_STUB_EXPORT void glMatrixMode(GLenum mode) {
-    using Fn = void (*)(GLenum);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glMatrixMode"));
-    if (fn) fn(mode);
-}
-
-QT_STUB_EXPORT void glLoadIdentity(void) {
-    using Fn = void (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glLoadIdentity"));
-    if (fn) fn();
-}
-
-QT_STUB_EXPORT void glOrtho(GLdouble l, GLdouble r, GLdouble b, GLdouble t, GLdouble n, GLdouble f) {
-    using Fn = void (*)(GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glOrtho"));
-    if (fn) fn(l, r, b, t, n, f);
-}
-
-QT_STUB_EXPORT void glLoadMatrixf(const GLfloat *m) {
-    using Fn = void (*)(const GLfloat *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glLoadMatrixf"));
-    if (fn) fn(m);
-}
-
-QT_STUB_EXPORT const GLubyte *glGetString(GLenum name) {
-    using Fn = const GLubyte *(*)(GLenum);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glGetString"));
-    return fn ? fn(name) : nullptr;
-}
-
-QT_STUB_EXPORT void glGetIntegerv(GLenum pname, GLint *data) {
-    using Fn = void (*)(GLenum, GLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glGetIntegerv"));
-    if (fn) fn(pname, data);
-}
-
-QT_STUB_EXPORT void glFlush(void) {
-    using Fn = void (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glFlush"));
-    if (fn) fn();
-}
-
-QT_STUB_EXPORT void glFinish(void) {
-    using Fn = void (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glFinish"));
-    if (fn) fn();
-}
-
-QT_STUB_EXPORT void glViewport(GLint x, GLint y, GLsizei w, GLsizei h) {
-    using Fn = void (*)(GLint, GLint, GLsizei, GLsizei);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glViewport"));
-    if (fn) fn(x, y, w, h);
-}
-
-QT_STUB_EXPORT void glBindTexture(GLenum target, GLuint texture) {
-    using Fn = void (*)(GLenum, GLuint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glBindTexture"));
-    if (fn) fn(target, texture);
-}
-
-QT_STUB_EXPORT void glTexParameteri(GLenum target, GLenum pname, GLint param) {
-    using Fn = void (*)(GLenum, GLenum, GLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glTexParameteri"));
-    if (fn) fn(target, pname, param);
-}
-
-QT_STUB_EXPORT void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
-    using Fn = void (*)(GLenum, GLenum, GLfloat);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glTexParameterf"));
-    if (fn) fn(target, pname, param);
-}
-
-QT_STUB_EXPORT void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) {
-    using Fn = void (*)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glTexImage2D"));
-    if (fn) fn(target, level, internalformat, width, height, border, format, type, pixels);
-}
-
-QT_STUB_EXPORT void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels) {
-    using Fn = void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_gl_sym("glTexSubImage2D"));
-    if (fn) fn(target, level, xoffset, yoffset, width, height, format, type, pixels);
-}
-
-// --- EGL 1.0 - 1.5 entry points ---
-
-QT_STUB_EXPORT EGLBoolean eglBindAPI(EGLenum api) {
-    using Fn = EGLBoolean (*)(EGLenum);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglBindAPI"));
-    return fn ? fn(api) : 0;
-}
-
-QT_STUB_EXPORT EGLenum eglQueryAPI(void) {
-    using Fn = EGLenum (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglQueryAPI"));
-    return fn ? fn() : 0x30A0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglBindTexImage"));
-    return fn ? fn(dpy, surface, buffer) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglReleaseTexImage"));
-    return fn ? fn(dpy, surface, buffer) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config) {
-    using Fn = EGLBoolean (*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglChooseConfig"));
-    return fn ? fn(dpy, attrib_list, configs, config_size, num_config) : 0;
-}
-
-QT_STUB_EXPORT EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list) {
-    using Fn = EGLContext (*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglCreateContext"));
-    return fn ? fn(dpy, config, share_context, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLSurface eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list) {
-    using Fn = EGLSurface (*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglCreatePbufferFromClientBuffer"));
-    return fn ? fn(dpy, buftype, buffer, config, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list) {
-    using Fn = EGLSurface (*)(EGLDisplay, EGLConfig, const EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglCreatePbufferSurface"));
-    return fn ? fn(dpy, config, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list) {
-    using Fn = EGLSurface (*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglCreateWindowSurface"));
-    return fn ? fn(dpy, config, win, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLSurface eglCreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLAttrib *attrib_list) {
-    using Fn = EGLSurface (*)(EGLDisplay, EGLConfig, void *, const EGLAttrib *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglCreatePlatformWindowSurface"));
-    return fn ? fn(dpy, config, native_window, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLContext);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglDestroyContext"));
-    return fn ? fn(dpy, ctx) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface surface) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglDestroySurface"));
-    return fn ? fn(dpy, surface) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLConfig, EGLint, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetConfigAttrib"));
-    return fn ? fn(dpy, config, attribute, value) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLConfig *, EGLint, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetConfigs"));
-    return fn ? fn(dpy, configs, config_size, num_config) : 0;
-}
-
-QT_STUB_EXPORT EGLContext eglGetCurrentContext(void) {
-    using Fn = EGLContext (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetCurrentContext"));
-    return fn ? fn() : nullptr;
-}
-
-QT_STUB_EXPORT EGLDisplay eglGetCurrentDisplay(void) {
-    using Fn = EGLDisplay (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetCurrentDisplay"));
-    return fn ? fn() : nullptr;
-}
-
-QT_STUB_EXPORT EGLSurface eglGetCurrentSurface(EGLint readdraw) {
-    using Fn = EGLSurface (*)(EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetCurrentSurface"));
-    return fn ? fn(readdraw) : nullptr;
-}
-
-QT_STUB_EXPORT EGLDisplay eglGetDisplay(EGLNativeDisplayType display_id) {
-    using Fn = EGLDisplay (*)(EGLNativeDisplayType);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetDisplay"));
-    return fn ? fn(display_id) : nullptr;
-}
-
-QT_STUB_EXPORT EGLDisplay eglGetPlatformDisplay(EGLenum platform, void *native_display, const EGLAttrib *attrib_list) {
-    using Fn = EGLDisplay (*)(EGLenum, void *, const EGLAttrib *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetPlatformDisplay"));
-    return fn ? fn(platform, native_display, attrib_list) : nullptr;
-}
-
-QT_STUB_EXPORT EGLint eglGetError(void) {
-    using Fn = EGLint (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetError"));
-    return fn ? fn() : 0x3000;
-}
-
-QT_STUB_EXPORT __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *procname) {
-    using Fn = __eglMustCastToProperFunctionPointerType (*)(const char *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglGetProcAddress"));
-    return fn ? fn(procname) : nullptr;
-}
-
-QT_STUB_EXPORT EGLBoolean eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLint *, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglInitialize"));
-    return fn ? fn(dpy, major, minor) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglMakeCurrent"));
-    return fn ? fn(dpy, draw, read, ctx) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLContext, EGLint, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglQueryContext"));
-    return fn ? fn(dpy, ctx, attribute, value) : 0;
-}
-
-QT_STUB_EXPORT const char *eglQueryString(EGLDisplay dpy, EGLint name) {
-    using Fn = const char *(*)(EGLDisplay, EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglQueryString"));
-    return fn ? fn(dpy, name) : nullptr;
-}
-
-QT_STUB_EXPORT EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint *);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglQuerySurface"));
-    return fn ? fn(dpy, surface, attribute, value) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglReleaseThread(void) {
-    using Fn = EGLBoolean (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglReleaseThread"));
-    return fn ? fn() : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglSurfaceAttrib"));
-    return fn ? fn(dpy, surface, attribute, value) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLSurface);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglSwapBuffers"));
-    return fn ? fn(dpy, surface) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglSwapInterval(EGLDisplay dpy, EGLint interval) {
-    using Fn = EGLBoolean (*)(EGLDisplay, EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglSwapInterval"));
-    return fn ? fn(dpy, interval) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglTerminate(EGLDisplay dpy) {
-    using Fn = EGLBoolean (*)(EGLDisplay);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglTerminate"));
-    return fn ? fn(dpy) : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglWaitClient(void) {
-    using Fn = EGLBoolean (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglWaitClient"));
-    return fn ? fn() : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglWaitGL(void) {
-    using Fn = EGLBoolean (*)(void);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglWaitGL"));
-    return fn ? fn() : 0;
-}
-
-QT_STUB_EXPORT EGLBoolean eglWaitNative(EGLint engine) {
-    using Fn = EGLBoolean (*)(EGLint);
-    static Fn fn = reinterpret_cast<Fn>(resolve_egl_sym("eglWaitNative"));
-    return fn ? fn(engine) : 0;
-}
-
-} // extern "C"
-#endif // __linux__
-""",
+    cc_library(
+        name = "atspi_headers",
+        hdrs = [
+            "atspi/atspi-constants.h",
+            "atspi/atspi.h",
+        ],
+        includes = ["."],
+        target_compatible_with = ["@platforms//os:linux"],
+    )
+    cc_library(
+        name = "mvk_vulkan_h",
+        hdrs = ["moltenvk/mvk_vulkan.h"],
+        include_prefix = "MoltenVK",
+        strip_include_prefix = "moltenvk",
+        target_compatible_with = ["@platforms//os:macos"],
+        deps = ["@vulkan_headers//:vulkan_headers_no_prototypes"],
+    )
+    qt_glvnd_stubs(
+        name = "glvnd_stubs",
+        hdr_deps = [
+            "@libglvnd//:glx_headers",
+            "@egl-registry//:EGL_headers",
+            "@opengl-registry//:GLES2_headers",
+            "@opengl-registry//:GLES3_headers",
+            "@opengl-registry//:OpenGL_headers",
+        ],
+        target_compatible_with = ["@platforms//os:linux"],
+    )
+    qt_vkgen(
+        name = "gen_qvulkanfunctions",
+        license_header = "src/gui/vulkan/licenseheader.h.in",
+        vk_xml = "src/gui/vulkan/vk.xml",
+    )
+    native.filegroup(
+        name = "qvulkanfunctions_h",
+        srcs = [":gen_qvulkanfunctions"],
+        output_group = "h",
+    )
+    native.filegroup(
+        name = "qvulkanfunctions_p_h",
+        srcs = [":gen_qvulkanfunctions"],
+        output_group = "p_h",
+    )
+    native.filegroup(
+        name = "qvulkanfunctions_p_cpp",
+        srcs = [":gen_qvulkanfunctions"],
+        output_group = "p_cpp",
     )
     qt_write_file(
         name = "gen_qfilesystemengine_unix_mac_mm",
         out = "generated_cfg/QtCore/qfilesystemengine_unix_mac.mm",
         content = '#include "src/corelib/io/qfilesystemengine_unix.cpp"\n',
     )
+

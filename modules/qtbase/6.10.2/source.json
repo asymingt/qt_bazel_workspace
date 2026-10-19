@@ -3,9 +3,13 @@
     "strip_prefix": "qtbase-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-1MVI6qzKMxb8Cj57VzbeDedIH3A6HrKonxOjxckmzS8=",
-        "MODULE.bazel": "sha256-0xIinC6MAeUfO7M/vDcREuJ50TjiSUwiLCxcue7jMEM=",
+        "BUILD.bazel": "sha256-wl0azHBvmci1kZYaeYUwVgDoAb0oMlCqUlJJm19IBS8=",
+        "MODULE.bazel": "sha256-qLRIeND22xsy52lIHOGr/0f1rZdP8j2GmxA0qKSOpzc=",
+        "atspi/atspi-constants.h": "sha256-OhxYUoQvLr+ITw1lALSwBfBlrbdtwBL3tuoLYwCoB5Y=",
+        "atspi/atspi.h": "sha256-39fn3Thwv+Df0C/vqsB0LK9rDDEvqjyUidVFSmuiCeQ=",
+        "moltenvk/mvk_vulkan.h": "sha256-Xg/lVqtnt30x7z2RaAjUwmnsg2iYxYAIOZOYWdyfAIU=",
+        "qt_gl_stub_gen.cc": "sha256-V+GV4qItM6vlxj8T5deZ+tTrAdRcs3hBDHvBMj6r8L8=",
         "qt_mime_database_gen.cc": "sha256-GNmHjctomGpuAeboRwXcfD/3F/8Mb2+JV78K/nbXpCE=",
-        "qtbase_config.bzl": "sha256-yY0E06BPVYBZ+7MTyjBYgwQeUJzlDhZtapfH6/RW/t8="
+        "qtbase_config.bzl": "sha256-FVYB1ZwOSIudjkI7G9YXCoD8o8xLyKYnVN8dztB0k8w="
     }
 }

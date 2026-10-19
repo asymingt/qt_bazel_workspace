@@ -3,7 +3,7 @@
     "strip_prefix": "qtlottie-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtlottie-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-ahNHnFRa7Wc5NV9iVX0RNl0v3oW//xqma7YlyqeKoG8=",
-        "MODULE.bazel": "sha256-7v8zNmS1t7iVuzlYL4IE8DYN+r6PSN9kOsgjDBx1QMQ="
+        "BUILD.bazel": "sha256-ArdE/7tU80RaC6UGredLSuq0xlOSj23lpAFXdDL8s9c=",
+        "MODULE.bazel": "sha256-VWmJMTtr3LnHSSUAN6c3HiTVo3fPpFTzvwapwacpkIg="
     }
 }

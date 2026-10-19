@@ -374,6 +374,10 @@ qt_internal_library(
         "src/datavisualization/theme/thememanager_p.h",
         "src/datavisualization/utils/camerahelper_p.h",
     ],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-Bsymbolic"],
+        "//conditions:default": [],
+    }),
     rcc_targets = [
         ":datavisualizationshaders_res",
         ":datavisualizationmeshes_res",
@@ -461,6 +465,10 @@ qt_internal_library(
         "@qtdeclarative//:quick_shared",
     ],
     includes = ["src/datavisualizationqml"],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-Bsymbolic"],
+        "//conditions:default": [],
+    }),
     local_defines = _QT_INTERNAL_DEFINES + [
         "QT_BUILD_DATAVISUALIZATIONQML_LIB",
     ],
@@ -478,6 +486,28 @@ qt_internal_library(
         "src/datavisualizationqml/foreigntypes_p.h",
         "src/datavisualizationqml/glstatestore_p.h",
     ],
+    qml_args = {
+        "uri": "QtDataVisualization",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "foreign_types": [
+            ":datavisualization_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+        ],
+        "qmldir_content": "\n".join([
+            "module QtDataVisualization",
+            "linktarget DataVisualizationQml",
+            "optional plugin datavisualizationqmlplugin",
+            "classname QtDataVisualizationPlugin",
+            "typeinfo plugins.qmltypes",
+            "prefer :/qt-project.org/imports/QtDataVisualization/",
+            "",
+        ]),
+    },
     deps = [
         ":datavisualization",
         ":datavisualizationqml_sync_headers",
@@ -515,6 +545,7 @@ qt_static_plugin(
         "@qtdeclarative//:quick_shared",
     ],
     local_defines = _QT_INTERNAL_DEFINES + ["QT_PLUGIN"],
+    moc_opts = ["-Muri=QtDataVisualization"],
     moc_srcs = [":datavisualizationqmlplugin_gen"],
     plugin_class_name = "QtDataVisualizationPlugin",
     deps = [

@@ -3,7 +3,7 @@
     "strip_prefix": "qtremoteobjects-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtremoteobjects-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-KN+Jk2oHsnkHpIXEu/PZiRzUHHMw6ZyLKV9Qgtx5YBg=",
+        "BUILD.bazel": "sha256-SfonVXJJM3s6EVC93hZ4t5j4ynGAg3w0ntT02bhkRjg=",
         "MODULE.bazel": "sha256-T8kErRqYn33exxOc7rf6d81dVfqrROK6M4G/7yfDydE="
     }
 }

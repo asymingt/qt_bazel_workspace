@@ -6,6 +6,7 @@ load(
     "qt_export_header",
     "qt_generate_qrc",
     "qt_qml_plugin_gen",
+    "qt_qmldir",
     "qt_rcc_internal",
     "qt_sync_headers",
     "qt_write_file",
@@ -1180,6 +1181,18 @@ qt_wayland_client_protocol(
     ],
 )
 
+qt_qmldir(
+    name = "wayland_texture_sharing_qmldir_rcc",
+    content = "\n".join([
+        "module QtWayland.Client.TextureSharing",
+        "optional plugin wayland_texture_sharing_plugin",
+        "classname QWaylandTextureSharingPlugin",
+        "prefer :/qt-project.org/imports/QtWayland/Client/TextureSharing/",
+        "",
+    ]),
+    uri = "QtWayland.Client.TextureSharing",
+)
+
 qt_static_plugin(
     name = "wayland_texture_sharing_plugin",
     srcs = [
@@ -1224,11 +1237,13 @@ qt_static_plugin(
         "src/imports/texture-sharing/sharedtextureprovider_p.h",
         "src/imports/texture-sharing/texturesharingextension_p.h",
     ],
+    moc_opts = ["-Muri=QtWayland.Client.TextureSharing"],
     moc_srcs = [
         "src/imports/texture-sharing/plugin.cpp",
         "src/imports/texture-sharing/sharedtextureprovider.cpp",
     ],
     plugin_class_name = "QWaylandTextureSharingPlugin",
+    rcc_targets = [":wayland_texture_sharing_qmldir_rcc"],
     deps = [
         ":wayland_texture_sharing_protocols",
         "@qtbase//:core",
@@ -1239,6 +1254,18 @@ qt_static_plugin(
         "@qtdeclarative//:quick",
         "@wayland//:wayland_client",
     ],
+)
+
+qt_qmldir(
+    name = "wayland_texture_sharing_extension_qmldir_rcc",
+    content = "\n".join([
+        "module QtWayland.Compositor.TextureSharingExtension",
+        "optional plugin wayland_texture_sharing_extension_plugin",
+        "classname QWaylandTextureSharingExtensionPlugin",
+        "prefer :/qt-project.org/imports/QtWayland/Compositor/TextureSharingExtension/",
+        "",
+    ]),
+    uri = "QtWayland.Compositor.TextureSharingExtension",
 )
 
 qt_static_plugin(
@@ -1273,10 +1300,12 @@ qt_static_plugin(
         "QT_QUICK_LIB",
         "QT_WAYLANDCOMPOSITOR_LIB",
     ],
+    moc_opts = ["-Muri=QtWayland.Compositor.TextureSharingExtension"],
     moc_srcs = [
         "src/imports/texture-sharing-extension/plugin.cpp",
     ],
     plugin_class_name = "QWaylandTextureSharingExtensionPlugin",
+    rcc_targets = [":wayland_texture_sharing_extension_qmldir_rcc"],
     deps = [
         ":wayland_compositor",
         "@qtbase//:core",

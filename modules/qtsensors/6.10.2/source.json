@@ -3,7 +3,7 @@
     "strip_prefix": "qtsensors-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtsensors-everywhere-src-6.10.2.tar.xz",
     "overlay": {
-        "BUILD.bazel": "sha256-yhEZ/EOUIr6nUlv3CXof5OWO1APd81/WMwuvtrMDVDk=",
+        "BUILD.bazel": "sha256-SWq55MpPZ8jdQPHCpn0RYflvKn9ruv6fB+ayIMATiUs=",
         "MODULE.bazel": "sha256-TjLxDwDlKwzk9MWqdFfJWv8shbBh8PU53py/2tapT6I="
     }
 }

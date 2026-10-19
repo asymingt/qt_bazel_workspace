@@ -207,9 +207,9 @@ qt_internal_library(
     moc_unity = True,
     qml_args = {
         "foreign_types": [
-            "@qtbase//:core",
-            "@qtdeclarative//:qml",
-            ":sensors",
+            ":sensors_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
         ],
         "import_name": "QtSensors",
         "qmldir": """module QtSensors
@@ -356,3 +356,15 @@ qt_static_plugin(
         "@qtbase//:dbus",
     ],
 )
+
+cc_library(
+    name = "sensors_plugins",
+    deps = [
+        ":qtsensors_dummy",
+        ":qtsensors_generic",
+    ] + select({
+        "@platforms//os:linux": [":qtsensors_iio_sensor_proxy"],
+        "//conditions:default": [],
+    }),
+)
+

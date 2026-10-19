@@ -1,0 +1,57 @@
+load("@qt//:qt.bzl", "QT_SHARED_LIBS", "qt_cc_library", "qt_cc_shared_library", "qt_cc_test", "qt_shared_libs")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+# F-INF-4 / F-DEP-4: depend only on library targets; plugins must be implied.
+qt_cc_test(
+    name = "plugin_autolink_test",
+    srcs = ["plugin_autolink_test.cc"],
+    deps = [
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+        "@qtbase//:sql",
+        "@qtmultimedia//:multimedia",
+        "@qtpositioning//:positioning",
+        "@qtsensors//:sensors",
+        "@qtserialbus//:serialbus",
+        "@qtspeech//:tts",
+        "@qtsvg//:svg",
+    ],
+)
+
+# F-INF-9: consumer shared library linking Qt dynamically.
+qt_cc_library(
+    name = "greeter",
+    srcs = ["greeter.cc"],
+    hdrs = ["greeter.h"],
+    local_defines = ["M6_GREETER_BUILD"],
+    moc_hdrs = [],
+    deps = ["@qtbase//:core"],
+)
+
+qt_cc_shared_library(
+    name = "greeter_shared",
+    deps = [":greeter"],
+)
+
+qt_cc_test(
+    name = "shared_library_test",
+    srcs = ["shared_library_test.cc"],
+    dynamic_deps = [":greeter_shared"],
+    deps = [
+        ":greeter",
+        "@qtbase//:core",
+    ],
+)
+
+# F-INF-9: plain rules_cc consumers can use the exported helper/map.
+cc_test(
+    name = "shared_libs_helper_test",
+    srcs = ["shared_library_test.cc"],
+    dynamic_deps = [":greeter_shared"] + qt_shared_libs(["@qtbase//:core"]),
+    tags = ["qt_shared_libs_count=%d" % len(QT_SHARED_LIBS)],
+    deps = [
+        ":greeter",
+        "@qtbase//:core",
+    ],
+)

@@ -384,12 +384,14 @@ cc_shared_library(
     name = "charts_shared",
     dynamic_deps = [
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:opengl_shared",
         "@qtbase//:openglwidgets_shared",
         "@qtbase//:widgets_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     shared_lib_name = select({
         "@platforms//os:windows": "libcharts_shared.dll",
         "//conditions:default": "",
@@ -446,12 +448,12 @@ qt_internal_library(
     moc_unity = True,
     qml_args = {
         "foreign_types": [
-            "@qtbase//:core",
-            "@qtbase//:gui",
-            "@qtbase//:widgets",
-            "@qtdeclarative//:qml",
-            "@qtdeclarative//:quick",
-            ":charts",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtbase//:widgets_moc_hdrs",
+            "@qtdeclarative//:qml_moc_hdrs",
+            "@qtdeclarative//:quick_moc_hdrs",
+            ":charts_moc_hdrs",
         ],
         "import_name": "QtCharts",
         "past_major_versions": [
@@ -486,7 +488,6 @@ cc_shared_library(
     dynamic_deps = [
         ":charts_shared",
         "@qtbase//:core_shared",
-        "@qtbase//:dbus_shared",
         "@qtbase//:gui_shared",
         "@qtbase//:network_shared",
         "@qtbase//:opengl_shared",
@@ -497,7 +498,10 @@ cc_shared_library(
         "@qtdeclarative//:qmlmodels_shared",
         "@qtdeclarative//:qmlworkerscript_shared",
         "@qtdeclarative//:quick_shared",
-    ],
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     shared_lib_name = select({
         "@platforms//os:windows": "libchartsqml_shared.dll",
         "//conditions:default": "",

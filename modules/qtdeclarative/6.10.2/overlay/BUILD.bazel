@@ -1171,6 +1171,7 @@ qt_internal_library(
         ":qml_shared",
         "@qtbase//:core_shared",
     ],
+    exports_filter = [":qmltoolingsettings"],
     includes = ["src/qmlcompiler"],
     local_defines = common_local_defines + [
         "QT_BUILD_QMLCOMPILER_LIB",
@@ -2721,7 +2722,7 @@ qt_internal_library(
             "@qtbase//:core_moc_hdrs",
             "@qtbase//:gui_moc_hdrs",
         ],
-        "qmldir_content": "module QtQuick.Controls\nlinktarget Qt6::qtquickcontrols2plugin\nplugin qtquickcontrols2plugin\nclassname QtQuickControls2Plugin\ndesignersupported\ntypeinfo plugins.qmltypes\ndefault import QtQuick.Controls.Basic auto\ndepends QtQuick auto\nprefer :/qt-project.org/imports/QtQuick/Controls/\n",
+        "qmldir_content": "module QtQuick.Controls\nlinktarget Qt6::qtquickcontrols2plugin\nplugin qtquickcontrols2plugin\nclassname QtQuickControls2Plugin\ndesignersupported\ntypeinfo plugins.qmltypes\noptional import QtQuick.Controls.Fusion auto\noptional import QtQuick.Controls.Material auto\noptional import QtQuick.Controls.Imagine auto\noptional import QtQuick.Controls.Universal auto\noptional import QtQuick.Controls.FluentWinUI3 auto\noptional import QtQuick.Controls.Windows auto\noptional import QtQuick.Controls.macOS auto\noptional import QtQuick.Controls.iOS auto\ndefault import QtQuick.Controls.Basic auto\ndepends QtQuick auto\nprefer :/qt-project.org/imports/QtQuick/Controls/\n",
     },
     deps = [
         ":qml",
@@ -2769,13 +2770,19 @@ qt_static_plugin(
     rcc_targets = [":indirect_basic_rcc"],
     deps = [
         ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2fusionstyleplugin",
         ":quick",
         ":quickcontrols2",
         ":quickcontrols2impl",
         ":quicktemplates2",
         "@qtbase//:core",
         "@qtbase//:gui",
-    ],
+    ] + select({
+        "@platforms//os:macos": [":qtquickcontrols2macosstyleplugin"],
+        "@platforms//os:windows": [":qtquickcontrols2windowsstyleplugin"],
+        "//conditions:default": [],
+    }),
 )
 
 # ---------------------------------------------------------------------------
@@ -3529,5 +3536,5764 @@ qt_static_plugin(
         ":qmlnetwork",
         "@qtbase//:core",
         "@qtbase//:network",
+    ],
+)
+
+qt_export_header(
+    name = "labsanimation_exports_h",
+    out = "generated_exports/qtlabsanimationexports.h",
+    module_infix = "LABSANIMATION",
+)
+
+qt_depends_header(
+    name = "labsanimation_depends_h",
+    out = "generated_exports/QtLabsAnimationDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+    ],
+)
+
+qt_sync_headers(
+    name = "labsanimation_sync_headers",
+    hdrs = [
+        "src/labs/animation/qqmlanimationglobal_p.h",
+        "src/labs/animation/qquickboundaryrule_p.h",
+    ],
+    generated_public_hdrs = [
+        ":labsanimation_depends_h",
+        ":labsanimation_exports_h",
+    ],
+    module_name = "QtLabsAnimation",
+    source_dir = "src/labs/animation",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labsanimation",
+    srcs = [
+        "src/labs/animation/qquickboundaryrule.cpp",
+    ],
+    hdrs = [
+        "src/labs/animation/qqmlanimationglobal_p.h",
+        "src/labs/animation/qquickboundaryrule_p.h",
+        ":labsanimation_sync_headers",
+    ],
+    copts = common_copts,
+    defines = ["QT_LABSANIMATION_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/animation"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSANIMATION_LIB",
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+        "LabsAnimation_EXPORTS",
+    ],
+    moc_hdrs = [
+        "src/labs/animation/qquickboundaryrule_p.h",
+    ],
+    moc_unity = True,
+    qml_args = {
+        "uri": "Qt.labs.animation",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+        "qmldir_content": "module Qt.labs.animation\nlinktarget Qt6::labsanimationplugin\noptional plugin labsanimationplugin\nclassname QtLabsAnimationPlugin\ntypeinfo plugins.qmltypes\ndepends QtQml auto\nprefer :/qt-project.org/imports/Qt/labs/animation/\n",
+    },
+    deps = [
+        ":labsanimation_sync_headers",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "labsanimationplugin_src",
+    class_name = "QtLabsAnimationPlugin",
+    plugin_name = "labsanimationplugin",
+    uri = "Qt.labs.animation",
+)
+
+qt_static_plugin(
+    name = "labsanimationplugin",
+    srcs = [":labsanimationplugin_src"],
+    copts = common_copts,
+    dynamic_deps = [
+        ":labsanimation_shared",
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    local_defines = common_local_defines + [
+        "QT_CORE_LIB",
+        "QT_GUI_LIB",
+        "QT_LABSANIMATION_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.animation"],
+    moc_srcs = [":labsanimationplugin_src"],
+    plugin_class_name = "QtLabsAnimationPlugin",
+    deps = [
+        ":labsanimation",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# =============================================================================
+# 23. Phase 4 Milestone 4.3 Additions
+# =============================================================================
+
+_CONTROLS_STYLE_SOURCE_VERSIONS = {
+    "DelayButton.qml": ["2.2", "6.0"],
+    "Dialog.qml": ["2.1", "6.0"],
+    "DialogButtonBox.qml": ["2.1", "6.0"],
+    "HorizontalHeaderView.qml": ["2.15", "6.0"],
+    "HorizontalHeaderViewDelegate.qml": ["6.10"],
+    "MenuBar.qml": ["2.3", "6.0"],
+    "MenuBarItem.qml": ["2.3", "6.0"],
+    "MenuSeparator.qml": ["2.1", "6.0"],
+    "RoundButton.qml": ["2.1", "6.0"],
+    "SearchField.qml": ["6.10"],
+    "SplitView.qml": ["2.13", "6.0"],
+    "ToolSeparator.qml": ["2.1", "6.0"],
+    "VerticalHeaderView.qml": ["2.15", "6.0"],
+    "VerticalHeaderViewDelegate.qml": ["6.10"],
+}
+
+# ---------------------------------------------------------------------------
+# 23.1 QuickControls2 Fusion Style (:quickcontrols2fusionstyleimpl & :quickcontrols2fusion)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickcontrols2fusionstyleimpl_exports_h",
+    out = "generated_exports/qtquickcontrols2fusionstyleimplexports.h",
+    module_infix = "QUICKCONTROLS2FUSIONSTYLEIMPL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2fusionstyleimpl_depends_h",
+    out = "generated_exports/QtQuickControls2FusionStyleImplDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2Impl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2fusionstyleimpl_sync_headers",
+    hdrs = glob(["src/quickcontrols/fusion/impl/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2fusionstyleimpl_depends_h",
+        ":quickcontrols2fusionstyleimpl_exports_h",
+    ],
+    module_name = "QtQuickControls2FusionStyleImpl",
+    source_dir = "src/quickcontrols/fusion/impl",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickcontrols2fusionstyleimpl",
+    srcs = glob(["src/quickcontrols/fusion/impl/*.cpp"]),
+    hdrs = glob(["src/quickcontrols/fusion/impl/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2FUSIONSTYLEIMPL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2impl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/fusion/impl"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2FUSIONSTYLEIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = glob(["src/quickcontrols/fusion/impl/*_p.h"]),
+    qml_args = {
+        "uri": "QtQuick.Controls.Fusion.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2fusionstyleimplplugin",
+        "class_name": "QtQuickControls2FusionStyleImplPlugin",
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2FusionStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/fusion/impl",
+        "qml_files": glob(["src/quickcontrols/fusion/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2fusionstyleimpl_sync_headers",
+        ":quickcontrols2impl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2fusionstyleimplplugin_src",
+    class_name = "QtQuickControls2FusionStyleImplPlugin",
+    plugin_name = "qtquickcontrols2fusionstyleimplplugin",
+    uri = "QtQuick.Controls.Fusion.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2fusionstyleimplplugin",
+    srcs = [":qtquickcontrols2fusionstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSIONSTYLEIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Fusion.impl"],
+    moc_srcs = [":qtquickcontrols2fusionstyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2FusionStyleImplPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2fusionstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickcontrols2fusion_exports_h",
+    out = "generated_exports/qtquickcontrols2fusionexports.h",
+    module_infix = "QUICKCONTROLS2FUSION",
+)
+
+qt_depends_header(
+    name = "quickcontrols2fusion_depends_h",
+    out = "generated_exports/QtQuickControls2FusionDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2",
+        "QtQuickControls2Basic",
+        "QtQuickControls2FusionStyleImpl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2fusion_sync_headers",
+    hdrs = glob(["src/quickcontrols/fusion/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2fusion_depends_h",
+        ":quickcontrols2fusion_exports_h",
+    ],
+    module_name = "QtQuickControls2Fusion",
+    source_dir = "src/quickcontrols/fusion",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2_sync_headers",
+        ":quickcontrols2basic_sync_headers",
+        ":quickcontrols2fusionstyleimpl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_QUICKCONTROLS2FUSION_IMAGES = glob(["src/quickcontrols/fusion/images/*.png"])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2fusionstyle_qrc",
+    srcs = _QUICKCONTROLS2FUSION_IMAGES,
+    out = "qtquickcontrols2fusionstyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Fusion",
+    strip_prefix = "src/quickcontrols/fusion",
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2fusionstyle_rcc",
+    data = _QUICKCONTROLS2FUSION_IMAGES,
+    qrc = ":qtquickcontrols2fusionstyle_qrc",
+    qrc_name = "qtquickcontrols2fusionstyle",
+)
+
+qt_internal_library(
+    name = "quickcontrols2fusion",
+    srcs = [
+        "src/quickcontrols/fusion/qquickfusionstyle.cpp",
+        "src/quickcontrols/fusion/qquickfusiontheme.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/fusion/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2FUSION_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2_shared",
+        ":quickcontrols2basic_shared",
+        ":quickcontrols2basicstyleimpl_shared",
+        ":quickcontrols2fusionstyleimpl_shared",
+        ":quickcontrols2impl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/fusion"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2FUSION_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2FUSIONSTYLEIMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/fusion/qquickfusionstyle_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Fusion",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2fusionstyleplugin",
+        "class_name": "QtQuickControls2FusionStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Basic auto"],
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2Fusion",
+        "qml_strip_prefix": "src/quickcontrols/fusion",
+        "qml_files": glob(["src/quickcontrols/fusion/*.qml"]),
+        "qml_source_versions": _CONTROLS_STYLE_SOURCE_VERSIONS,
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2basic_moc_hdrs",
+            ":quickcontrols2fusionstyleimpl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2fusionstyle_rcc"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2fusion_sync_headers",
+        ":quickcontrols2fusionstyleimpl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2fusionstyleplugin",
+    srcs = ["src/quickcontrols/fusion/qtquickcontrols2fusionstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/fusion"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Fusion"],
+    moc_srcs = ["src/quickcontrols/fusion/qtquickcontrols2fusionstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2FusionStylePlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2fusionstyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fusion",
+        ":quickcontrols2fusionstyleimpl",
+        ":quicktemplates2",
+        ":quickwindow",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.2 QuickControls2 Material Style (:quickcontrols2materialstyleimpl & :quickcontrols2material)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickcontrols2materialstyleimpl_exports_h",
+    out = "generated_exports/qtquickcontrols2materialstyleimplexports.h",
+    module_infix = "QUICKCONTROLS2MATERIALSTYLEIMPL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2materialstyleimpl_depends_h",
+    out = "generated_exports/QtQuickControls2MaterialStyleImplDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2Impl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2materialstyleimpl_sync_headers",
+    hdrs = glob(["src/quickcontrols/material/impl/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2materialstyleimpl_depends_h",
+        ":quickcontrols2materialstyleimpl_exports_h",
+    ],
+    module_name = "QtQuickControls2MaterialStyleImpl",
+    source_dir = "src/quickcontrols/material/impl",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickcontrols2materialstyleimpl",
+    srcs = glob(["src/quickcontrols/material/impl/*.cpp"]),
+    hdrs = glob(["src/quickcontrols/material/impl/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2MATERIALSTYLEIMPL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2impl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/material/impl"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2MATERIALSTYLEIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = glob(["src/quickcontrols/material/impl/*_p.h"]),
+    moc_srcs = ["src/quickcontrols/material/impl/qquickmaterialripple.cpp"],
+    qml_args = {
+        "uri": "QtQuick.Controls.Material.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2materialstyleimplplugin",
+        "class_name": "QtQuickControls2MaterialStyleImplPlugin",
+        "depends": [
+            "QtQuick auto",
+            "QtQuick.Controls.impl auto",
+        ],
+        "qmlcache_target_name": "QuickControls2MaterialStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/material/impl",
+        "qml_files": glob(["src/quickcontrols/material/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quickcontrols2materialstyleimpl_sync_headers",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2materialstyleimplplugin_src",
+    class_name = "QtQuickControls2MaterialStyleImplPlugin",
+    plugin_name = "qtquickcontrols2materialstyleimplplugin",
+    uri = "QtQuick.Controls.Material.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2materialstyleimplplugin",
+    srcs = [":qtquickcontrols2materialstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2MATERIALSTYLEIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Material.impl"],
+    moc_srcs = [":qtquickcontrols2materialstyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2MaterialStyleImplPlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2implplugin",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quickcontrols2materialstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickcontrols2material_exports_h",
+    out = "generated_exports/qtquickcontrols2materialexports.h",
+    module_infix = "QUICKCONTROLS2MATERIAL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2material_depends_h",
+    out = "generated_exports/QtQuickControls2MaterialDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2",
+        "QtQuickControls2Basic",
+        "QtQuickControls2Impl",
+        "QtQuickControls2MaterialStyleImpl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2material_sync_headers",
+    hdrs = glob(["src/quickcontrols/material/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2material_depends_h",
+        ":quickcontrols2material_exports_h",
+    ],
+    module_name = "QtQuickControls2Material",
+    source_dir = "src/quickcontrols/material",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2_sync_headers",
+        ":quickcontrols2basic_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quickcontrols2materialstyleimpl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_QUICKCONTROLS2MATERIAL_IMAGES = glob(["src/quickcontrols/material/images/*.png"])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2materialstyle_qrc",
+    srcs = _QUICKCONTROLS2MATERIAL_IMAGES,
+    out = "qtquickcontrols2materialstyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Material",
+    strip_prefix = "src/quickcontrols/material",
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2materialstyle_rcc",
+    data = _QUICKCONTROLS2MATERIAL_IMAGES,
+    qrc = ":qtquickcontrols2materialstyle_qrc",
+    qrc_name = "qtquickcontrols2materialstyle",
+)
+
+qt_qsb(
+    name = "qtquickcontrols2materialstyle_shaders",
+    srcs = ["src/quickcontrols/material/shaders/RectangularGlow.frag"],
+    batchable = True,
+    optimized = True,
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Material",
+    qrc_name = "qtquickcontrols2materialstyle_shaders",
+    silent = True,
+    strip_prefix = "src/quickcontrols/material",
+)
+
+qt_internal_library(
+    name = "quickcontrols2material",
+    srcs = [
+        "src/quickcontrols/material/qquickmaterialstyle.cpp",
+        "src/quickcontrols/material/qquickmaterialtheme.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/material/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2MATERIAL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2_shared",
+        ":quickcontrols2basic_shared",
+        ":quickcontrols2basicstyleimpl_shared",
+        ":quickcontrols2impl_shared",
+        ":quickcontrols2materialstyleimpl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/material"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2MATERIAL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKCONTROLS2MATERIALSTYLEIMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/material/qquickmaterialstyle_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Material",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2materialstyleplugin",
+        "class_name": "QtQuickControls2MaterialStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Basic auto"],
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2Material",
+        "qml_strip_prefix": "src/quickcontrols/material",
+        "qml_files": glob(["src/quickcontrols/material/*.qml"]),
+        "qml_source_versions": _CONTROLS_STYLE_SOURCE_VERSIONS,
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2basic_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quickcontrols2materialstyleimpl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [
+        ":qtquickcontrols2materialstyle_rcc",
+        ":qtquickcontrols2materialstyle_shaders",
+    ],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2impl",
+        ":quickcontrols2material_sync_headers",
+        ":quickcontrols2materialstyleimpl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2materialstyleplugin",
+    srcs = ["src/quickcontrols/material/qtquickcontrols2materialstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/material"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2MATERIAL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Material"],
+    moc_srcs = ["src/quickcontrols/material/qtquickcontrols2materialstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2MaterialStylePlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2materialstyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2material",
+        ":quickcontrols2materialstyleimpl",
+        ":quicktemplates2",
+        ":quickwindow",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.3 QuickControls2 Universal Style (:quickcontrols2universalstyleimpl & :quickcontrols2universal)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickcontrols2universalstyleimpl_exports_h",
+    out = "generated_exports/qtquickcontrols2universalstyleimplexports.h",
+    module_infix = "QUICKCONTROLS2UNIVERSALSTYLEIMPL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2universalstyleimpl_depends_h",
+    out = "generated_exports/QtQuickControls2UniversalStyleImplDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2Impl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2universalstyleimpl_sync_headers",
+    hdrs = glob(["src/quickcontrols/universal/impl/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2universalstyleimpl_depends_h",
+        ":quickcontrols2universalstyleimpl_exports_h",
+    ],
+    module_name = "QtQuickControls2UniversalStyleImpl",
+    source_dir = "src/quickcontrols/universal/impl",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickcontrols2universalstyleimpl",
+    srcs = glob(["src/quickcontrols/universal/impl/*.cpp"]),
+    hdrs = glob(["src/quickcontrols/universal/impl/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2UNIVERSALSTYLEIMPL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2impl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/universal/impl"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2UNIVERSALSTYLEIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = glob(["src/quickcontrols/universal/impl/*_p.h"]),
+    qml_args = {
+        "uri": "QtQuick.Controls.Universal.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2universalstyleimplplugin",
+        "class_name": "QtQuickControls2UniversalStyleImplPlugin",
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2UniversalStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/universal/impl",
+        "qml_files": glob(["src/quickcontrols/universal/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quickcontrols2universalstyleimpl_sync_headers",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2universalstyleimplplugin_src",
+    class_name = "QtQuickControls2UniversalStyleImplPlugin",
+    plugin_name = "qtquickcontrols2universalstyleimplplugin",
+    uri = "QtQuick.Controls.Universal.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2universalstyleimplplugin",
+    srcs = [":qtquickcontrols2universalstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2UNIVERSALSTYLEIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Universal.impl"],
+    moc_srcs = [":qtquickcontrols2universalstyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2UniversalStyleImplPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2universalstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickcontrols2universal_exports_h",
+    out = "generated_exports/qtquickcontrols2universalexports.h",
+    module_infix = "QUICKCONTROLS2UNIVERSAL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2universal_depends_h",
+    out = "generated_exports/QtQuickControls2UniversalDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2",
+        "QtQuickControls2Basic",
+        "QtQuickControls2Impl",
+        "QtQuickControls2UniversalStyleImpl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2universal_sync_headers",
+    hdrs = glob(["src/quickcontrols/universal/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2universal_depends_h",
+        ":quickcontrols2universal_exports_h",
+    ],
+    module_name = "QtQuickControls2Universal",
+    source_dir = "src/quickcontrols/universal",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2_sync_headers",
+        ":quickcontrols2basic_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quickcontrols2universalstyleimpl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_QUICKCONTROLS2UNIVERSAL_IMAGES = glob(["src/quickcontrols/universal/images/*.png"])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2universalstyle_qrc",
+    srcs = _QUICKCONTROLS2UNIVERSAL_IMAGES,
+    out = "qtquickcontrols2universalstyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Universal",
+    strip_prefix = "src/quickcontrols/universal",
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2universalstyle_rcc",
+    data = _QUICKCONTROLS2UNIVERSAL_IMAGES,
+    qrc = ":qtquickcontrols2universalstyle_qrc",
+    qrc_name = "qtquickcontrols2universalstyle",
+)
+
+qt_internal_library(
+    name = "quickcontrols2universal",
+    srcs = [
+        "src/quickcontrols/universal/qquickuniversalstyle.cpp",
+        "src/quickcontrols/universal/qquickuniversaltheme.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/universal/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2UNIVERSAL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2_shared",
+        ":quickcontrols2basic_shared",
+        ":quickcontrols2basicstyleimpl_shared",
+        ":quickcontrols2impl_shared",
+        ":quickcontrols2universalstyleimpl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/universal"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2UNIVERSAL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKCONTROLS2UNIVERSALSTYLEIMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/universal/qquickuniversalstyle_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Universal",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2universalstyleplugin",
+        "class_name": "QtQuickControls2UniversalStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Basic auto"],
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2Universal",
+        "qml_strip_prefix": "src/quickcontrols/universal",
+        "qml_files": glob(["src/quickcontrols/universal/*.qml"]),
+        "qml_source_versions": _CONTROLS_STYLE_SOURCE_VERSIONS,
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2basic_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quickcontrols2universalstyleimpl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2universalstyle_rcc"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2impl",
+        ":quickcontrols2universal_sync_headers",
+        ":quickcontrols2universalstyleimpl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2universalstyleplugin",
+    srcs = ["src/quickcontrols/universal/qtquickcontrols2universalstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/universal"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2UNIVERSAL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Universal"],
+    moc_srcs = ["src/quickcontrols/universal/qtquickcontrols2universalstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2UniversalStylePlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2universalstyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2universal",
+        ":quickcontrols2universalstyleimpl",
+        ":quicktemplates2",
+        ":quickwindow",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.4 QuickControls2 Imagine Style (:quickcontrols2imaginestyleimpl & :quickcontrols2imagine)
+# ---------------------------------------------------------------------------
+
+qt_qsb(
+    name = "qtquickcontrols2imaginestyleimplplugin_shaders",
+    srcs = ["src/quickcontrols/imagine/impl/shaders/OpacityMask.frag"],
+    batchable = True,
+    optimized = True,
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Imagine/impl",
+    qrc_name = "qtquickcontrols2imaginestyleimplplugin_shaders",
+    silent = True,
+    strip_prefix = "src/quickcontrols/imagine/impl",
+)
+
+qt_internal_library(
+    name = "quickcontrols2imaginestyleimpl",
+    srcs = [],
+    copts = common_copts,
+    create_shared = False,
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2IMAGINESTYLEIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Imagine.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtquickcontrols2imaginestyleimplplugin",
+        "class_name": "QtQuickControls2ImagineStyleImplPlugin",
+        "imports": ["QtQuick.Controls.impl auto"],
+        "qmlcache_target_name": "QuickControls2ImagineStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/imagine/impl",
+        "qml_files": ["src/quickcontrols/imagine/impl/OpacityMask.qml"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2imaginestyleimplplugin_shaders"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2imaginestyleimplplugin_src",
+    class_name = "QtQuickControls2ImagineStyleImplPlugin",
+    plugin_name = "qtquickcontrols2imaginestyleimplplugin",
+    uri = "QtQuick.Controls.Imagine.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2imaginestyleimplplugin",
+    srcs = [":qtquickcontrols2imaginestyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMAGINESTYLEIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Imagine.impl"],
+    moc_srcs = [":qtquickcontrols2imaginestyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2ImagineStyleImplPlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2implplugin",
+        ":quick",
+        ":quickcontrols2imaginestyleimpl",
+        ":quickcontrols2impl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickcontrols2imagine_exports_h",
+    out = "generated_exports/qtquickcontrols2imagineexports.h",
+    module_infix = "QUICKCONTROLS2IMAGINE",
+)
+
+qt_depends_header(
+    name = "quickcontrols2imagine_depends_h",
+    out = "generated_exports/QtQuickControls2ImagineDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2",
+        "QtQuickControls2Basic",
+        "QtQuickControls2Impl",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2imagine_sync_headers",
+    hdrs = glob(["src/quickcontrols/imagine/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2imagine_depends_h",
+        ":quickcontrols2imagine_exports_h",
+    ],
+    module_name = "QtQuickControls2Imagine",
+    source_dir = "src/quickcontrols/imagine",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2_sync_headers",
+        ":quickcontrols2basic_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_QUICKCONTROLS2IMAGINE_IMAGES = glob([
+    "src/quickcontrols/imagine/images/*.png",
+    "src/quickcontrols/imagine/images/*.webp",
+])
+
+qt_generate_qrc(
+    name = "qmake_qtquickcontrols2imaginestyle_qrc",
+    srcs = _QUICKCONTROLS2IMAGINE_IMAGES,
+    out = "qmake_qtquickcontrols2imaginestyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Imagine",
+    strip_prefix = "src/quickcontrols/imagine",
+)
+
+qt_rcc_internal(
+    name = "qmake_qtquickcontrols2imaginestyle_rcc",
+    data = _QUICKCONTROLS2IMAGINE_IMAGES,
+    qrc = ":qmake_qtquickcontrols2imaginestyle_qrc",
+    qrc_name = "qmake_qtquickcontrols2imaginestyle",
+)
+
+qt_internal_library(
+    name = "quickcontrols2imagine",
+    srcs = [
+        "src/quickcontrols/imagine/qquickimaginestyle.cpp",
+        "src/quickcontrols/imagine/qquickimaginetheme.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/imagine/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2IMAGINE_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2_shared",
+        ":quickcontrols2basic_shared",
+        ":quickcontrols2basicstyleimpl_shared",
+        ":quickcontrols2impl_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/imagine"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2IMAGINE_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/imagine/qquickimaginestyle_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Imagine",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2imaginestyleplugin",
+        "class_name": "QtQuickControls2ImagineStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Basic auto"],
+        "qmlcache_target_name": "QuickControls2Imagine",
+        "qml_strip_prefix": "src/quickcontrols/imagine",
+        "qml_files": glob(["src/quickcontrols/imagine/*.qml"]),
+        "qml_source_versions": _CONTROLS_STYLE_SOURCE_VERSIONS,
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2basic_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qmake_qtquickcontrols2imaginestyle_rcc"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2imagine_sync_headers",
+        ":quickcontrols2impl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2imaginestyleplugin",
+    srcs = ["src/quickcontrols/imagine/qtquickcontrols2imaginestyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/imagine"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMAGINE_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Imagine"],
+    moc_srcs = ["src/quickcontrols/imagine/qtquickcontrols2imaginestyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2ImagineStylePlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2imaginestyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2imagine",
+        ":quickcontrols2imaginestyleimpl",
+        ":quicktemplates2",
+        ":quickwindow",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.5 QuickControls2 FluentWinUI3 Style (:quickcontrols2fluentwinui3styleimpl & :quickcontrols2fluentwinui3)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickcontrols2fluentwinui3styleimpl_exports_h",
+    out = "generated_exports/qtquickcontrols2fluentwinui3styleimplexports.h",
+    module_infix = "QUICKCONTROLS2FLUENTWINUI3STYLEIMPL",
+)
+
+qt_depends_header(
+    name = "quickcontrols2fluentwinui3styleimpl_depends_h",
+    out = "generated_exports/QtQuickControls2FluentWinUI3StyleImplDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickcontrols2fluentwinui3styleimpl_sync_headers",
+    hdrs = glob(["src/quickcontrols/fluentwinui3/impl/*.h"]),
+    generated_public_hdrs = [
+        ":quickcontrols2fluentwinui3styleimpl_depends_h",
+        ":quickcontrols2fluentwinui3styleimpl_exports_h",
+    ],
+    module_name = "QtQuickControls2FluentWinUI3StyleImpl",
+    source_dir = "src/quickcontrols/fluentwinui3/impl",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickcontrols2fluentwinui3styleimpl",
+    srcs = [
+        "src/quickcontrols/fluentwinui3/impl/qquickfluentwinui3focusframe.cpp",
+        "src/quickcontrols/fluentwinui3/impl/qquickfluentwinui3focusstroke.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/fluentwinui3/impl/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKCONTROLS2FLUENTWINUI3STYLEIMPL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickcontrols/fluentwinui3/impl"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKCONTROLS2FLUENTWINUI3STYLEIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/fluentwinui3/impl/qquickfluentwinui3focusframe_p.h",
+        "src/quickcontrols/fluentwinui3/impl/qquickfluentwinui3focusstroke_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.FluentWinUI3.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2fluentwinui3styleimplplugin",
+        "class_name": "QtQuickControls2FluentWinUI3StyleImplPlugin",
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2FluentWinUI3StyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/fluentwinui3/impl",
+        "qml_files": glob(["src/quickcontrols/fluentwinui3/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2fluentwinui3styleimpl_sync_headers",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2fluentwinui3styleimplplugin_src",
+    class_name = "QtQuickControls2FluentWinUI3StyleImplPlugin",
+    plugin_name = "qtquickcontrols2fluentwinui3styleimplplugin",
+    uri = "QtQuick.Controls.FluentWinUI3.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2fluentwinui3styleimplplugin",
+    srcs = [":qtquickcontrols2fluentwinui3styleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FLUENTWINUI3STYLEIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.FluentWinUI3.impl"],
+    moc_srcs = [":qtquickcontrols2fluentwinui3styleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2FluentWinUI3StyleImplPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2fluentwinui3styleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+_QUICKCONTROLS2FLUENTWINUI3_IMAGES = glob([
+    "src/quickcontrols/fluentwinui3/light/images/*.png",
+    "src/quickcontrols/fluentwinui3/dark/images/*.png",
+    "src/quickcontrols/fluentwinui3/icons/*.png",
+])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2fluentwinui3style_qrc",
+    srcs = _QUICKCONTROLS2FLUENTWINUI3_IMAGES,
+    out = "qtquickcontrols2fluentwinui3style.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/FluentWinUI3",
+    strip_prefix = "src/quickcontrols/fluentwinui3",
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2fluentwinui3style_rcc",
+    data = _QUICKCONTROLS2FLUENTWINUI3_IMAGES,
+    qrc = ":qtquickcontrols2fluentwinui3style_qrc",
+    qrc_name = "qtquickcontrols2fluentwinui3style",
+)
+
+qt_internal_library(
+    name = "quickcontrols2fluentwinui3",
+    srcs = [
+        "src/quickcontrols/fluentwinui3/qquickfluentwinui3theme.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/fluentwinui3/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    includes = ["src/quickcontrols/fluentwinui3"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FLUENTWINUI3STYLEIMPL_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.FluentWinUI3",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2fluentwinui3styleplugin",
+        "class_name": "QtQuickControls2FluentWinUI3StylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Fusion auto"],
+        "qmlcache_target_name": "QuickControls2FluentWinUI3",
+        "qml_strip_prefix": "src/quickcontrols/fluentwinui3",
+        "qml_files": glob(["src/quickcontrols/fluentwinui3/*.qml"]),
+        "qml_singletons": ["Config.qml"],
+        "qml_source_versions": {"SearchField.qml": ["6.10"]},
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2fluentwinui3styleimpl_moc_hdrs",
+            ":quickcontrols2fusion_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2fluentwinui3style_rcc"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fluentwinui3styleimpl",
+        ":quickcontrols2fusion",
+        ":quickcontrols2impl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2fluentwinui3styleplugin",
+    srcs = ["src/quickcontrols/fluentwinui3/qtquickcontrols2fluentwinui3styleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/fluentwinui3"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FLUENTWINUI3STYLEIMPL_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.FluentWinUI3"],
+    moc_srcs = ["src/quickcontrols/fluentwinui3/qtquickcontrols2fluentwinui3styleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2FluentWinUI3StylePlugin",
+    deps = [
+        ":qml",
+        ":qtquickcontrols2fluentwinui3styleimplplugin",
+        ":qtquickcontrols2fusionstyleplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fluentwinui3",
+        ":quickcontrols2fluentwinui3styleimpl",
+        ":quickcontrols2fusion",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.6 QuickNativeStyle & Platform Styles (macOS, iOS, Windows)
+# ---------------------------------------------------------------------------
+
+_QUICKNATIVESTYLE_COMMON_SRCS = [
+    "src/quicknativestyle/items/qquickstyleitem.cpp",
+    "src/quicknativestyle/items/qquickstyleitembutton.cpp",
+    "src/quicknativestyle/items/qquickstyleitemcheckbox.cpp",
+    "src/quicknativestyle/items/qquickstyleitemcheckdelegate.cpp",
+    "src/quicknativestyle/items/qquickstyleitemcombobox.cpp",
+    "src/quicknativestyle/items/qquickstyleitemdelaybutton.cpp",
+    "src/quicknativestyle/items/qquickstyleitemdial.cpp",
+    "src/quicknativestyle/items/qquickstyleitemframe.cpp",
+    "src/quicknativestyle/items/qquickstyleitemgroupbox.cpp",
+    "src/quicknativestyle/items/qquickstyleitemprogressbar.cpp",
+    "src/quicknativestyle/items/qquickstyleitemradiobutton.cpp",
+    "src/quicknativestyle/items/qquickstyleitemradiodelegate.cpp",
+    "src/quicknativestyle/items/qquickstyleitemscrollbar.cpp",
+    "src/quicknativestyle/items/qquickstyleitemsearchfield.cpp",
+    "src/quicknativestyle/items/qquickstyleitemslider.cpp",
+    "src/quicknativestyle/items/qquickstyleitemspinbox.cpp",
+    "src/quicknativestyle/items/qquickstyleitemtextfield.cpp",
+    "src/quicknativestyle/items/qquickstyleitemtreeindicator.cpp",
+    "src/quicknativestyle/qstyle/qquickcommonstyle.cpp",
+    "src/quicknativestyle/qstyle/qquickdrawutil.cpp",
+    "src/quicknativestyle/qstyle/qquicknativestyle.cpp",
+    "src/quicknativestyle/qstyle/qquickstyle.cpp",
+    "src/quicknativestyle/qstyle/qquickstylehelper.cpp",
+    "src/quicknativestyle/qstyle/qquickstyleoption.cpp",
+    "src/quicknativestyle/util/qquickfocusframe.cpp",
+]
+
+_QUICKNATIVESTYLE_COMMON_MOC_HDRS = [
+    "src/quicknativestyle/items/qquickstyleitem.h",
+    "src/quicknativestyle/items/qquickstyleitembutton.h",
+    "src/quicknativestyle/items/qquickstyleitemcheckbox.h",
+    "src/quicknativestyle/items/qquickstyleitemcheckdelegate.h",
+    "src/quicknativestyle/items/qquickstyleitemcombobox.h",
+    "src/quicknativestyle/items/qquickstyleitemdelaybutton.h",
+    "src/quicknativestyle/items/qquickstyleitemdial.h",
+    "src/quicknativestyle/items/qquickstyleitemframe.h",
+    "src/quicknativestyle/items/qquickstyleitemgroupbox.h",
+    "src/quicknativestyle/items/qquickstyleitemprogressbar.h",
+    "src/quicknativestyle/items/qquickstyleitemradiobutton.h",
+    "src/quicknativestyle/items/qquickstyleitemradiodelegate.h",
+    "src/quicknativestyle/items/qquickstyleitemscrollbar.h",
+    "src/quicknativestyle/items/qquickstyleitemsearchfield.h",
+    "src/quicknativestyle/items/qquickstyleitemslider.h",
+    "src/quicknativestyle/items/qquickstyleitemspinbox.h",
+    "src/quicknativestyle/items/qquickstyleitemtextfield.h",
+    "src/quicknativestyle/items/qquickstyleitemtreeindicator.h",
+    "src/quicknativestyle/qstyle/qquickcommonstyle.h",
+    "src/quicknativestyle/qstyle/qquickstyle.h",
+    "src/quicknativestyle/util/qquickfocusframe.h",
+]
+
+qt_internal_library(
+    name = "quicknativestyle",
+    srcs = _QUICKNATIVESTYLE_COMMON_SRCS + select({
+        "@platforms//os:macos": [
+            "src/quicknativestyle/items/qquickstyleitemscrollviewcorner.cpp",
+            "src/quicknativestyle/qstyle/mac/qquickmacstyle_mac.mm",
+            "src/quicknativestyle/util/qquickmacfocusframe.mm",
+            "src/quicknativestyle/util/qquickstyleconstants.mm",
+        ],
+        "@platforms//os:windows": [
+            "src/quicknativestyle/qstyle/windows/qquickwindowsstyle.cpp",
+            "src/quicknativestyle/qstyle/windows/qquickwindowsxpstyle.cpp",
+            "src/quicknativestyle/util/qquickwindowsfocusframe.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = glob(["src/quicknativestyle/**/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    includes = [
+        "src/quicknativestyle",
+        "src/quicknativestyle/items",
+        "src/quicknativestyle/qstyle",
+        "src/quicknativestyle/qstyle/mac",
+        "src/quicknativestyle/qstyle/windows",
+        "src/quicknativestyle/util",
+    ],
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-framework",
+            "AppKit",
+        ],
+        "@platforms//os:windows": [
+            "-lgdi32",
+            "-luser32",
+            "-luxtheme",
+        ],
+        "//conditions:default": [],
+    }),
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = _QUICKNATIVESTYLE_COMMON_MOC_HDRS + select({
+        "@platforms//os:macos": [
+            "src/quicknativestyle/items/qquickstyleitemscrollviewcorner.h",
+            "src/quicknativestyle/qstyle/mac/qquickmacstyle_mac_p.h",
+            "src/quicknativestyle/util/qquickmacfocusframe.h",
+            "src/quicknativestyle/util/qquickstyleconstants.h",
+        ],
+        "@platforms//os:windows": [
+            "src/quicknativestyle/qstyle/windows/qquickwindowsstyle_p.h",
+            "src/quicknativestyle/qstyle/windows/qquickwindowsxpstyle_p.h",
+            "src/quicknativestyle/util/qquickwindowsfocusframe.h",
+        ],
+        "//conditions:default": [],
+    }),
+    qml_args = {
+        "uri": "QtQuick.NativeStyle",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2nativestyleplugin",
+        "class_name": "QtQuickControls2NativeStylePlugin",
+        "plugin_optional": False,
+        "depends": [
+            "QtQuick.Controls auto",
+            "QtQuick.Layouts auto",
+            "QtQuick auto",
+        ],
+        "qmlcache_target_name": "QuickNativeStyle",
+        "qml_strip_prefix": "src/quicknativestyle",
+        "qml_files": glob(["src/quicknativestyle/controls/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quicklayouts",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2nativestyleplugin",
+    srcs = ["src/quicknativestyle/qtquickcontrols2nativestyleplugin.cpp"],
+    copts = common_copts,
+    includes = [
+        "src/quicknativestyle",
+        "src/quicknativestyle/items",
+        "src/quicknativestyle/qstyle",
+        "src/quicknativestyle/util",
+    ],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.NativeStyle"],
+    moc_srcs = ["src/quicknativestyle/qtquickcontrols2nativestyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2NativeStylePlugin",
+    deps = [
+        ":qml",
+        ":qquicklayoutsplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quicklayouts",
+        ":quicknativestyle",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# macOS style (:quickcontrols2macosstyleimpl & :quickcontrols2macos)
+qt_internal_library(
+    name = "quickcontrols2macosstyleimpl",
+    srcs = [],
+    copts = common_copts,
+    create_shared = False,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.macOS.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2macosstyleimplplugin",
+        "class_name": "QtQuickControls2macOSStyleImplPlugin",
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2MacOSStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/macos/impl",
+        "qml_files": glob(["src/quickcontrols/macos/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2macosstyleimplplugin_src",
+    class_name = "QtQuickControls2macOSStyleImplPlugin",
+    plugin_name = "qtquickcontrols2macosstyleimplplugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    uri = "QtQuick.Controls.macOS.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2macosstyleimplplugin",
+    srcs = [":qtquickcontrols2macosstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.macOS.impl"],
+    moc_srcs = [":qtquickcontrols2macosstyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2macOSStyleImplPlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2macosstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+_QUICKCONTROLS2MACOS_IMAGES = glob([
+    "src/quickcontrols/macos/images/*.png",
+    "src/quickcontrols/macos/images/*.webp",
+])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2macosstyle_qrc",
+    srcs = _QUICKCONTROLS2MACOS_IMAGES,
+    out = "qtquickcontrols2macosstyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/macOS",
+    strip_prefix = "src/quickcontrols/macos",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2macosstyle_rcc",
+    data = _QUICKCONTROLS2MACOS_IMAGES,
+    qrc = ":qtquickcontrols2macosstyle_qrc",
+    qrc_name = "qtquickcontrols2macosstyle",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+qt_internal_library(
+    name = "quickcontrols2macos",
+    srcs = [],
+    copts = common_copts,
+    create_shared = False,
+    includes = ["src/quickcontrols/macos"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.macOS",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2macosstyleplugin",
+        "class_name": "QtQuickControls2MacOSStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Fusion auto"],
+        "qmlcache_target_name": "QuickControls2MacOS",
+        "qml_strip_prefix": "src/quickcontrols/macos",
+        "qml_files": glob(["src/quickcontrols/macos/*.qml"]),
+        "qml_source_versions": {"SearchField.qml": ["6.10"]},
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2fusion_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2macosstyle_rcc"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fusion",
+        ":quickcontrols2macosstyleimpl",
+        ":quicknativestyle",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2macosstyleplugin",
+    srcs = ["src/quickcontrols/macos/qtquickcontrols2macosstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/macos"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.macOS"],
+    moc_srcs = ["src/quickcontrols/macos/qtquickcontrols2macosstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2MacOSStylePlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":qtquickcontrols2fusionstyleplugin",
+        ":qtquickcontrols2macosstyleimplplugin",
+        ":qtquickcontrols2nativestyleplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fusion",
+        ":quickcontrols2macos",
+        ":quickcontrols2macosstyleimpl",
+        ":quicknativestyle",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# iOS style (:quickcontrols2iosstyleimpl & :quickcontrols2ios)
+qt_internal_library(
+    name = "quickcontrols2iosstyleimpl",
+    srcs = [
+        "src/quickcontrols/ios/impl/qquickioscursorflashtimer.cpp",
+        "src/quickcontrols/ios/impl/qquickiosstyle.cpp",
+    ],
+    hdrs = glob(["src/quickcontrols/ios/impl/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    includes = ["src/quickcontrols/ios/impl"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickcontrols/ios/impl/qquickioscursorflashtimer_p.h",
+        "src/quickcontrols/ios/impl/qquickiosstyle_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.iOS.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtquickcontrols2iosstyleimplplugin",
+        "class_name": "QtQuick_Controls_iOS_implPlugin",
+        "qmlcache_target_name": "QuickControls2IOSStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/ios/impl",
+        "qml_files": glob(["src/quickcontrols/ios/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2iosstyleimplplugin_src",
+    class_name = "QtQuick_Controls_iOS_implPlugin",
+    plugin_name = "qtquickcontrols2iosstyleimplplugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    uri = "QtQuick.Controls.iOS.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2iosstyleimplplugin",
+    srcs = [":qtquickcontrols2iosstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.iOS.impl"],
+    moc_srcs = [":qtquickcontrols2iosstyleimplplugin_src"],
+    plugin_class_name = "QtQuick_Controls_iOS_implPlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2iosstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+_QUICKCONTROLS2IOS_IMAGES = glob(["src/quickcontrols/ios/images/*.png"])
+
+qt_generate_qrc(
+    name = "qmake_qtquickcontrols2iosstyleplugin_qrc",
+    srcs = _QUICKCONTROLS2IOS_IMAGES,
+    out = "qmake_qtquickcontrols2iosstyleplugin.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/iOS",
+    strip_prefix = "src/quickcontrols/ios",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+qt_rcc_internal(
+    name = "qmake_qtquickcontrols2iosstyleplugin_rcc",
+    data = _QUICKCONTROLS2IOS_IMAGES,
+    qrc = ":qmake_qtquickcontrols2iosstyleplugin_qrc",
+    qrc_name = "qmake_qtquickcontrols2iosstyleplugin",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+qt_internal_library(
+    name = "quickcontrols2ios",
+    srcs = ["src/quickcontrols/ios/qquickiostheme.mm"],
+    hdrs = glob(["src/quickcontrols/ios/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    includes = ["src/quickcontrols/ios"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.iOS",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2iosstyleplugin",
+        "class_name": "QtQuickControls2IOSStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Basic auto"],
+        "qmlcache_target_name": "QuickControls2IOS",
+        "qml_strip_prefix": "src/quickcontrols/ios",
+        "qml_files": glob(["src/quickcontrols/ios/*.qml"]),
+        "qml_source_versions": {
+            "HorizontalHeaderViewDelegate.qml": ["6.10"],
+            "Slider.qml": ["2.2", "6.0"],
+            "VerticalHeaderViewDelegate.qml": ["6.10"],
+        },
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2basic_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quickcontrols2iosstyleimpl_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qmake_qtquickcontrols2iosstyleplugin_rcc"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2impl",
+        ":quickcontrols2iosstyleimpl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2iosstyleplugin",
+    srcs = ["src/quickcontrols/ios/qtquickcontrols2iosstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/ios"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2BASIC_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.iOS"],
+    moc_srcs = ["src/quickcontrols/ios/qtquickcontrols2iosstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2IOSStylePlugin",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":qml",
+        ":qtquickcontrols2basicstyleplugin",
+        ":qtquickcontrols2iosstyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2basic",
+        ":quickcontrols2ios",
+        ":quickcontrols2iosstyleimpl",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# Windows style (:quickcontrols2windowsstyleimpl & :quickcontrols2windows)
+qt_internal_library(
+    name = "quickcontrols2windowsstyleimpl",
+    srcs = [],
+    copts = common_copts,
+    create_shared = False,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Windows.impl",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2windowsstyleimplplugin",
+        "class_name": "QtQuickControls2WindowsStyleImplPlugin",
+        "depends": ["QtQuick auto"],
+        "qmlcache_target_name": "QuickControls2WindowsStyleImpl",
+        "qml_strip_prefix": "src/quickcontrols/windows/impl",
+        "qml_files": glob(["src/quickcontrols/windows/impl/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickcontrols2windowsstyleimplplugin_src",
+    class_name = "QtQuickControls2WindowsStyleImplPlugin",
+    plugin_name = "qtquickcontrols2windowsstyleimplplugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    uri = "QtQuick.Controls.Windows.impl",
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2windowsstyleimplplugin",
+    srcs = [":qtquickcontrols2windowsstyleimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Windows.impl"],
+    moc_srcs = [":qtquickcontrols2windowsstyleimplplugin_src"],
+    plugin_class_name = "QtQuickControls2WindowsStyleImplPlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2windowsstyleimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+_QUICKCONTROLS2WINDOWS_IMAGES = glob(["src/quickcontrols/windows/images/*.png"])
+
+qt_generate_qrc(
+    name = "qtquickcontrols2windowsstyle_qrc",
+    srcs = _QUICKCONTROLS2WINDOWS_IMAGES,
+    out = "qtquickcontrols2windowsstyle.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Controls/Windows",
+    strip_prefix = "src/quickcontrols/windows",
+    target_compatible_with = ["@platforms//os:windows"],
+)
+
+qt_rcc_internal(
+    name = "qtquickcontrols2windowsstyle_rcc",
+    data = _QUICKCONTROLS2WINDOWS_IMAGES,
+    qrc = ":qtquickcontrols2windowsstyle_qrc",
+    qrc_name = "qtquickcontrols2windowsstyle",
+    target_compatible_with = ["@platforms//os:windows"],
+)
+
+qt_internal_library(
+    name = "quickcontrols2windows",
+    srcs = [],
+    copts = common_copts,
+    create_shared = False,
+    includes = ["src/quickcontrols/windows"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Controls.Windows",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qtquickcontrols2windowsstyleplugin",
+        "class_name": "QtQuickControls2WindowsStylePlugin",
+        "plugin_optional": False,
+        "imports": ["QtQuick.Controls.Fusion auto"],
+        "qmlcache_target_name": "QuickControls2Windows",
+        "qml_strip_prefix": "src/quickcontrols/windows",
+        "qml_files": glob(["src/quickcontrols/windows/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2_moc_hdrs",
+            ":quickcontrols2fusion_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qtquickcontrols2windowsstyle_rcc"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fusion",
+        ":quickcontrols2windowsstyleimpl",
+        ":quicknativestyle",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qtquickcontrols2windowsstyleplugin",
+    srcs = ["src/quickcontrols/windows/qtquickcontrols2windowsstyleplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/quickcontrols/windows"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2FUSION_LIB",
+        "QT_QUICKCONTROLS2_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Controls.Windows"],
+    moc_srcs = ["src/quickcontrols/windows/qtquickcontrols2windowsstyleplugin.cpp"],
+    plugin_class_name = "QtQuickControls2WindowsStylePlugin",
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        ":qml",
+        ":qtquickcontrols2fusionstyleplugin",
+        ":qtquickcontrols2nativestyleplugin",
+        ":qtquickcontrols2windowsstyleimplplugin",
+        ":quick",
+        ":quickcontrols2",
+        ":quickcontrols2fusion",
+        ":quickcontrols2windows",
+        ":quickcontrols2windowsstyleimpl",
+        ":quicknativestyle",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.7 Labs Modules (Settings, QmlModels, FolderListModel, Platform, WavefrontMesh, SharedImage, Synchronizer)
+# ---------------------------------------------------------------------------
+
+# 23.7a LabsSettings (:labssettings & :qmlsettingsplugin)
+qt_export_header(
+    name = "labssettings_exports_h",
+    out = "generated_exports/qtlabssettingsexports.h",
+    module_infix = "LABSSETTINGS",
+)
+
+qt_depends_header(
+    name = "labssettings_depends_h",
+    out = "generated_exports/QtLabsSettingsDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+    ],
+)
+
+qt_sync_headers(
+    name = "labssettings_sync_headers",
+    hdrs = glob(["src/labs/settings/*.h"]),
+    generated_public_hdrs = [
+        ":labssettings_depends_h",
+        ":labssettings_exports_h",
+    ],
+    module_name = "QtLabsSettings",
+    source_dir = "src/labs/settings",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labssettings",
+    srcs = ["src/labs/settings/qqmlsettings.cpp"],
+    hdrs = glob(["src/labs/settings/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSSETTINGS_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/settings"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSSETTINGS_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/labs/settings/qqmlsettings_p.h"],
+    qml_args = {
+        "uri": "Qt.labs.settings",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "plugin_target": "qmlsettingsplugin",
+        "class_name": "QmlSettingsPlugin",
+        "depends": ["QtQml auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labssettings_sync_headers",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qmlsettingsplugin_src",
+    class_name = "QmlSettingsPlugin",
+    plugin_name = "qmlsettingsplugin",
+    uri = "Qt.labs.settings",
+)
+
+qt_static_plugin(
+    name = "qmlsettingsplugin",
+    srcs = [":qmlsettingsplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_LABSSETTINGS_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.settings"],
+    moc_srcs = [":qmlsettingsplugin_src"],
+    plugin_class_name = "QmlSettingsPlugin",
+    deps = [
+        ":labssettings",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.7b LabsQmlModels (:labsmodels & :labsmodelsplugin)
+qt_export_header(
+    name = "labsmodels_exports_h",
+    out = "generated_exports/qtlabsqmlmodelsexports.h",
+    module_infix = "LABSQMLMODELS",
+)
+
+qt_depends_header(
+    name = "labsmodels_depends_h",
+    out = "generated_exports/QtLabsQmlModelsDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtQmlModels",
+    ],
+)
+
+qt_sync_headers(
+    name = "labsmodels_sync_headers",
+    hdrs = glob(["src/labs/models/*.h"]),
+    generated_public_hdrs = [
+        ":labsmodels_depends_h",
+        ":labsmodels_exports_h",
+    ],
+    module_name = "QtLabsQmlModels",
+    source_dir = "src/labs/models",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":qmlmodels_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labsmodels",
+    srcs = glob(["src/labs/models/*.cpp"]),
+    hdrs = glob(["src/labs/models/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSQMLMODELS_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmodels_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/models"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSQMLMODELS_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/labs/models/qqmlabstractcolumnmodel_p.h",
+        "src/labs/models/qqmldelegatechooser_p.h",
+        "src/labs/models/qqmltablemodel_p.h",
+        "src/labs/models/qqmltablemodelcolumn_p.h",
+        "src/labs/models/qqmltreemodel_p.h",
+    ],
+    qml_args = {
+        "uri": "Qt.labs.qmlmodels",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "plugin_target": "labsmodelsplugin",
+        "class_name": "QtQmlLabsModelsPlugin",
+        "depends": ["QtQml.Models auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":qmlmodels_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labsmodels_sync_headers",
+        ":qml",
+        ":qmlmodels",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "labsmodelsplugin_src",
+    class_name = "QtQmlLabsModelsPlugin",
+    plugin_name = "labsmodelsplugin",
+    uri = "Qt.labs.qmlmodels",
+)
+
+qt_static_plugin(
+    name = "labsmodelsplugin",
+    srcs = [":labsmodelsplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_LABSQMLMODELS_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.qmlmodels"],
+    moc_srcs = [":labsmodelsplugin_src"],
+    plugin_class_name = "QtQmlLabsModelsPlugin",
+    deps = [
+        ":labsmodels",
+        ":qml",
+        ":qmlmodels",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.7c LabsFolderListModel (:labsfoldermodel & :qmlfolderlistmodelplugin)
+qt_export_header(
+    name = "labsfoldermodel_exports_h",
+    out = "generated_exports/qtlabsfolderlistmodelexports.h",
+    module_infix = "LABSFOLDERLISTMODEL",
+)
+
+qt_depends_header(
+    name = "labsfoldermodel_depends_h",
+    out = "generated_exports/QtLabsFolderListModelDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtQmlModels",
+    ],
+)
+
+qt_sync_headers(
+    name = "labsfoldermodel_sync_headers",
+    hdrs = glob(["src/labs/folderlistmodel/*.h"]),
+    generated_public_hdrs = [
+        ":labsfoldermodel_depends_h",
+        ":labsfoldermodel_exports_h",
+    ],
+    module_name = "QtLabsFolderListModel",
+    source_dir = "src/labs/folderlistmodel",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":qmlmodels_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labsfoldermodel",
+    srcs = [
+        "src/labs/folderlistmodel/fileinfothread.cpp",
+        "src/labs/folderlistmodel/qquickfolderlistmodel.cpp",
+    ],
+    hdrs = glob(["src/labs/folderlistmodel/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSFOLDERLISTMODEL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmodels_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/folderlistmodel"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSFOLDERLISTMODEL_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/labs/folderlistmodel/fileinfothread_p.h",
+        "src/labs/folderlistmodel/fileproperty_p.h",
+        "src/labs/folderlistmodel/qquickfolderlistmodel_p.h",
+    ],
+    qml_args = {
+        "uri": "Qt.labs.folderlistmodel",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1", "2"],
+        "plugin_target": "qmlfolderlistmodelplugin",
+        "class_name": "QmlFolderListModelPlugin",
+        "depends": ["QtQml.Models auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":qmlmodels_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labsfoldermodel_sync_headers",
+        ":qml",
+        ":qmlmodels",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qmlfolderlistmodelplugin_src",
+    class_name = "QmlFolderListModelPlugin",
+    plugin_name = "qmlfolderlistmodelplugin",
+    uri = "Qt.labs.folderlistmodel",
+)
+
+qt_static_plugin(
+    name = "qmlfolderlistmodelplugin",
+    srcs = [":qmlfolderlistmodelplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_LABSFOLDERLISTMODEL_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.folderlistmodel"],
+    moc_srcs = [":qmlfolderlistmodelplugin_src"],
+    plugin_class_name = "QmlFolderListModelPlugin",
+    deps = [
+        ":labsfoldermodel",
+        ":qml",
+        ":qmlmodels",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.7d LabsPlatform (:labsplatform & :qtlabsplatformplugin)
+qt_export_header(
+    name = "labsplatform_exports_h",
+    out = "generated_exports/qtlabsplatformexports.h",
+    module_infix = "LABSPLATFORM",
+)
+
+qt_depends_header(
+    name = "labsplatform_depends_h",
+    out = "generated_exports/QtLabsPlatformDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickTemplates2",
+        "QtWidgets",
+    ],
+)
+
+qt_sync_headers(
+    name = "labsplatform_sync_headers",
+    hdrs = glob(["src/labs/platform/**/*.h"]),
+    generated_public_hdrs = [
+        ":labsplatform_depends_h",
+        ":labsplatform_exports_h",
+    ],
+    module_name = "QtLabsPlatform",
+    source_dir = "src/labs/platform",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+        "@qtbase//:widgets_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labsplatform",
+    srcs = glob([
+        "src/labs/platform/*.cpp",
+        "src/labs/platform/widgets/*.cpp",
+    ]),
+    hdrs = glob(["src/labs/platform/**/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSPLATFORM_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:widgets_shared",
+    ],
+    includes = [
+        "src/labs/platform",
+        "src/labs/platform/widgets",
+    ],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSPLATFORM_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = glob(
+        [
+            "src/labs/platform/*_p.h",
+            "src/labs/platform/widgets/*_p.h",
+        ],
+        exclude = [
+            "src/labs/platform/qquicklabsplatformiconloader_p.h",
+            "src/labs/platform/widgets/qwidgetplatform_p.h",
+            "src/labs/platform/widgets/qwidgetplatformdialog_p.h",
+        ],
+    ),
+    qml_args = {
+        "uri": "Qt.labs.platform",
+        "major_version": "1",
+        "minor_version": "1",
+        "plugin_target": "qtlabsplatformplugin",
+        "class_name": "QtLabsPlatformPlugin",
+        "depends": [
+            "QtQuick auto",
+            "QtQuick.Templates auto",
+        ],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+            "@qtbase//:widgets_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labsplatform_sync_headers",
+        ":qml",
+        ":quick",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtlabsplatformplugin_src",
+    class_name = "QtLabsPlatformPlugin",
+    plugin_name = "qtlabsplatformplugin",
+    uri = "Qt.labs.platform",
+)
+
+qt_static_plugin(
+    name = "qtlabsplatformplugin",
+    srcs = [":qtlabsplatformplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_LABSPLATFORM_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.platform"],
+    moc_srcs = [":qtlabsplatformplugin_src"],
+    plugin_class_name = "QtLabsPlatformPlugin",
+    deps = [
+        ":labsplatform",
+        ":qml",
+        ":qtquicktemplates2plugin",
+        ":quick",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)
+
+# 23.7e LabsWavefrontMesh (:labswavefrontmesh & :qmlwavefrontmeshplugin)
+qt_export_header(
+    name = "labswavefrontmesh_exports_h",
+    out = "generated_exports/qtlabswavefrontmeshexports.h",
+    module_infix = "LABSWAVEFRONTMESH",
+)
+
+qt_depends_header(
+    name = "labswavefrontmesh_depends_h",
+    out = "generated_exports/QtLabsWavefrontMeshDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+    ],
+)
+
+qt_sync_headers(
+    name = "labswavefrontmesh_sync_headers",
+    hdrs = glob(["src/labs/wavefrontmesh/*.h"]),
+    generated_public_hdrs = [
+        ":labswavefrontmesh_depends_h",
+        ":labswavefrontmesh_exports_h",
+    ],
+    module_name = "QtLabsWavefrontMesh",
+    source_dir = "src/labs/wavefrontmesh",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labswavefrontmesh",
+    srcs = ["src/labs/wavefrontmesh/qwavefrontmesh.cpp"],
+    hdrs = glob(["src/labs/wavefrontmesh/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSWAVEFRONTMESH_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/wavefrontmesh"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSWAVEFRONTMESH_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = ["src/labs/wavefrontmesh/qwavefrontmesh_p.h"],
+    qml_args = {
+        "uri": "Qt.labs.wavefrontmesh",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "plugin_target": "qmlwavefrontmeshplugin",
+        "class_name": "QmlWavefrontMeshPlugin",
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labswavefrontmesh_sync_headers",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qmlwavefrontmeshplugin_src",
+    class_name = "QmlWavefrontMeshPlugin",
+    plugin_name = "qmlwavefrontmeshplugin",
+    uri = "Qt.labs.wavefrontmesh",
+)
+
+qt_static_plugin(
+    name = "qmlwavefrontmeshplugin",
+    srcs = [":qmlwavefrontmeshplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_LABSWAVEFRONTMESH_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.wavefrontmesh"],
+    moc_srcs = [":qmlwavefrontmeshplugin_src"],
+    plugin_class_name = "QmlWavefrontMeshPlugin",
+    deps = [
+        ":labswavefrontmesh",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# 23.7f LabsSharedImage (:labssharedimage & :sharedimageplugin / :qtlabssharedimageplugin)
+qt_export_header(
+    name = "labssharedimage_exports_h",
+    out = "generated_exports/qtlabssharedimageexports.h",
+    module_infix = "LABSSHAREDIMAGE",
+)
+
+qt_depends_header(
+    name = "labssharedimage_depends_h",
+    out = "generated_exports/QtLabsSharedImageDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+    ],
+)
+
+qt_sync_headers(
+    name = "labssharedimage_sync_headers",
+    hdrs = glob(["src/labs/sharedimage/*.h"]),
+    generated_public_hdrs = [
+        ":labssharedimage_depends_h",
+        ":labssharedimage_exports_h",
+    ],
+    module_name = "QtLabsSharedImage",
+    source_dir = "src/labs/sharedimage",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labssharedimage",
+    srcs = [
+        "src/labs/sharedimage/qsharedimageloader.cpp",
+        "src/labs/sharedimage/qsharedimageprovider.cpp",
+    ],
+    hdrs = glob(["src/labs/sharedimage/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSSHAREDIMAGE_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/sharedimage"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSSHAREDIMAGE_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/labs/sharedimage/qsharedimageloader_p.h",
+        "src/labs/sharedimage/qsharedimageprovider_p.h",
+    ],
+    qml_args = {
+        "uri": "Qt.labs.sharedimage",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["1"],
+        "plugin_target": "sharedimageplugin",
+        "class_name": "QtQuickSharedImagePlugin",
+        "plugin_optional": False,
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labssharedimage_sync_headers",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "sharedimageplugin",
+    srcs = ["src/labs/sharedimage/qsharedimageplugin.cpp"],
+    copts = common_copts,
+    includes = ["src/labs/sharedimage"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_LABSSHAREDIMAGE_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.sharedimage"],
+    moc_srcs = ["src/labs/sharedimage/qsharedimageplugin.cpp"],
+    plugin_class_name = "QtQuickSharedImagePlugin",
+    deps = [
+        ":labssharedimage",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+alias(
+    name = "qtlabssharedimageplugin",
+    actual = ":sharedimageplugin",
+)
+
+# 23.7g LabsSynchronizer (:labssynchronizer & :labssynchronizerplugin)
+qt_export_header(
+    name = "labssynchronizer_exports_h",
+    out = "generated_exports/qtlabssynchronizerexports.h",
+    module_infix = "LABSSYNCHRONIZER",
+)
+
+qt_depends_header(
+    name = "labssynchronizer_depends_h",
+    out = "generated_exports/QtLabsSynchronizerDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtQmlMeta",
+    ],
+)
+
+qt_sync_headers(
+    name = "labssynchronizer_sync_headers",
+    hdrs = glob(["src/labs/synchronizer/*.h"]),
+    generated_public_hdrs = [
+        ":labssynchronizer_depends_h",
+        ":labssynchronizer_exports_h",
+    ],
+    module_name = "QtLabsSynchronizer",
+    source_dir = "src/labs/synchronizer",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":qmlmeta_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "labssynchronizer",
+    srcs = ["src/labs/synchronizer/qqmlsynchronizer.cpp"],
+    hdrs = glob(["src/labs/synchronizer/*.h"]),
+    copts = common_copts,
+    defines = ["QT_LABSSYNCHRONIZER_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/labs/synchronizer"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_LABSSYNCHRONIZER_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMETA_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/labs/synchronizer/qqmlsynchronizer_p.h"],
+    qml_args = {
+        "uri": "Qt.labs.synchronizer",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "labssynchronizerplugin",
+        "class_name": "Qt_labs_synchronizerPlugin",
+        "depends": ["QtQml auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":labssynchronizer_sync_headers",
+        ":qml",
+        ":qmlmeta",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "labssynchronizerplugin_src",
+    class_name = "Qt_labs_synchronizerPlugin",
+    plugin_name = "labssynchronizerplugin",
+    uri = "Qt.labs.synchronizer",
+)
+
+qt_static_plugin(
+    name = "labssynchronizerplugin",
+    srcs = [":labssynchronizerplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_LABSSYNCHRONIZER_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=Qt.labs.synchronizer"],
+    moc_srcs = [":labssynchronizerplugin_src"],
+    plugin_class_name = "Qt_labs_synchronizerPlugin",
+    deps = [
+        ":labssynchronizer",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.8 QuickDialogs (:quickdialogs2utils, :quickdialogs2quickimpl, :quickdialogs2)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickdialogs2utils_exports_h",
+    out = "generated_exports/qtquickdialogs2utilsexports.h",
+    module_infix = "QUICKDIALOGS2UTILS",
+)
+
+qt_depends_header(
+    name = "quickdialogs2utils_depends_h",
+    out = "generated_exports/QtQuickDialogs2UtilsDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickdialogs2utils_sync_headers",
+    hdrs = glob(["src/quickdialogs/quickdialogsutils/*.h"]),
+    generated_public_hdrs = [
+        ":quickdialogs2utils_depends_h",
+        ":quickdialogs2utils_exports_h",
+    ],
+    module_name = "QtQuickDialogs2Utils",
+    source_dir = "src/quickdialogs/quickdialogsutils",
+    version = QT_VERSION,
+    deps = [
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickdialogs2utils",
+    srcs = ["src/quickdialogs/quickdialogsutils/qquickfilenamefilter.cpp"],
+    hdrs = glob(["src/quickdialogs/quickdialogsutils/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKDIALOGS2UTILS_LIB"],
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+    ],
+    includes = ["src/quickdialogs/quickdialogsutils"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKDIALOGS2UTILS_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+    ],
+    moc_hdrs = ["src/quickdialogs/quickdialogsutils/qquickfilenamefilter_p.h"],
+    deps = [
+        ":quickdialogs2utils_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickdialogs2quickimpl_exports_h",
+    out = "generated_exports/qtquickdialogs2quickimplexports.h",
+    module_infix = "QUICKDIALOGS2QUICKIMPL",
+)
+
+qt_depends_header(
+    name = "quickdialogs2quickimpl_depends_h",
+    out = "generated_exports/QtQuickDialogs2QuickImplDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtLabsFolderListModel",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2Impl",
+        "QtQuickDialogs2Utils",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickdialogs2quickimpl_sync_headers",
+    hdrs = glob(["src/quickdialogs/quickdialogsquickimpl/*.h"]),
+    generated_public_hdrs = [
+        ":quickdialogs2quickimpl_depends_h",
+        ":quickdialogs2quickimpl_exports_h",
+    ],
+    module_name = "QtQuickDialogs2QuickImpl",
+    source_dir = "src/quickdialogs/quickdialogsquickimpl",
+    version = QT_VERSION,
+    deps = [
+        ":labsfoldermodel_sync_headers",
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quickdialogs2utils_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_QUICKDIALOGS2QUICKIMPL_IMAGES = glob([
+    "src/quickdialogs/quickdialogsquickimpl/images/*.png",
+    "src/quickdialogs/quickdialogsquickimpl/images/imagine/*.png",
+])
+
+qt_generate_qrc(
+    name = "quickdialogs2quickimpl_qrc",
+    srcs = _QUICKDIALOGS2QUICKIMPL_IMAGES,
+    out = "QuickDialogs2QuickImpl.qrc",
+    prefix = "/qt-project.org/imports/QtQuick/Dialogs/quickimpl",
+    strip_prefix = "src/quickdialogs/quickdialogsquickimpl",
+)
+
+qt_rcc_internal(
+    name = "quickdialogs2quickimpl_rcc",
+    data = _QUICKDIALOGS2QUICKIMPL_IMAGES,
+    qrc = ":quickdialogs2quickimpl_qrc",
+    qrc_name = "QuickDialogs2QuickImpl",
+)
+
+qt_qsb(
+    name = "quickdialogs2quickimpl_shaders",
+    srcs = [
+        "src/quickdialogs/quickdialogsquickimpl/shaders/SaturationLightness.frag",
+        "src/quickdialogs/quickdialogsquickimpl/shaders/SaturationLightness.vert",
+    ],
+    batchable = True,
+    optimized = True,
+    prefix = "/qt-project.org/imports/QtQuick/Dialogs/quickimpl",
+    qrc_name = "QuickDialogs2QuickImplShaders",
+    silent = True,
+    strip_prefix = "src/quickdialogs/quickdialogsquickimpl",
+)
+
+qt_internal_library(
+    name = "quickdialogs2quickimpl",
+    srcs = glob(["src/quickdialogs/quickdialogsquickimpl/*.cpp"]),
+    hdrs = glob(["src/quickdialogs/quickdialogsquickimpl/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKDIALOGS2QUICKIMPL_LIB"],
+    dynamic_deps = [
+        ":labsfoldermodel_shared",
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2impl_shared",
+        ":quickdialogs2utils_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickdialogs/quickdialogsquickimpl"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKDIALOGS2QUICKIMPL_LIB",
+        "QT_GUI_LIB",
+        "QT_LABSFOLDERLISTMODEL_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKDIALOGS2UTILS_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickdialogs/quickdialogsquickimpl/qquickabstractcolorpicker_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickcolordialogimpl_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickcolorinputs_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfiledialogdelegate_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfiledialogdelegate_p_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfiledialogimpl_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfolderbreadcrumbbar_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfolderdialogimpl_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickfontdialogimpl_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickmessagedialogimpl_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickplatformcolordialog_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickplatformfiledialog_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickplatformfolderdialog_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickplatformfontdialog_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquickplatformmessagedialog_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquicksaturationlightnesspicker_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qquicksidebar_p.h",
+        "src/quickdialogs/quickdialogsquickimpl/qtquickdialogs2quickimplforeign_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Dialogs.quickimpl",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtquickdialogs2quickimplplugin",
+        "class_name": "QtQuickDialogs2QuickImplPlugin",
+        "depends": [
+            "QtQuick auto",
+            "QtQuick.Templates auto",
+            "QtQuick.Layouts auto",
+        ],
+        "qmlcache_target_name": "QuickDialogs2QuickImpl",
+        "qml_strip_prefix": "src/quickdialogs/quickdialogsquickimpl",
+        "qml_files": glob(["src/quickdialogs/quickdialogsquickimpl/qml/**/*.qml"]),
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quickdialogs2utils_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [
+        ":quickdialogs2quickimpl_rcc",
+        ":quickdialogs2quickimpl_shaders",
+    ],
+    deps = [
+        ":labsfoldermodel",
+        ":qml",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quickdialogs2quickimpl_sync_headers",
+        ":quickdialogs2utils",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickdialogs2quickimplplugin_src",
+    class_name = "QtQuickDialogs2QuickImplPlugin",
+    plugin_name = "qtquickdialogs2quickimplplugin",
+    uri = "QtQuick.Dialogs.quickimpl",
+)
+
+qt_static_plugin(
+    name = "qtquickdialogs2quickimplplugin",
+    srcs = [":qtquickdialogs2quickimplplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKDIALOGS2QUICKIMPL_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Dialogs.quickimpl"],
+    moc_srcs = [":qtquickdialogs2quickimplplugin_src"],
+    plugin_class_name = "QtQuickDialogs2QuickImplPlugin",
+    deps = [
+        ":qml",
+        ":qmlfolderlistmodelplugin",
+        ":qquicklayoutsplugin",
+        ":qtquickcontrols2implplugin",
+        ":qtquicktemplates2plugin",
+        ":quick",
+        ":quickdialogs2quickimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_export_header(
+    name = "quickdialogs2_exports_h",
+    out = "generated_exports/qtquickdialogs2exports.h",
+    module_infix = "QUICKDIALOGS2",
+)
+
+qt_depends_header(
+    name = "quickdialogs2_depends_h",
+    out = "generated_exports/QtQuickDialogs2Depends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickControls2Impl",
+        "QtQuickDialogs2QuickImpl",
+        "QtQuickDialogs2Utils",
+        "QtQuickTemplates2",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickdialogs2_sync_headers",
+    hdrs = glob(["src/quickdialogs/quickdialogs/*.h"]),
+    generated_public_hdrs = [
+        ":quickdialogs2_depends_h",
+        ":quickdialogs2_exports_h",
+    ],
+    module_name = "QtQuickDialogs2",
+    source_dir = "src/quickdialogs/quickdialogs",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickcontrols2impl_sync_headers",
+        ":quickdialogs2quickimpl_sync_headers",
+        ":quickdialogs2utils_sync_headers",
+        ":quicktemplates2_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickdialogs2",
+    srcs = glob(["src/quickdialogs/quickdialogs/*.cpp"]),
+    hdrs = glob(["src/quickdialogs/quickdialogs/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKDIALOGS2_LIB"],
+    dynamic_deps = [
+        ":labsfoldermodel_shared",
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickcontrols2impl_shared",
+        ":quickdialogs2quickimpl_shared",
+        ":quickdialogs2utils_shared",
+        ":quicktemplates2_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickdialogs/quickdialogs"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKDIALOGS2_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKCONTROLS2IMPL_LIB",
+        "QT_QUICKDIALOGS2QUICKIMPL_LIB",
+        "QT_QUICKDIALOGS2UTILS_LIB",
+        "QT_QUICKTEMPLATES2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/quickdialogs/quickdialogs/qquickabstractdialog_p.h",
+        "src/quickdialogs/quickdialogs/qquickcolordialog_p.h",
+        "src/quickdialogs/quickdialogs/qquickfiledialog_p.h",
+        "src/quickdialogs/quickdialogs/qquickfolderdialog_p.h",
+        "src/quickdialogs/quickdialogs/qquickfontdialog_p.h",
+        "src/quickdialogs/quickdialogs/qquickmessagedialog_p.h",
+        "src/quickdialogs/quickdialogs/qtquickdialogs2foreign_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Dialogs",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtquickdialogsplugin",
+        "class_name": "QtQuickDialogsPlugin",
+        "depends": [
+            "QtQuick auto",
+            "QtQuick.Dialogs.quickimpl auto",
+        ],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickcontrols2impl_moc_hdrs",
+            ":quickdialogs2quickimpl_moc_hdrs",
+            ":quickdialogs2utils_moc_hdrs",
+            ":quicktemplates2_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickcontrols2impl",
+        ":quickdialogs2_sync_headers",
+        ":quickdialogs2quickimpl",
+        ":quickdialogs2utils",
+        ":quicktemplates2",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickdialogsplugin_src",
+    class_name = "QtQuickDialogsPlugin",
+    plugin_name = "qtquickdialogsplugin",
+    uri = "QtQuick.Dialogs",
+)
+
+qt_static_plugin(
+    name = "qtquickdialogsplugin",
+    srcs = [":qtquickdialogsplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKDIALOGS2_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Dialogs"],
+    moc_srcs = [":qtquickdialogsplugin_src"],
+    plugin_class_name = "QtQuickDialogsPlugin",
+    deps = [
+        ":qml",
+        ":qtquickdialogs2quickimplplugin",
+        ":quick",
+        ":quickdialogs2",
+        ":quickdialogs2quickimpl",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.9 QmlCore, QmlLocalStorage, QmlXmlListModel
+# ---------------------------------------------------------------------------
+
+# 23.9a QmlCore (:qmlcore & :qtqmlcoreplugin)
+qt_export_header(
+    name = "qmlcore_exports_h",
+    out = "generated_exports/qtqmlcoreexports.h",
+    module_infix = "QMLCORE",
+)
+
+qt_depends_header(
+    name = "qmlcore_depends_h",
+    out = "generated_exports/QtQmlCoreDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmlcore_sync_headers",
+    hdrs = glob(["src/core/*.h"]),
+    generated_public_hdrs = [
+        ":qmlcore_depends_h",
+        ":qmlcore_exports_h",
+    ],
+    module_name = "QtQmlCore",
+    source_dir = "src/core",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmlcore",
+    srcs = glob(["src/core/*.cpp"]),
+    hdrs = glob(["src/core/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QMLCORE_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/core"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLCORE_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/core/qqmlpermissions_p.h",
+        "src/core/qqmlsettings_p.h",
+        "src/core/qqmlstandardpaths_p.h",
+        "src/core/qqmlsysteminformation_p.h",
+    ],
+    qml_args = {
+        "uri": "QtCore",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtqmlcoreplugin",
+        "class_name": "QtQmlCorePlugin",
+        "designer_supported": True,
+        "depends": ["QtQml auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":qmlcore_sync_headers",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtqmlcoreplugin_src",
+    class_name = "QtQmlCorePlugin",
+    plugin_name = "qtqmlcoreplugin",
+    uri = "QtCore",
+)
+
+qt_static_plugin(
+    name = "qtqmlcoreplugin",
+    srcs = [":qtqmlcoreplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_QMLCORE_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=QtCore"],
+    moc_srcs = [":qtqmlcoreplugin_src"],
+    plugin_class_name = "QtQmlCorePlugin",
+    deps = [
+        ":qml",
+        ":qmlcore",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.9b QmlLocalStorage (:qmllocalstorage & :qmllocalstorageplugin)
+qt_export_header(
+    name = "qmllocalstorage_exports_h",
+    out = "generated_exports/qtqmllocalstorageexports.h",
+    module_infix = "QMLLOCALSTORAGE",
+)
+
+qt_depends_header(
+    name = "qmllocalstorage_depends_h",
+    out = "generated_exports/QtQmlLocalStorageDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtSql",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmllocalstorage_sync_headers",
+    hdrs = glob(["src/qmllocalstorage/*.h"]),
+    generated_public_hdrs = [
+        ":qmllocalstorage_depends_h",
+        ":qmllocalstorage_exports_h",
+    ],
+    module_name = "QtQmlLocalStorage",
+    source_dir = "src/qmllocalstorage",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:sql_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmllocalstorage",
+    srcs = ["src/qmllocalstorage/qqmllocalstorage.cpp"],
+    hdrs = glob(["src/qmllocalstorage/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QMLLOCALSTORAGE_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:sql_shared",
+    ],
+    includes = ["src/qmllocalstorage"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLLOCALSTORAGE_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_SQL_LIB",
+    ],
+    moc_hdrs = ["src/qmllocalstorage/qqmllocalstorage_p.h"],
+    qml_args = {
+        "uri": "QtQuick.LocalStorage",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qmllocalstorageplugin",
+        "class_name": "QQmlLocalStoragePlugin",
+        "depends": ["QtQml auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:sql_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":qmllocalstorage_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:sql",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qmllocalstorageplugin_src",
+    class_name = "QQmlLocalStoragePlugin",
+    plugin_name = "qmllocalstorageplugin",
+    uri = "QtQuick.LocalStorage",
+)
+
+qt_static_plugin(
+    name = "qmllocalstorageplugin",
+    srcs = [":qmllocalstorageplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_QMLLOCALSTORAGE_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_SQL_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.LocalStorage"],
+    moc_srcs = [":qmllocalstorageplugin_src"],
+    plugin_class_name = "QQmlLocalStoragePlugin",
+    deps = [
+        ":qml",
+        ":qmllocalstorage",
+        "@qtbase//:core",
+        "@qtbase//:sql",
+    ],
+)
+
+# 23.9c QmlXmlListModel (:qmlxmllistmodel & :qmlxmllistmodelplugin)
+qt_export_header(
+    name = "qmlxmllistmodel_exports_h",
+    out = "generated_exports/qtqmlxmllistmodelexports.h",
+    module_infix = "QMLXMLLISTMODEL",
+)
+
+qt_depends_header(
+    name = "qmlxmllistmodel_depends_h",
+    out = "generated_exports/QtQmlXmlListModelDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtQmlModels",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmlxmllistmodel_sync_headers",
+    hdrs = glob(["src/qmlxmllistmodel/*.h"]),
+    generated_public_hdrs = [
+        ":qmlxmllistmodel_depends_h",
+        ":qmlxmllistmodel_exports_h",
+    ],
+    module_name = "QtQmlXmlListModel",
+    source_dir = "src/qmlxmllistmodel",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":qmlmodels_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmlxmllistmodel",
+    srcs = ["src/qmlxmllistmodel/qqmlxmllistmodel.cpp"],
+    hdrs = glob(["src/qmlxmllistmodel/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QMLXMLLISTMODEL_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmodels_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/qmlxmllistmodel"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLXMLLISTMODEL_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/qmlxmllistmodel/qqmlxmllistmodel_p.h"],
+    qml_args = {
+        "uri": "QtQml.XmlListModel",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "qmlxmllistmodelplugin",
+        "class_name": "QtQmlXmlListModelPlugin",
+        "depends": ["QtQml auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":qmlmodels_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":qmlmodels",
+        ":qmlxmllistmodel_sync_headers",
+        "@qtbase//:core",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qmlxmllistmodelplugin_src",
+    class_name = "QtQmlXmlListModelPlugin",
+    plugin_name = "qmlxmllistmodelplugin",
+    uri = "QtQml.XmlListModel",
+)
+
+qt_static_plugin(
+    name = "qmlxmllistmodelplugin",
+    srcs = [":qmlxmllistmodelplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QMLMODELS_LIB",
+        "QT_QMLXMLLISTMODEL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_opts = ["-Muri=QtQml.XmlListModel"],
+    moc_srcs = [":qmlxmllistmodelplugin_src"],
+    plugin_class_name = "QtQmlXmlListModelPlugin",
+    deps = [
+        ":qml",
+        ":qmlmodels",
+        ":qmlxmllistmodel",
+        "@qtbase//:core",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.10 QuickParticles, QuickEffects, QuickShapesDesignHelpers
+# ---------------------------------------------------------------------------
+
+# 23.10a QuickParticles (:quickparticles & :particlesplugin)
+qt_export_header(
+    name = "quickparticles_exports_h",
+    out = "generated_exports/qtquickparticlesexports.h",
+    module_infix = "QUICKPARTICLES",
+)
+
+qt_depends_header(
+    name = "quickparticles_depends_h",
+    out = "generated_exports/QtQuickParticlesDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickparticles_sync_headers",
+    hdrs = glob(["src/particles/*.h"]),
+    generated_public_hdrs = [
+        ":quickparticles_depends_h",
+        ":quickparticles_exports_h",
+    ],
+    internal_module = True,
+    module_name = "QtQuickParticles",
+    source_dir = "src/particles",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+_PARTICLES_IMAGES = glob(["src/particles/particleresources/*.png"])
+
+qt_generate_qrc(
+    name = "particles_qrc",
+    srcs = _PARTICLES_IMAGES,
+    out = "particles.qrc",
+    prefix = "/",
+    strip_prefix = "src/particles",
+)
+
+qt_rcc_internal(
+    name = "particles_rcc",
+    data = _PARTICLES_IMAGES,
+    qrc = ":particles_qrc",
+    qrc_name = "particles",
+)
+
+_PARTICLES_SHADER_SRCS = [
+    "src/particles/shaders_ng/imageparticle.vert",
+    "src/particles/shaders_ng/imageparticle.frag",
+]
+
+qt_qsb(
+    name = "particles_shaders1",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = ["POINT"],
+    glsl = "150,120,100es,300es",
+    multiview = True,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_simplepoint.vert.qsb",
+        "shaders_ng/imageparticle_simplepoint.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders1",
+    silent = True,
+    strip_prefix = "src/particles",
+)
+
+qt_qsb(
+    name = "particles_shaders2",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = [
+        "POINT",
+        "COLOR",
+    ],
+    glsl = "150,120,100es,300es",
+    multiview = True,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_coloredpoint.vert.qsb",
+        "shaders_ng/imageparticle_coloredpoint.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders2",
+    silent = True,
+    strip_prefix = "src/particles",
+)
+
+qt_qsb(
+    name = "particles_shaders3",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = ["COLOR"],
+    glsl = "150,120,100es,300es",
+    multiview = True,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_colored.vert.qsb",
+        "shaders_ng/imageparticle_colored.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders3",
+    silent = True,
+    strip_prefix = "src/particles",
+)
+
+qt_qsb(
+    name = "particles_shaders4",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = [
+        "DEFORM",
+        "COLOR",
+    ],
+    glsl = "150,120,100es,300es",
+    multiview = False,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_deformed.vert.qsb",
+        "shaders_ng/imageparticle_deformed.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders4",
+    silent = True,
+    strip_prefix = "src/particles",
+)
+
+qt_qsb(
+    name = "particles_shaders5",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = [
+        "TABLE",
+        "DEFORM",
+        "COLOR",
+    ],
+    glsl = "150,120,100es,300es",
+    multiview = True,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_tabled.vert.qsb",
+        "shaders_ng/imageparticle_tabled.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders5",
+    silent = True,
+    strip_prefix = "src/particles",
+)
+
+qt_qsb(
+    name = "particles_shaders6",
+    srcs = _PARTICLES_SHADER_SRCS,
+    batchable = True,
+    defines = [
+        "SPRITE",
+        "TABLE",
+        "DEFORM",
+        "COLOR",
+    ],
+    glsl = "150,120,100es,300es",
+    multiview = True,
+    optimized = True,
+    outputs = [
+        "shaders_ng/imageparticle_sprite.vert.qsb",
+        "shaders_ng/imageparticle_sprite.frag.qsb",
+    ],
+    prefix = "/particles",
+    qrc_name = "particles_shaders6",
+    silent = True,
+    strip_prefix = "src/particles",
+    zorder_loc = 8,
+)
+
+qt_internal_library(
+    name = "quickparticles",
+    srcs = glob(["src/particles/*.cpp"]),
+    hdrs = glob(["src/particles/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKPARTICLES_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/particles"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKPARTICLES_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_INTEGER_EVENT_COORDINATES",
+        "QT_NO_URL_CAST_FROM_STRING",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = glob(["src/particles/qquick*_p.h"]),
+    qml_args = {
+        "uri": "QtQuick.Particles",
+        "major_version": "6",
+        "minor_version": "10",
+        "past_major_versions": ["2"],
+        "plugin_target": "particlesplugin",
+        "class_name": "QtQuick2ParticlesPlugin",
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [
+        ":particles_rcc",
+        ":particles_shaders1",
+        ":particles_shaders2",
+        ":particles_shaders3",
+        ":particles_shaders4",
+        ":particles_shaders5",
+        ":particles_shaders6",
+    ],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickparticles_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "particlesplugin_src",
+    class_name = "QtQuick2ParticlesPlugin",
+    plugin_name = "particlesplugin",
+    uri = "QtQuick.Particles",
+)
+
+qt_static_plugin(
+    name = "particlesplugin",
+    srcs = [":particlesplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKPARTICLES_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Particles"],
+    moc_srcs = [":particlesplugin_src"],
+    plugin_class_name = "QtQuick2ParticlesPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickparticles",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# 23.10b QuickEffects (:quickeffects & :effectsplugin)
+qt_export_header(
+    name = "quickeffects_exports_h",
+    out = "generated_exports/qtquickeffectsexports.h",
+    module_infix = "QUICKEFFECTS",
+)
+
+qt_depends_header(
+    name = "quickeffects_depends_h",
+    out = "generated_exports/QtQuickEffectsDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickeffects_sync_headers",
+    hdrs = glob(["src/effects/*.h"]),
+    generated_public_hdrs = [
+        ":quickeffects_depends_h",
+        ":quickeffects_exports_h",
+    ],
+    module_name = "QtQuickEffects",
+    source_dir = "src/effects",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_generate_qrc(
+    name = "effects_qrc",
+    srcs = ["src/effects/data/BlurItem.qml"],
+    out = "effects.qrc",
+    prefix = "/",
+    strip_prefix = "src/effects",
+)
+
+qt_rcc_internal(
+    name = "effects_rcc",
+    data = ["src/effects/data/BlurItem.qml"],
+    qrc = ":effects_qrc",
+    qrc_name = "effects",
+)
+
+qt_qsb(
+    name = "rectangularshadow_shaders1",
+    srcs = [
+        "src/effects/data/shaders/rectangularshadow.vert",
+        "src/effects/data/shaders/rectangularshadow.frag",
+    ],
+    batchable = True,
+    multiview = True,
+    optimized = True,
+    prefix = "/",
+    qrc_name = "rectangularshadow_shaders1",
+    silent = True,
+    strip_prefix = "src/effects",
+)
+
+qt_qsb(
+    name = "multieffect_shaders1",
+    srcs = [
+        "src/effects/data/shaders/bluritems.vert",
+        "src/effects/data/shaders/bluritems.frag",
+    ],
+    batchable = True,
+    multiview = True,
+    optimized = True,
+    prefix = "/",
+    qrc_name = "multieffect_shaders1",
+    silent = True,
+    strip_prefix = "src/effects",
+)
+
+qt_qsb(
+    name = "multieffect_shaders2",
+    srcs = ["src/effects/data/shaders/multieffect.vert"],
+    batchable = True,
+    multiview = True,
+    optimized = True,
+    outputs = ["data/shaders/multieffect_c.vert.qsb"],
+    prefix = "/",
+    qrc_name = "multieffect_shaders2",
+    silent = True,
+    strip_prefix = "src/effects",
+)
+
+qt_qsb(
+    name = "multieffect_shaders3",
+    srcs = ["src/effects/data/shaders/multieffect.vert"],
+    batchable = True,
+    defines = ["SHADOW"],
+    multiview = True,
+    optimized = True,
+    outputs = ["data/shaders/multieffect_cs.vert.qsb"],
+    prefix = "/",
+    qrc_name = "multieffect_shaders3",
+    silent = True,
+    strip_prefix = "src/effects",
+)
+
+_MULTIEFFECT_FRAG_VARIANTS = [
+    ("multieffect_shaders4", "data/shaders/multieffect_c0.frag.qsb", []),
+    ("multieffect_shaders5", "data/shaders/multieffect_cm0.frag.qsb", ["MASK"]),
+    ("multieffect_shaders6", "data/shaders/multieffect_cs0.frag.qsb", ["SHADOW", "BL0"]),
+    ("multieffect_shaders7", "data/shaders/multieffect_cms0.frag.qsb", ["MASK", "SHADOW", "BL0"]),
+    ("multieffect_shaders8", "data/shaders/multieffect_cb1.frag.qsb", ["BLUR", "BL1"]),
+    ("multieffect_shaders9", "data/shaders/multieffect_cs1.frag.qsb", ["SHADOW", "BL1"]),
+    ("multieffect_shaders10", "data/shaders/multieffect_cmb1.frag.qsb", ["MASK", "BLUR", "BL1"]),
+    ("multieffect_shaders11", "data/shaders/multieffect_cms1.frag.qsb", ["MASK", "SHADOW", "BL1"]),
+    ("multieffect_shaders12", "data/shaders/multieffect_cbs1.frag.qsb", ["BLUR", "SHADOW", "BL1"]),
+    ("multieffect_shaders13", "data/shaders/multieffect_cmbs1.frag.qsb", ["MASK", "BLUR", "SHADOW", "BL1"]),
+    ("multieffect_shaders14", "data/shaders/multieffect_cb2.frag.qsb", ["BLUR", "BL1", "BL2"]),
+    ("multieffect_shaders15", "data/shaders/multieffect_cs2.frag.qsb", ["SHADOW", "BL1", "BL2"]),
+    ("multieffect_shaders16", "data/shaders/multieffect_cmb2.frag.qsb", ["MASK", "BLUR", "BL1", "BL2"]),
+    ("multieffect_shaders17", "data/shaders/multieffect_cms2.frag.qsb", ["MASK", "SHADOW", "BL1", "BL2"]),
+    ("multieffect_shaders18", "data/shaders/multieffect_cbs2.frag.qsb", ["BLUR", "SHADOW", "BL1", "BL2"]),
+    ("multieffect_shaders19", "data/shaders/multieffect_cmbs2.frag.qsb", ["MASK", "BLUR", "SHADOW", "BL1", "BL2"]),
+    ("multieffect_shaders20", "data/shaders/multieffect_cb3.frag.qsb", ["BLUR", "BL1", "BL2", "BL3"]),
+    ("multieffect_shaders21", "data/shaders/multieffect_cs3.frag.qsb", ["SHADOW", "BL1", "BL2", "BL3"]),
+    ("multieffect_shaders22", "data/shaders/multieffect_cmb3.frag.qsb", ["MASK", "BLUR", "BL1", "BL2", "BL3"]),
+    ("multieffect_shaders23", "data/shaders/multieffect_cms3.frag.qsb", ["MASK", "SHADOW", "BL1", "BL2", "BL3"]),
+    ("multieffect_shaders24", "data/shaders/multieffect_cbs3.frag.qsb", ["BLUR", "SHADOW", "BL1", "BL2", "BL3"]),
+    ("multieffect_shaders25", "data/shaders/multieffect_cmbs3.frag.qsb", ["MASK", "BLUR", "SHADOW", "BL1", "BL2", "BL3"]),
+]
+
+[
+    qt_qsb(
+        name = shader_name,
+        srcs = ["src/effects/data/shaders/multieffect.frag"],
+        batchable = False,
+        defines = shader_defines,
+        multiview = True,
+        optimized = True,
+        outputs = [shader_out],
+        prefix = "/",
+        qrc_name = shader_name,
+        silent = True,
+        strip_prefix = "src/effects",
+    )
+    for shader_name, shader_out, shader_defines in _MULTIEFFECT_FRAG_VARIANTS
+]
+
+qt_internal_library(
+    name = "quickeffects",
+    srcs = glob(["src/effects/*.cpp"]),
+    hdrs = glob(["src/effects/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKEFFECTS_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/effects"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKEFFECTS_LIB",
+        "QT_GUI_LIB",
+        "QT_NO_INTEGER_EVENT_COORDINATES",
+        "QT_NO_URL_CAST_FROM_STRING",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/effects/qgfxsourceproxy_p.h",
+        "src/effects/qquickmultieffect_p.h",
+        "src/effects/qquickrectangularshadow_p.h",
+    ],
+    qml_args = {
+        "uri": "QtQuick.Effects",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "effectsplugin",
+        "class_name": "QtQuickEffectsPlugin",
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [
+        ":effects_rcc",
+        ":rectangularshadow_shaders1",
+        ":multieffect_shaders1",
+        ":multieffect_shaders2",
+        ":multieffect_shaders3",
+    ] + [":" + shader_name for shader_name, _, _ in _MULTIEFFECT_FRAG_VARIANTS],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickeffects_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "effectsplugin_src",
+    class_name = "QtQuickEffectsPlugin",
+    plugin_name = "effectsplugin",
+    uri = "QtQuick.Effects",
+)
+
+qt_static_plugin(
+    name = "effectsplugin",
+    srcs = [":effectsplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKEFFECTS_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Effects"],
+    moc_srcs = [":effectsplugin_src"],
+    plugin_class_name = "QtQuickEffectsPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickeffects",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+# 23.10c QuickShapesDesignHelpers (:quickshapesdesignhelpers & :qtquickshapesdesignhelpersplugin)
+qt_export_header(
+    name = "quickshapesdesignhelpers_exports_h",
+    out = "generated_exports/qtquickshapesdesignhelpersexports.h",
+    module_infix = "QUICKSHAPESDESIGNHELPERS",
+)
+
+qt_depends_header(
+    name = "quickshapesdesignhelpers_depends_h",
+    out = "generated_exports/QtQuickShapesDesignHelpersDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickShapes",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickshapesdesignhelpers_sync_headers",
+    hdrs = glob(["src/quickshapes/designhelpers/*.h"]),
+    generated_public_hdrs = [
+        ":quickshapesdesignhelpers_depends_h",
+        ":quickshapesdesignhelpers_exports_h",
+    ],
+    internal_module = True,
+    module_name = "QtQuickShapesDesignHelpers",
+    source_dir = "src/quickshapes/designhelpers",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickshapes_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickshapesdesignhelpers",
+    srcs = ["src/quickshapes/designhelpers/qquickrectangleshape.cpp"],
+    hdrs = glob(["src/quickshapes/designhelpers/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKSHAPESDESIGNHELPERS_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickshapes_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+    ],
+    includes = ["src/quickshapes/designhelpers"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKSHAPESDESIGNHELPERS_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKSHAPES_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = ["src/quickshapes/designhelpers/qquickrectangleshape_p.h"],
+    qml_args = {
+        "uri": "QtQuick.Shapes.DesignHelpers",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qtquickshapesdesignhelpersplugin",
+        "class_name": "QtQuickShapesDesignHelpersPlugin",
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            ":quickshapes_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickshapes",
+        ":quickshapesdesignhelpers_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qtquickshapesdesignhelpersplugin_src",
+    class_name = "QtQuickShapesDesignHelpersPlugin",
+    plugin_name = "qtquickshapesdesignhelpersplugin",
+    uri = "QtQuick.Shapes.DesignHelpers",
+)
+
+qt_static_plugin(
+    name = "qtquickshapesdesignhelpersplugin",
+    srcs = [":qtquickshapesdesignhelpersplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKSHAPESDESIGNHELPERS_LIB",
+        "QT_QUICKSHAPES_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.Shapes.DesignHelpers"],
+    moc_srcs = [":qtquickshapesdesignhelpersplugin_src"],
+    plugin_class_name = "QtQuickShapesDesignHelpersPlugin",
+    deps = [
+        ":qml",
+        ":qmlshapesplugin",
+        ":quick",
+        ":quickshapes",
+        ":quickshapesdesignhelpers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+alias(
+    name = "quickshapesdesignhelpersplugin",
+    actual = ":qtquickshapesdesignhelpersplugin",
+)
+
+# ---------------------------------------------------------------------------
+# 23.11 QuickVectorImage (:quickvectorimagegenerator, :quickvectorimagehelpers, :quickvectorimage)
+# ---------------------------------------------------------------------------
+
+qt_export_header(
+    name = "quickvectorimagegenerator_exports_h",
+    out = "generated_exports/qtquickvectorimagegeneratorexports.h",
+    module_infix = "QUICKVECTORIMAGEGENERATOR",
+)
+
+qt_depends_header(
+    name = "quickvectorimagegenerator_depends_h",
+    out = "generated_exports/QtQuickVectorImageGeneratorDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickShapes",
+        "QtSvg",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickvectorimagegenerator_sync_headers",
+    hdrs = glob(["src/quickvectorimage/generator/*.h"]) + [
+        "src/quickvectorimage/qquickvectorimageglobal_p.h",
+        "src/quickvectorimage/qquickvectorimageplugin_p.h",
+    ],
+    generated_public_hdrs = [
+        ":quickvectorimagegenerator_depends_h",
+        ":quickvectorimagegenerator_exports_h",
+    ],
+    internal_module = True,
+    module_name = "QtQuickVectorImageGenerator",
+    source_dir = "src/quickvectorimage",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickshapes_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+        "@qtsvg//:svg_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickvectorimagegenerator",
+    srcs = glob(["src/quickvectorimage/generator/*.cpp"]) + [
+        "src/quickvectorimage/qquickvectorimageplugin.cpp",
+    ],
+    hdrs = glob(["src/quickvectorimage/generator/*.h"]) + [
+        "src/quickvectorimage/qquickvectorimageglobal_p.h",
+        "src/quickvectorimage/qquickvectorimageplugin_p.h",
+    ],
+    copts = common_copts,
+    defines = ["QT_QUICKVECTORIMAGEGENERATOR_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickshapes_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtsvg//:svg_shared",
+    ],
+    includes = [
+        "src/quickvectorimage",
+        "src/quickvectorimage/generator",
+    ],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKVECTORIMAGEGENERATOR_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKSHAPES_LIB",
+        "QT_QUICK_LIB",
+        "QT_SVG_LIB",
+    ],
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickshapes",
+        ":quickvectorimagegenerator_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtsvg//:svg",
+    ],
+)
+
+qt_export_header(
+    name = "quickvectorimagehelpers_exports_h",
+    out = "generated_exports/qtquickvectorimagehelpersexports.h",
+    module_infix = "QUICKVECTORIMAGEHELPERS",
+)
+
+qt_depends_header(
+    name = "quickvectorimagehelpers_depends_h",
+    out = "generated_exports/QtQuickVectorImageHelpersDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickVectorImageGenerator",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickvectorimagehelpers_sync_headers",
+    hdrs = glob(["src/quickvectorimage/helpers/*.h"]),
+    generated_public_hdrs = [
+        ":quickvectorimagehelpers_depends_h",
+        ":quickvectorimagehelpers_exports_h",
+    ],
+    module_name = "QtQuickVectorImageHelpers",
+    source_dir = "src/quickvectorimage/helpers",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickvectorimagegenerator_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickvectorimagehelpers",
+    srcs = glob(["src/quickvectorimage/helpers/*.cpp"]),
+    hdrs = glob(["src/quickvectorimage/helpers/*.h"]),
+    copts = common_copts,
+    defines = ["QT_QUICKVECTORIMAGEHELPERS_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickshapes_shared",
+        ":quickvectorimagegenerator_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtsvg//:svg_shared",
+    ],
+    includes = ["src/quickvectorimage/helpers"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKVECTORIMAGEHELPERS_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKVECTORIMAGEGENERATOR_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = glob(["src/quickvectorimage/helpers/*_p.h"]),
+    qml_args = {
+        "uri": "QtQuick.VectorImage.Helpers",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qquickvectorimagehelpersplugin",
+        "class_name": "QtQuickVectorImageHelpersPlugin",
+        "plugin_optional": False,
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickvectorimagegenerator",
+        ":quickvectorimagehelpers_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qquickvectorimagehelpersplugin_src",
+    class_name = "QtQuickVectorImageHelpersPlugin",
+    plugin_name = "qquickvectorimagehelpersplugin",
+    uri = "QtQuick.VectorImage.Helpers",
+)
+
+qt_static_plugin(
+    name = "qquickvectorimagehelpersplugin",
+    srcs = [":qquickvectorimagehelpersplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKVECTORIMAGEHELPERS_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.VectorImage.Helpers"],
+    moc_srcs = [":qquickvectorimagehelpersplugin_src"],
+    plugin_class_name = "QtQuickVectorImageHelpersPlugin",
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickvectorimagehelpers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+alias(
+    name = "quickvectorimagehelpersplugin",
+    actual = ":qquickvectorimagehelpersplugin",
+)
+
+qt_export_header(
+    name = "quickvectorimage_exports_h",
+    out = "generated_exports/qtquickvectorimageexports.h",
+    module_infix = "QUICKVECTORIMAGE",
+)
+
+qt_depends_header(
+    name = "quickvectorimage_depends_h",
+    out = "generated_exports/QtQuickVectorImageDepends",
+    dep_modules = [
+        "QtCore",
+        "QtGui",
+        "QtQml",
+        "QtQuick",
+        "QtQuickVectorImageGenerator",
+        "QtSvg",
+    ],
+)
+
+qt_sync_headers(
+    name = "quickvectorimage_sync_headers",
+    hdrs = [
+        "src/quickvectorimage/qquickvectorimage_p.h",
+        "src/quickvectorimage/qquickvectorimage_p_p.h",
+    ],
+    generated_public_hdrs = [
+        ":quickvectorimage_depends_h",
+        ":quickvectorimage_exports_h",
+    ],
+    module_name = "QtQuickVectorImage",
+    source_dir = "src/quickvectorimage",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":quick_sync_headers",
+        ":quickvectorimagegenerator_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:gui_sync_headers",
+        "@qtsvg//:svg_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "quickvectorimage",
+    srcs = ["src/quickvectorimage/qquickvectorimage.cpp"],
+    hdrs = [
+        "src/quickvectorimage/qquickvectorimage_p.h",
+        "src/quickvectorimage/qquickvectorimage_p_p.h",
+    ],
+    copts = common_copts,
+    defines = ["QT_QUICKVECTORIMAGE_LIB"],
+    dynamic_deps = [
+        ":qml_shared",
+        ":qmlmeta_shared",
+        ":qmlmodels_shared",
+        ":qmlworkerscript_shared",
+        ":quick_shared",
+        ":quickshapes_shared",
+        ":quickvectorimagegenerator_shared",
+        ":quickvectorimagehelpers_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:dbus_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtsvg//:svg_shared",
+    ],
+    includes = ["src/quickvectorimage"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QUICKVECTORIMAGE_LIB",
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKVECTORIMAGEGENERATOR_LIB",
+        "QT_QUICK_LIB",
+        "QT_SVG_LIB",
+    ],
+    moc_hdrs = ["src/quickvectorimage/qquickvectorimage_p.h"],
+    qml_args = {
+        "uri": "QtQuick.VectorImage",
+        "major_version": "6",
+        "minor_version": "10",
+        "plugin_target": "qquickvectorimageplugin",
+        "class_name": "QtQuickVectorImagePlugin",
+        "default_imports": ["QtQuick.Shapes auto"],
+        "imports": ["QtQuick.VectorImage.Helpers auto"],
+        "depends": ["QtQuick auto"],
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    deps = [
+        ":qml",
+        ":quick",
+        ":quickshapes",
+        ":quickvectorimage_sync_headers",
+        ":quickvectorimagegenerator",
+        ":quickvectorimagehelpers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtsvg//:svg",
+    ],
+)
+
+qt_qml_plugin_gen(
+    name = "qquickvectorimageplugin_src",
+    class_name = "QtQuickVectorImagePlugin",
+    plugin_name = "qquickvectorimageplugin",
+    uri = "QtQuick.VectorImage",
+)
+
+qt_static_plugin(
+    name = "qquickvectorimageplugin",
+    srcs = [":qquickvectorimageplugin_src"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKVECTORIMAGE_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_opts = ["-Muri=QtQuick.VectorImage"],
+    moc_srcs = [":qquickvectorimageplugin_src"],
+    plugin_class_name = "QtQuickVectorImagePlugin",
+    deps = [
+        ":qml",
+        ":qmlshapesplugin",
+        ":qquickvectorimagehelpersplugin",
+        ":quick",
+        ":quickvectorimage",
+        ":quickvectorimagehelpers",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+alias(
+    name = "quickvectorimageplugin",
+    actual = ":qquickvectorimageplugin",
+)
+
+# ---------------------------------------------------------------------------
+# 23.12 QML Debug & Tooling (:packetprotocol, :qmldebug, 11 :qmldbg_* plugins)
+# ---------------------------------------------------------------------------
+
+qt_depends_header(
+    name = "packetprotocol_depends_h",
+    out = "generated_exports/QtPacketProtocolDepends",
+    dep_modules = ["QtCore"],
+)
+
+qt_sync_headers(
+    name = "packetprotocol_sync_headers",
+    hdrs = glob(["src/plugins/qmltooling/packetprotocol/*.h"]),
+    generated_public_hdrs = [":packetprotocol_depends_h"],
+    internal_module = True,
+    module_name = "QtPacketProtocol",
+    source_dir = "src/plugins/qmltooling/packetprotocol",
+    version = QT_VERSION,
+    deps = ["@qtbase//:core_sync_headers"],
+)
+
+qt_internal_library(
+    name = "packetprotocol",
+    srcs = glob(["src/plugins/qmltooling/packetprotocol/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/packetprotocol/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    defines = ["QT_PACKETPROTOCOL_LIB"],
+    includes = ["src/plugins/qmltooling/packetprotocol"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_PACKETPROTOCOL_LIB",
+        "QT_STATIC",
+    ],
+    moc_hdrs = ["src/plugins/qmltooling/packetprotocol/qpacketprotocol_p.h"],
+    deps = [
+        ":packetprotocol_sync_headers",
+        "@qtbase//:core",
+    ],
+)
+
+qt_depends_header(
+    name = "qmldebug_depends_h",
+    out = "generated_exports/QtQmlDebugDepends",
+    dep_modules = [
+        "QtCore",
+        "QtNetwork",
+        "QtPacketProtocol",
+        "QtQml",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmldebug_sync_headers",
+    hdrs = glob(["src/qmldebug/*.h"]),
+    generated_public_hdrs = [":qmldebug_depends_h"],
+    internal_module = True,
+    module_name = "QtQmlDebug",
+    source_dir = "src/qmldebug",
+    version = QT_VERSION,
+    deps = [
+        ":packetprotocol_sync_headers",
+        ":qml_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtbase//:network_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmldebug",
+    srcs = glob(["src/qmldebug/*.cpp"]),
+    hdrs = glob(["src/qmldebug/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    defines = ["QT_QMLDEBUG_LIB"],
+    includes = ["src/qmldebug"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLDEBUG_LIB",
+        "QT_NETWORK_LIB",
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+        "QT_STATIC",
+    ],
+    moc_hdrs = [
+        "src/qmldebug/qqmldebugclient_p.h",
+        "src/qmldebug/qqmldebugconnection_p.h",
+        "src/qmldebug/qqmldebugmessageclient_p.h",
+        "src/qmldebug/qqmldebugtranslationclient_p.h",
+        "src/qmldebug/qqmlenginecontrolclient_p.h",
+        "src/qmldebug/qqmlenginedebugclient_p.h",
+        "src/qmldebug/qqmlinspectorclient_p.h",
+        "src/qmldebug/qqmlpreviewclient_p.h",
+        "src/qmldebug/qqmlprofilerclient_p.h",
+        "src/qmldebug/qqmlprofilereventreceiver_p.h",
+        "src/qmldebug/qv4debugclient_p.h",
+    ],
+    moc_srcs = ["src/qmldebug/qqmldebugconnection.cpp"],
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        ":qmldebug_sync_headers",
+        "@qtbase//:core",
+        "@qtbase//:network",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_debugger",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_debugger/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_debugger/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_debugger"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_debugger/qqmldebuggerservicefactory.h",
+        "src/plugins/qmltooling/qmldbg_debugger/qqmlenginedebugservice.h",
+        "src/plugins/qmltooling/qmldbg_debugger/qqmlwatcher.h",
+        "src/plugins/qmltooling/qmldbg_debugger/qv4debugger.h",
+        "src/plugins/qmltooling/qmldbg_debugger/qv4debuggeragent.h",
+        "src/plugins/qmltooling/qmldbg_debugger/qv4debugservice.h",
+    ],
+    moc_srcs = ["src/plugins/qmltooling/qmldbg_debugger/qqmlwatcher.cpp"],
+    plugin_class_name = "QQmlDebuggerServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_inspector",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_inspector/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_inspector/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_inspector"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_inspector/globalinspector.h",
+        "src/plugins/qmltooling/qmldbg_inspector/highlight.h",
+        "src/plugins/qmltooling/qmldbg_inspector/inspecttool.h",
+        "src/plugins/qmltooling/qmldbg_inspector/qquickwindowinspector.h",
+    ],
+    moc_srcs = [
+        "src/plugins/qmltooling/qmldbg_inspector/globalinspector.cpp",
+        "src/plugins/qmltooling/qmldbg_inspector/qqmlinspectorservice.cpp",
+    ],
+    plugin_class_name = "QQmlInspectorServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_local",
+    srcs = ["src/plugins/qmltooling/qmldbg_local/qlocalclientconnection.cpp"],
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_local"],
+    local_defines = common_local_defines + [
+        "QT_NETWORK_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_srcs = ["src/plugins/qmltooling/qmldbg_local/qlocalclientconnection.cpp"],
+    plugin_class_name = "QLocalClientConnectionFactory",
+    deps = [
+        ":qml",
+        "@qtbase//:core",
+        "@qtbase//:network",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_messages",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_messages/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_messages/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_messages"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_messages/qdebugmessageservice.h",
+        "src/plugins/qmltooling/qmldbg_messages/qdebugmessageservicefactory.h",
+    ],
+    plugin_class_name = "QDebugMessageServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_native",
+    srcs = ["src/plugins/qmltooling/qmldbg_native/qqmlnativedebugconnector.cpp"],
+    hdrs = ["src/plugins/qmltooling/qmldbg_native/qqmlnativedebugconnector.h"],
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_native"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/plugins/qmltooling/qmldbg_native/qqmlnativedebugconnector.h"],
+    plugin_class_name = "QQmlNativeDebugConnectorFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_nativedebugger",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_nativedebugger/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_nativedebugger/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_nativedebugger"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/plugins/qmltooling/qmldbg_nativedebugger/qqmlnativedebugservicefactory.h"],
+    plugin_class_name = "QQmlNativeDebugServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_preview",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_preview/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_preview/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_preview"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_NETWORK_LIB",
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_preview/proxytranslator.h",
+        "src/plugins/qmltooling/qmldbg_preview/qqmldebugtranslationservice.h",
+        "src/plugins/qmltooling/qmldbg_preview/qqmlpreviewfileloader.h",
+        "src/plugins/qmltooling/qmldbg_preview/qqmlpreviewhandler.h",
+        "src/plugins/qmltooling/qmldbg_preview/qqmlpreviewservice.h",
+        "src/plugins/qmltooling/qmldbg_preview/qqmlpreviewservicefactory.h",
+    ],
+    moc_srcs = ["src/plugins/qmltooling/qmldbg_preview/qqmldebugtranslationservice.cpp"],
+    plugin_class_name = "QQmlPreviewServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:network",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_profiler",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_profiler/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_profiler/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_profiler"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_profiler/qqmlprofileradapter.h",
+        "src/plugins/qmltooling/qmldbg_profiler/qqmlprofilerservice.h",
+        "src/plugins/qmltooling/qmldbg_profiler/qqmlprofilerservicefactory.h",
+        "src/plugins/qmltooling/qmldbg_profiler/qv4profileradapter.h",
+    ],
+    plugin_class_name = "QQmlProfilerServiceFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_quickprofiler",
+    srcs = glob(["src/plugins/qmltooling/qmldbg_quickprofiler/*.cpp"]),
+    hdrs = glob(["src/plugins/qmltooling/qmldbg_quickprofiler/*.h"]),
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_quickprofiler"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+        "QT_QUICK_LIB",
+    ],
+    moc_hdrs = [
+        "src/plugins/qmltooling/qmldbg_quickprofiler/qquickprofileradapter.h",
+        "src/plugins/qmltooling/qmldbg_quickprofiler/qquickprofileradapterfactory.h",
+    ],
+    plugin_class_name = "QQuickProfilerAdapterFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_server",
+    srcs = ["src/plugins/qmltooling/qmldbg_server/qqmldebugserverfactory.cpp"],
+    hdrs = ["src/plugins/qmltooling/qmldbg_server/qqmldebugserverfactory.h"],
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_server"],
+    local_defines = common_local_defines + [
+        "QT_PACKETPROTOCOL_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_hdrs = ["src/plugins/qmltooling/qmldbg_server/qqmldebugserverfactory.h"],
+    moc_srcs = ["src/plugins/qmltooling/qmldbg_server/qqmldebugserverfactory.cpp"],
+    plugin_class_name = "QQmlDebugServerFactory",
+    deps = [
+        ":packetprotocol",
+        ":qml",
+        "@qtbase//:core",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmldbg_tcp",
+    srcs = ["src/plugins/qmltooling/qmldbg_tcp/qtcpserverconnection.cpp"],
+    copts = common_copts,
+    includes = ["src/plugins/qmltooling/qmldbg_tcp"],
+    local_defines = common_local_defines + [
+        "QT_NETWORK_LIB",
+        "QT_QML_LIB",
+    ],
+    moc_srcs = ["src/plugins/qmltooling/qmldbg_tcp/qtcpserverconnection.cpp"],
+    plugin_class_name = "QTcpServerConnectionFactory",
+    deps = [
+        ":qml",
+        "@qtbase//:core",
+        "@qtbase//:network",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# 23.13 Developer Tools & Supporting Libraries (:qmldom, :qmlformat_lib, :qmlls_lib, :qmllint, :qmlformat, :qmlls, :qmlimportscanner, :qml_tool, :svgtoqml)
+# ---------------------------------------------------------------------------
+
+# 23.13a QmlDomPrivate (:qmldom)
+qt_depends_header(
+    name = "qmldom_depends_h",
+    out = "generated_exports/QtQmlDomDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQml",
+        "QtQmlCompiler",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmldom_sync_headers",
+    hdrs = glob(["src/qmldom/*.h"]),
+    generated_public_hdrs = [":qmldom_depends_h"],
+    internal_module = True,
+    module_name = "QtQmlDom",
+    source_dir = "src/qmldom",
+    version = QT_VERSION,
+    deps = [
+        ":qml_sync_headers",
+        ":qmlcompiler_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmldom",
+    srcs = glob(["src/qmldom/*.cpp"]),
+    hdrs = glob(["src/qmldom/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    defines = [
+        "QMLDOM_LIBRARY",
+        "QT_QMLDOM_LIB",
+    ],
+    includes = ["src/qmldom"],
+    local_defines = common_local_defines + [
+        "QMLDOM_LIBRARY",
+        "QT_BUILD_QMLDOM_LIB",
+        "QT_QMLCOMPILER_LIB",
+        "QT_QML_LIB",
+        "QT_STATIC",
+    ],
+    moc_hdrs = [
+        "src/qmldom/qqmldomcodeformatter_p.h",
+        "src/qmldom/qqmldomconstants_p.h",
+        "src/qmldom/qqmldomelements_p.h",
+        "src/qmldom/qqmldomerrormessage_p.h",
+        "src/qmldom/qqmldomfieldfilter_p.h",
+        "src/qmldom/qqmldomfilewriter_p.h",
+        "src/qmldom/qqmldomindentinglinewriter_p.h",
+        "src/qmldom/qqmldomitem_p.h",
+        "src/qmldom/qqmldomlinewriter_p.h",
+        "src/qmldom/qqmldompath_p.h",
+        "src/qmldom/qqmldomscanner_p.h",
+        "src/qmldom/qqmldomtop_p.h",
+    ],
+    deps = [
+        ":qml",
+        ":qmlcompiler",
+        ":qmldom_sync_headers",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.13b QmlFormatPrivate (:qmlformat_lib)
+qt_export_header(
+    name = "qmlformat_exports_h",
+    out = "generated_exports/qtqmlformatexports.h",
+    module_infix = "QMLFORMAT",
+)
+
+qt_depends_header(
+    name = "qmlformat_depends_h",
+    out = "generated_exports/QtQmlFormatDepends",
+    dep_modules = [
+        "QtCore",
+        "QtQmlDom",
+        "QtQmlToolingSettings",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmlformat_sync_headers",
+    hdrs = glob(["src/qmlformat/*.h"]),
+    generated_public_hdrs = [
+        ":qmlformat_depends_h",
+        ":qmlformat_exports_h",
+    ],
+    internal_module = True,
+    module_name = "QtQmlFormat",
+    source_dir = "src/qmlformat",
+    version = QT_VERSION,
+    deps = [
+        ":qmldom_sync_headers",
+        ":qmltoolingsettings_sync_headers",
+        "@qtbase//:core_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmlformat_lib",
+    srcs = glob(["src/qmlformat/*.cpp"]),
+    hdrs = glob(["src/qmlformat/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    defines = ["QT_QMLFORMAT_LIB"],
+    includes = ["src/qmlformat"],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLFORMAT_LIB",
+        "QT_QMLDOM_LIB",
+        "QT_QMLTOOLINGSETTINGS_LIB",
+        "QT_STATIC",
+    ],
+    deps = [
+        ":qmldom",
+        ":qmlformat_sync_headers",
+        ":qmltoolingsettings",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.13c QmlLSPrivate (:qmlls_lib) & QmlLSQuickPlugin (:qmllsquickplugin)
+qt_export_header(
+    name = "qmlls_exports_h",
+    out = "generated_exports/qtqmllsexports.h",
+    module_infix = "QMLLS",
+)
+
+qt_depends_header(
+    name = "qmlls_depends_h",
+    out = "generated_exports/QtQmlLSDepends",
+    dep_modules = [
+        "QtCore",
+        "QtLanguageServer",
+        "QtQmlCompiler",
+        "QtQmlDom",
+        "QtQmlFormat",
+        "QtQmlToolingSettings",
+    ],
+)
+
+qt_sync_headers(
+    name = "qmlls_sync_headers",
+    hdrs = glob(["src/qmlls/**/*.h"]),
+    generated_public_hdrs = [
+        ":qmlls_depends_h",
+        ":qmlls_exports_h",
+    ],
+    internal_module = True,
+    module_name = "QtQmlLS",
+    source_dir = "src/qmlls",
+    version = QT_VERSION,
+    deps = [
+        ":qmlcompiler_sync_headers",
+        ":qmldom_sync_headers",
+        ":qmlformat_sync_headers",
+        ":qmltoolingsettings_sync_headers",
+        "@qtbase//:core_sync_headers",
+        "@qtlanguageserver//:languageserver_sync_headers",
+    ],
+)
+
+qt_internal_library(
+    name = "qmlls_lib",
+    srcs = glob(["src/qmlls/**/*.cpp"]),
+    hdrs = glob(["src/qmlls/**/*.h"]),
+    copts = common_copts,
+    create_shared = False,
+    cxxopts = ["-std=gnu++20"],
+    defines = ["QT_QMLLS_LIB"],
+    includes = [
+        "src/qmlls",
+        "src/qmlls/documentSymbolSupport",
+    ],
+    local_defines = common_local_defines + [
+        "QT_BUILD_QMLLS_LIB",
+        "QT_LANGUAGESERVER_LIB",
+        "QT_QMLCOMPILER_LIB",
+        "QT_QMLDOM_LIB",
+        "QT_QMLFORMAT_LIB",
+        "QT_QMLTOOLINGSETTINGS_LIB",
+        "QT_STATIC",
+    ],
+    moc_hdrs = [
+        "src/qmlls/qlanguageserver_p.h",
+        "src/qmlls/qqmlcodemodel_p.h",
+        "src/qmlls/qqmlcompletionsupport_p.h",
+        "src/qmlls/qqmlfindusagessupport_p.h",
+        "src/qmlls/qqmlformatting_p.h",
+        "src/qmlls/qqmlgotodefinitionsupport_p.h",
+        "src/qmlls/qqmlgototypedefinitionsupport_p.h",
+        "src/qmlls/qqmlhover_p.h",
+        "src/qmlls/qqmllanguageserver_p.h",
+        "src/qmlls/qqmllintsuggestions_p.h",
+        "src/qmlls/qqmlrangeformatting_p.h",
+        "src/qmlls/qqmlrenamesymbolsupport_p.h",
+        "src/qmlls/qqmlsemantictokens_p.h",
+        "src/qmlls/qtextsynchronization_p.h",
+        "src/qmlls/qworkspace_p.h",
+    ],
+    moc_srcs = ["src/qmlls/qmllsmain.cpp"],
+    deps = [
+        ":qml",
+        ":qmlcompiler",
+        ":qmldom",
+        ":qmlformat_lib",
+        ":qmlls_sync_headers",
+        ":qmltoolingsettings",
+        "@qtbase//:core",
+        "@qtlanguageserver//:languageserver",
+    ],
+)
+
+qt_static_plugin(
+    name = "qmllsquickplugin",
+    srcs = ["src/plugins/qmlls/quick/qqmllsquickplugin.cpp"],
+    hdrs = ["src/plugins/qmlls/quick/qqmllsquickplugin_p.h"],
+    copts = common_copts,
+    cxxopts = ["-std=gnu++20"],
+    includes = ["src/plugins/qmlls/quick"],
+    local_defines = common_local_defines + [
+        "QT_QMLCOMPILER_LIB",
+        "QT_QMLDOM_LIB",
+        "QT_QMLLS_LIB",
+    ],
+    moc_hdrs = ["src/plugins/qmlls/quick/qqmllsquickplugin_p.h"],
+    plugin_class_name = "QQmlLSQuickPlugin",
+    deps = [
+        ":qmlcompiler",
+        ":qmldom",
+        ":qmlls_lib",
+        "@qtbase//:core",
+    ],
+)
+
+# 23.13d Developer CLI Tools (:qmllint, :qmlformat, :qmlls, :qmlimportscanner, :qml_tool, :svgtoqml)
+cc_binary(
+    name = "qmllint",
+    srcs = ["tools/qmllint/main.cpp"],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    local_defines = common_local_defines,
+    deps = [
+        ":qml",
+        ":qmlcompiler",
+        ":qmltoolingsettings",
+        "@qtbase//:core",
+    ],
+)
+
+cc_binary(
+    name = "qmlformat",
+    srcs = ["tools/qmlformat/qmlformat.cpp"],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    local_defines = common_local_defines,
+    deps = [
+        ":qml",
+        ":qmlcompiler",
+        ":qmldom",
+        ":qmlformat_lib",
+        ":qmltoolingsettings",
+        "@qtbase//:core",
+    ],
+)
+
+cc_binary(
+    name = "qmlls",
+    srcs = ["tools/qmlls/qmllanguageservertool.cpp"],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    cxxopts = ["-std=gnu++20"],
+    local_defines = common_local_defines,
+    deps = [
+        ":qmlls_lib",
+        ":qmllsquickplugin",
+        "@qtbase//:core",
+    ],
+)
+
+cc_binary(
+    name = "qmlimportscanner",
+    srcs = ["tools/qmlimportscanner/main.cpp"],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_NO_CAST_FROM_ASCII",
+        "QT_NO_CAST_TO_ASCII",
+    ],
+    deps = [
+        ":qml",
+        ":qmlcompiler",
+        "@qtbase//:core",
+    ],
+)
+
+qt_generate_qrc(
+    name = "qml_tool_icon_qrc",
+    srcs = ["tools/qml/resources/qml-64.png"],
+    out = "qml_tool_icon.qrc",
+    prefix = "/qt-project.org/imports/QmlRuntime/Config",
+    strip_prefix = "tools/qml",
+)
+
+qt_rcc_internal(
+    name = "qml_tool_icon_rcc",
+    data = ["tools/qml/resources/qml-64.png"],
+    qrc = ":qml_tool_icon_qrc",
+    qrc_name = "qml_tool_icon",
+)
+
+qt_internal_library(
+    name = "qml_tool_lib",
+    srcs = ["tools/qml/main.cpp"],
+    hdrs = ["tools/qml/conf.h"],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    create_shared = False,
+    includes = ["tools/qml"],
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QMLINTEGRATION_LIB",
+        "QT_QML_DEBUG_NO_WARNING",
+        "QT_QML_LIB",
+        "QT_WIDGETS_LIB",
+    ],
+    moc_hdrs = ["tools/qml/conf.h"],
+    moc_srcs = ["tools/qml/main.cpp"],
+    qml_args = {
+        "uri": "QmlRuntime.Config",
+        "major_version": "1",
+        "minor_version": "0",
+        "qmlcache_target_name": "qml_tool",
+        "qml_strip_prefix": "tools/qml",
+        "qml_files": [
+            "tools/qml/ResizeItemToWindow.qml",
+            "tools/qml/ResizeWindowToItem.qml",
+            "tools/qml/default.qml",
+            "tools/qml/resizeToItem.qml",
+        ],
+        "qmldir_content": "module QmlRuntime.Config\ntypeinfo plugins.qmltypes\nprefer :/qt-project.org/imports/QmlRuntime/Config/\ndefault 1.0 default.qml\nresizeToItem 1.0 resizeToItem.qml\nResizeItemToWindow 1.0 ResizeItemToWindow.qml\nResizeWindowToItem 1.0 ResizeWindowToItem.qml\n",
+        "foreign_types": [
+            ":qml_moc_hdrs",
+            ":quick_moc_hdrs",
+            "@qtbase//:core_moc_hdrs",
+            "@qtbase//:gui_moc_hdrs",
+        ],
+    },
+    rcc_targets = [":qml_tool_icon_rcc"],
+    deps = [
+        ":qml",
+        ":quick",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:widgets",
+    ],
+)
+
+cc_binary(
+    name = "qml_tool",
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    deps = [
+        ":qml",
+        ":qml_tool_lib",
+        ":qquicklayoutsplugin",
+        ":qtquick2plugin",
+        ":qtquickcontrols2plugin",
+        ":qtquickdialogsplugin",
+        ":qtquicktemplates2plugin",
+        ":quick",
+        ":quickwindow",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:offscreen",
+        "@qtbase//:widgets",
+    ],
+)
+
+qt_generate_qrc(
+    name = "svgtoqml_qrc",
+    srcs = ["tools/svgtoqml/main.qml"],
+    out = "svgtoqml.qrc",
+    prefix = "/",
+    strip_prefix = "tools/svgtoqml",
+)
+
+qt_rcc_internal(
+    name = "svgtoqml_rcc",
+    data = ["tools/svgtoqml/main.qml"],
+    qrc = ":svgtoqml_qrc",
+    qrc_name = "qml",
+)
+
+cc_binary(
+    name = "svgtoqml",
+    srcs = [
+        "tools/svgtoqml/main.cpp",
+        ":svgtoqml_rcc",
+    ],
+    applicable_licenses = [":license_gpl3_except"],
+    copts = common_copts,
+    local_defines = common_local_defines + [
+        "QT_GUI_LIB",
+        "QT_QML_LIB",
+        "QT_QUICKVECTORIMAGEGENERATOR_LIB",
+        "QT_QUICK_LIB",
+    ],
+    deps = [
+        ":qml",
+        ":qquickvectorimageplugin",
+        ":quick",
+        ":quickvectorimagegenerator",
+        "@qtbase//:core",
+        "@qtbase//:gui",
+        "@qtbase//:offscreen",
     ],
 )
