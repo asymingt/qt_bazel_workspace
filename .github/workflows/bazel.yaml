@@ -90,6 +90,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Windows Defender's real-time scan briefly locks freshly written files,
+      # which surfaced as "Permission denied" both on disk cache entries and on
+      # just-linked DLLs that lld then opened (libzlib_shared.dll while
+      # linking lrelease.exe). Exclude Bazel's trees and the disk cache.
+      - name: Exclude Bazel directories from Defender (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $paths = @('C:\_bzl', 'C:\_bazel', 'D:\_bazel', 'C:\_bzl_disk', $env:RUNNER_TEMP, $env:GITHUB_WORKSPACE)
+          Add-MpPreference -ExclusionPath $paths -ErrorAction SilentlyContinue
+          Get-MpPreference -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ExclusionPath
+
       # Like upstream libQt6Gui, QtGui links the glvnd dispatch libraries
       # (libGL, libGLX, libOpenGL, libEGL), so every Linux binary using it,
       # including host tools such as qsb, needs them at runtime. The x86_64
