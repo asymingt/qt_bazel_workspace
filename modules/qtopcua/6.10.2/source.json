@@ -1,0 +1,10 @@
+{
+    "integrity": "sha256-N1sbE8KHU6FPfGNg/W3FeQ9j7DSjc1VpRhhTAmjsLCo=",
+    "strip_prefix": "qtopcua-6.10.2",
+    "url": "https://github.com/qt/qtopcua/archive/refs/tags/v6.10.2.tar.gz",
+    "overlay": {
+        "BUILD.bazel": "sha256-adSJFGwDU9zYHWv95W8URqZ2FqAaZQd0OHww6n0vCgU=",
+        "MODULE.bazel": "sha256-nyl/OQsSZtb3KhsNkyVWMUpSt0JXPtSAOo3BZ5ijH+g=",
+        "src/opcua/x509/qopcua_openssl_rename_p.h": "sha256-lAVL5VyXHAPSuLxB6lEsmHxkS/DlrISFQDhmJgw+OLU="
+    }
+}
