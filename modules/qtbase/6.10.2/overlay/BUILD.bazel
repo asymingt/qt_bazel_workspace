@@ -223,7 +223,7 @@ qt_sync_headers(
     ] + select({
         "@platforms//os:linux": [
             ":atspi_headers",
-            ":glx_h",
+            "@libglvnd//:glx_headers",
         ],
         "//conditions:default": [],
     }),
@@ -266,7 +266,7 @@ qt_sync_headers(
         "@opengl-registry//:OpenGL_headers",
         "@vulkan_headers//:vulkan_headers_no_prototypes",
     ] + select({
-        "@platforms//os:linux": [":glx_h"],
+        "@platforms//os:linux": ["@libglvnd//:glx_headers"],
         "//conditions:default": [],
     }),
 )
@@ -3095,7 +3095,7 @@ cc_library(
         "@opengl-registry//:OpenGL_headers",
         "@vulkan_headers//:vulkan_headers_no_prototypes",
     ] + select({
-        "@platforms//os:linux": [":glx_h"],
+        "@platforms//os:linux": ["@libglvnd//:glx_headers"],
         "//conditions:default": [],
     }),
     alwayslink = True,
@@ -3131,7 +3131,7 @@ cc_library(
         "@opengl-registry//:OpenGL_headers",
         "@vulkan_headers//:vulkan_headers_no_prototypes",
     ] + select({
-        "@platforms//os:linux": [":glx_h"],
+        "@platforms//os:linux": ["@libglvnd//:glx_headers"],
         "//conditions:default": [],
     }),
     alwayslink = True,
@@ -3166,7 +3166,7 @@ cc_library(
         "@opengl-registry//:OpenGL_headers",
         "@vulkan_headers//:vulkan_headers_no_prototypes",
     ] + select({
-        "@platforms//os:linux": [":glx_h"],
+        "@platforms//os:linux": ["@libglvnd//:glx_headers"],
         "//conditions:default": [],
     }),
     alwayslink = True,
@@ -3727,7 +3727,7 @@ qt_internal_library(
             ":atspi_headers",
             ":dbus",
             ":glvnd_stubs",
-            ":glx_h",
+            "@libglvnd//:glx_headers",
             ":gui_atspi_adaptors",
             ":gui_atspi_interfaces",
             "@fontconfig",
@@ -3847,7 +3847,7 @@ qt_internal_library(
     ] + select({
         "@platforms//os:linux": [
             ":glvnd_stubs",
-            ":glx_h",
+            "@libglvnd//:glx_headers",
         ],
         "//conditions:default": [],
     }),
@@ -5220,7 +5220,7 @@ qt_static_plugin(
         ":core",
         ":core_internal_cfg",
         ":glvnd_stubs",
-        ":glx_h",
+        "@libglvnd//:glx_headers",
         ":gui",
         ":gui_internal_cfg",
         ":xcb_qpa",

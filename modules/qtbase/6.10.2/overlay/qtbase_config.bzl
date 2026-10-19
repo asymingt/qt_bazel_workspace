@@ -1478,16 +1478,6 @@ def declare_qtbase_config_targets():
         target_compatible_with = ["@platforms//os:linux"],
     )
     cc_library(
-        name = "glx_h",
-        hdrs = ["glx.h"],
-        include_prefix = "GL",
-        target_compatible_with = ["@platforms//os:linux"],
-        deps = [
-            "@libx11",
-            "@opengl-registry//:OpenGL_headers",
-        ],
-    )
-    cc_library(
         name = "mvk_vulkan_h",
         hdrs = ["moltenvk/mvk_vulkan.h"],
         include_prefix = "MoltenVK",
@@ -1498,7 +1488,7 @@ def declare_qtbase_config_targets():
     qt_glvnd_stubs(
         name = "glvnd_stubs",
         hdr_deps = [
-            ":glx_h",
+            "@libglvnd//:glx_headers",
             "@egl-registry//:EGL_headers",
             "@opengl-registry//:GLES2_headers",
             "@opengl-registry//:GLES3_headers",

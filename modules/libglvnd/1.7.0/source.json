@@ -1,0 +1,9 @@
+{
+    "integrity": "sha256-K24VsGqvtMC24jSBJICMvZspHGRymeqrouMgL1H/Lz0=",
+    "strip_prefix": "libglvnd-v1.7.0",
+    "url": "https://gitlab.freedesktop.org/glvnd/libglvnd/-/archive/v1.7.0/libglvnd-v1.7.0.tar.gz",
+    "overlay": {
+        "BUILD.bazel": "sha256-HPJ7/5WZx+yhQ7xasu6mrCUHloMYWiyTf+Z65kzByQ0=",
+        "MODULE.bazel": "sha256-9pngRuFCz/hfMn/5UKIR6PxsvY3Q9oB/6D8+sdgjClg="
+    }
+}
