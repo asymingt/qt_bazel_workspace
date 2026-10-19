@@ -7230,7 +7230,7 @@ qt_internal_library(
     ],
     includes = ["src/core"],
     local_defines = common_local_defines + [
-        "QT_BUILD_QML_CORE_LIB",
+        "QT_BUILD_QMLCORE_LIB",
         "QT_QMLINTEGRATION_LIB",
         "QT_QML_LIB",
     ],

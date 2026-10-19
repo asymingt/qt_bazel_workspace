@@ -4851,6 +4851,7 @@ qt_static_plugin(
         ":core_internal_cfg",
         ":gui",
         ":gui_internal_cfg",
+        ":mvk_vulkan_h",
     ],
 )
 
@@ -6591,7 +6592,6 @@ qt_static_plugin(
     local_defines = [
         "QT_CORE_LIB",
         "QT_GUI_LIB",
-        "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",
         "QT_NO_DEBUG",
         "QT_PLUGIN",

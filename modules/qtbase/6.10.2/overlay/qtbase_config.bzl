@@ -1487,6 +1487,14 @@ def declare_qtbase_config_targets():
             "@opengl-registry//:OpenGL_headers",
         ],
     )
+    cc_library(
+        name = "mvk_vulkan_h",
+        hdrs = ["moltenvk/mvk_vulkan.h"],
+        include_prefix = "MoltenVK",
+        strip_include_prefix = "moltenvk",
+        target_compatible_with = ["@platforms//os:macos"],
+        deps = ["@vulkan_headers//:vulkan_headers_no_prototypes"],
+    )
     qt_glvnd_stubs(
         name = "glvnd_stubs",
         hdr_deps = [
