@@ -1138,6 +1138,9 @@ qt_static_plugin(
 # ---------------------------------------------------------------------------
 cc_shared_library(
     name = "ffmpeg_shared",
+    # FFmpeg uses zlib; share the single copy from @zlib//:zlib_shared (also
+    # used by core_shared) instead of embedding a second one.
+    dynamic_deps = ["@zlib//:zlib_shared"],
     exports_filter = [
         "@ffmpeg//:__subpackages__",
         # FFmpeg links OpenSSL (https/tls protocols); export the single copy so
@@ -1496,6 +1499,24 @@ qt_static_plugin(
     ],
 )
 
+# GUID definitions normally taken from MSVC's GUID-only import libraries
+# (mfuuid, strmiids, amstrmid, wmcodecdspuuid), which MinGW sysroots don't ship.
+# Compiling the headers under <initguid.h> emits the definitions instead (same
+# approach as :ffmpeg_win_mfuuid_src).
+qt_write_file(
+    name = "windowsmedia_win_guids_src",
+    out = "generated_win_hdrs/windowsmedia_win_guids.cpp",
+    content = """\
+#include <initguid.h>
+#include <d3d9.h>
+#include <dxva2api.h>
+#include <evr.h>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <wmcodecdsp.h>
+""",
+)
+
 qt_static_plugin(
     name = "qwindowsmediaplugin",
     srcs = [
@@ -1522,6 +1543,7 @@ qt_static_plugin(
         "src/plugins/multimedia/windows/qwindowsformatinfo.cpp",
         "src/plugins/multimedia/windows/qwindowsintegration.cpp",
         "src/plugins/multimedia/windows/sourceresolver.cpp",
+        ":windowsmedia_win_guids_src",
     ],
     hdrs = glob(["src/plugins/multimedia/windows/**/*.h"]),
     includes = [
@@ -1534,7 +1556,6 @@ qt_static_plugin(
         "src/plugins/multimedia/windows/player",
     ],
     linkopts = [
-        "-lamstrmid",
         "-ld3d9",
         "-ldxva2",
         "-levr",
@@ -1544,16 +1565,13 @@ qt_static_plugin(
         "-lmfcore",
         "-lmfplat",
         "-lmfreadwrite",
-        "-lmfuuid",
         "-lole32",
         "-loleaut32",
         "-lpropsys",
         "-lshlwapi",
-        "-lstrmiids",
         "-luser32",
         "-luuid",
         "-lwinmm",
-        "-lwmcodecdspuuid",
     ],
     local_defines = _COMMON_DEFINES + [
         "QT_NO_CAST_FROM_ASCII",

@@ -1,4 +1,5 @@
 load("@qt//:qt.bzl", "QT_VERSION", "common_defines", "qt_internal_library", "qt_qml_plugin_cpp", "qt_static_plugin", "qt_sync_headers")
+load("@qt//:qt_tools.bzl", "qt_write_file")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 load(":qtspeech_config.bzl", "declare_qtspeech_config_targets")
@@ -247,11 +248,24 @@ qt_static_plugin(
     ],
 )
 
+# SAPI CLSIDs/IIDs are not in MinGW's libsapi/libuuid; compile sapi.h under
+# <initguid.h> to emit the definitions.
+qt_write_file(
+    name = "sapi_win_guids_src",
+    out = "generated_win_hdrs/sapi_win_guids.cpp",
+    content = """\
+#include <windows.h>
+#include <initguid.h>
+#include <sapi.h>
+""",
+)
+
 qt_static_plugin(
     name = "qtexttospeech_sapi",
     srcs = [
         "src/plugins/tts/sapi/qtexttospeech_sapi.cpp",
         "src/plugins/tts/sapi/qtexttospeech_sapi_plugin.cpp",
+        ":sapi_win_guids_src",
     ],
     hdrs = [
         "src/plugins/tts/sapi/qtexttospeech_sapi.h",

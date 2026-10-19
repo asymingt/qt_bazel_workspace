@@ -4022,6 +4022,13 @@ def qt_cc_shared_library(
     if qt_deps == None:
         qt_deps = ["@qtbase//:core"]
     user_link_flags = kwargs.pop("user_link_flags", [])
+    if "shared_lib_name" not in kwargs:
+        # MinGW links dynamic deps with -l<name>, which only resolves a DLL
+        # named lib<name>.dll (same convention as Qt's own *_shared targets).
+        kwargs["shared_lib_name"] = select({
+            Label("@platforms//os:windows"): "lib" + name + ".dll",
+            "//conditions:default": "",
+        })
     cc_shared_library(
         name = name,
         deps = deps,

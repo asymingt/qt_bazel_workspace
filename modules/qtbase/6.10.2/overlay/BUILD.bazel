@@ -1,5 +1,5 @@
 load("@qt//:qt.bzl", "qt_ui_library")
-load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
+load("@qt//:qt_internal_library.bzl", "QT_PLATFORM_COPTS", "qt_internal_library", "qt_static_plugin")
 load(
     "@qt//:qt_tools.bzl",
     "qt_cc_library",
@@ -1384,6 +1384,10 @@ qt_internal_library(
     }),
     cxxopts = ["-std=gnu++20"],
     defines = common_defines + ["QT_CORE_LIB"],
+    # zlib (used directly and via glib/freetype/libpng) comes from the single
+    # shared copy in @zlib//:zlib_shared. Every Qt shared library depends on
+    # core_shared, so they all inherit it and none embeds its own zlib.
+    dynamic_deps = ["@zlib//:zlib_shared"],
     # Third-party libraries linked statically into libcore_shared.so. They are
     # compiled with default visibility, so their symbols are exported and other
     # Qt shared libraries must reuse them instead of linking a second copy.
@@ -3071,7 +3075,9 @@ cc_library(
         "//conditions:default": [],
     }),
     hdrs = _GUI_HDRS,
-    copts = _GUI_BASE_COPTS + select({
+    # QT_PLATFORM_COPTS restores default visibility on Windows (MinGW), where
+    # Q_GUI_EXPORT is empty and symbols are exported via --export-all-symbols.
+    copts = _GUI_BASE_COPTS + QT_PLATFORM_COPTS + select({
         "@platforms//cpu:x86_64": ["-mssse3"],
         "//conditions:default": [],
     }),
@@ -3105,7 +3111,9 @@ cc_library(
         "//conditions:default": [],
     }),
     hdrs = _GUI_HDRS,
-    copts = _GUI_BASE_COPTS + select({
+    # QT_PLATFORM_COPTS restores default visibility on Windows (MinGW), where
+    # Q_GUI_EXPORT is empty and symbols are exported via --export-all-symbols.
+    copts = _GUI_BASE_COPTS + QT_PLATFORM_COPTS + select({
         "@platforms//cpu:x86_64": ["-msse4.1"],
         "//conditions:default": [],
     }),
@@ -3138,7 +3146,9 @@ cc_library(
         "//conditions:default": [],
     }),
     hdrs = _GUI_HDRS,
-    copts = _GUI_BASE_COPTS + select({
+    # QT_PLATFORM_COPTS restores default visibility on Windows (MinGW), where
+    # Q_GUI_EXPORT is empty and symbols are exported via --export-all-symbols.
+    copts = _GUI_BASE_COPTS + QT_PLATFORM_COPTS + select({
         "@platforms//cpu:x86_64": ["-march=core-avx2"],
         "//conditions:default": [],
     }),
@@ -6533,6 +6543,11 @@ qt_internal_library(
         ":qprintdialog_rcc",
         ":qprintdialog1_rcc",
     ],
+    # Q_PLUGIN_METADATA(FILE "windows.json") in qwindowsprintersupport.cpp.
+    textual_hdrs = select({
+        "@platforms//os:windows": ["src/printsupport/platform/windows/windows.json"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":core",
         ":core_internal_cfg",
@@ -6623,7 +6638,6 @@ qt_static_plugin(
     local_defines = [
         "QT_CORE_LIB",
         "QT_GUI_LIB",
-        "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",
         "QT_NO_DEBUG",
         "QT_PLUGIN",

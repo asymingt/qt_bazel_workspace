@@ -642,7 +642,16 @@ _EXPORT_HEADER_TEMPLATE = """// Copyright (C) 2022 The Qt Company Ltd.
 #  define Q_{infix}_EXPORT
 #endif
 
-#if !defined(QT_BUILD_{infix}_LIB) && !defined(QT_STATIC)
+#if defined(_WIN32)
+/* Windows (Bazel build): the same Qt objects are linked both into the DLLs
+ * and statically into tools/tests. On COFF an inline (COMDAT) copy from a
+ * consumer plus removed_api.cpp's out-of-line definition is a duplicate
+ * symbol, so always inline and don't export removed APIs (no binary
+ * compatibility with official Qt builds for removed API on Windows). */
+#  define QT_{infix}_INLINE_SINCE(major, minor) inline
+#  define QT_{infix}_CONSTEXPR_INLINE_SINCE(major, minor) constexpr
+#  define QT_{infix}_INLINE_IMPL_SINCE(major, minor) 1
+#elif !defined(QT_BUILD_{infix}_LIB) && !defined(QT_STATIC)
 /* outside library -> inline decl + defi */
 /* static builds treat everything as part of the library, so they never inline */
 #  define QT_{infix}_INLINE_SINCE(major, minor) inline
@@ -670,7 +679,7 @@ _EXPORT_HEADER_TEMPLATE = """// Copyright (C) 2022 The Qt Company Ltd.
     QT_IF_DEPRECATED_SINCE(major, minor, 1, 0)
 #endif
 
-#ifdef QT_{infix}_BUILD_REMOVED_API
+#if defined(QT_{infix}_BUILD_REMOVED_API) && !defined(_WIN32)
 #  define QT_{infix}_REMOVED_SINCE(major, minor) QT_DEPRECATED_SINCE(major, minor)
 #else
 #  define QT_{infix}_REMOVED_SINCE(major, minor) 0

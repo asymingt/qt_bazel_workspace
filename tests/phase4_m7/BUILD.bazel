@@ -5,7 +5,10 @@ load("@qt//:qt_deploy.bzl", "qt_deploy")
 qt_cc_test(
     name = "abi_test",
     srcs = ["abi_test.cc"],
-    linkopts = ["-ldl"],
+    linkopts = select({
+        "@platforms//os:linux": ["-ldl"],
+        "//conditions:default": [],
+    }),
     deps = ["@qtbase//:core"],
 )
 
