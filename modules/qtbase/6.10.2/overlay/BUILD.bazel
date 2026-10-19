@@ -1397,7 +1397,7 @@ qt_internal_library(
         # All ICU pieces (common/i18n/stubdata) that end up in libcore_shared;
         # Qt5Compat's QIcuCodec and others depend on the same targets.
         "@icu//icu4c/source:__subpackages__",
-        "@@pcre2+//:pcre2",  # transitive via @glib; not in @qtbase's repo mapping
+        "@pcre2//:pcre2",
     ],
     includes = [
         "src/3rdparty/blake2/src",
@@ -2892,8 +2892,8 @@ qt_rcc_internal(
 cc_shared_library(
     name = "x11_shared",
     exports_filter = [
-        "@@libxau+//:xau",
-        "@@libxtrans+//:xtrans",
+        "@libxau//:xau",
+        "@libxtrans//:xtrans",
     ],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
@@ -3545,7 +3545,7 @@ qt_internal_library(
         ":gui_avx2",
         ":gui_sse4_1",
         ":gui_ssse3",
-        "@@libexpat+//:expat",
+        "@libexpat//:expat",
         "@fontconfig//:fontconfig",
         "@harfbuzz//:harfbuzz",
     ],
@@ -5634,7 +5634,7 @@ qt_internal_library(
         "@wayland//:config",
         "@wayland//:wayland_client",
         "@wayland//:wayland_cursor",
-        "@@libffi+//:libffi",
+        "@libffi//:libffi",
     ],
     includes = [
         "mkspecs/linux-g++",
