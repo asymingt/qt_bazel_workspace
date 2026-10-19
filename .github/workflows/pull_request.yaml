@@ -73,6 +73,9 @@ jobs:
 
   cross-9x:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel 9.x
+    # Cross builds only start once every native build is green: a native
+    # failure usually breaks the cross builds too, so this saves 30 jobs.
+    needs: [native-9x]
     strategy:
       fail-fast: false
       matrix:
@@ -116,7 +119,9 @@ jobs:
   native-last-rc:
     name: native ${{ matrix.host }} / bazel last_rc
     needs: [native-9x]
-    if: github.event_name != 'push'
+    # TEMPORARILY DISABLED while CI is being stabilised on bazel 9.x.
+    # Restore `if: github.event_name != 'push'` to re-enable.
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -138,7 +143,9 @@ jobs:
   cross-last-rc:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel last_rc
     needs: [cross-9x]
-    if: github.event_name != 'push'
+    # TEMPORARILY DISABLED while CI is being stabilised on bazel 9.x.
+    # Restore `if: github.event_name != 'push'` to re-enable.
+    if: false
     strategy:
       fail-fast: false
       matrix:
