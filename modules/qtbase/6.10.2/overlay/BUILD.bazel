@@ -2681,10 +2681,21 @@ qt_static_plugin(
         "-fexceptions",
     ],
     includes = ["src/plugins/networkinformation/networklistmanager"],
+    # MinGW's libruntimeobject.a is an archive of the api-ms-win WinRT import
+    # libraries (mingw-w64-crt/lib-common/runtimeobject.mri). The hermetic
+    # @llvm MinGW only generates import libraries from .def files, so link
+    # those components directly.
     linkopts = [
         "-lole32",
         "-loleaut32",
-        "-lruntimeobject",
+        "-lapi-ms-win-core-winrt-l1-1-0",
+        "-lapi-ms-win-core-winrt-error-l1-1-0",
+        "-lapi-ms-win-core-winrt-error-l1-1-1",
+        "-lapi-ms-win-core-winrt-registration-l1-1-0",
+        "-lapi-ms-win-core-winrt-robuffer-l1-1-0",
+        "-lapi-ms-win-core-winrt-roparameterizediid-l1-1-0",
+        "-lapi-ms-win-core-winrt-string-l1-1-0",
+        "-lapi-ms-win-ro-typeresolution-l1-1-0",
     ],
     local_defines = [
         "QT_CORE_LIB",
@@ -3510,7 +3521,14 @@ qt_internal_library(
         ],
         "//conditions:default": [],
     }),
-    copts = _GUI_BASE_COPTS,
+    copts = _GUI_BASE_COPTS + select({
+        # Upstream defines GL_SILENCE_DEPRECATION for every Apple target
+        # (PlatformCommonInternal); NSOpenGLContext is deprecated otherwise.
+        "@platforms//os:macos": ["-DGL_SILENCE_DEPRECATION"],
+        # D3D12MemAlloc.cpp disables GCC-only warnings by name.
+        "@platforms//os:windows": ["-Wno-unknown-warning-option"],
+        "//conditions:default": [],
+    }),
     cxxopts = ["-std=gnu++20"],
     defines = common_defines + ["QT_GUI_LIB"],
     dynamic_deps = [
@@ -6546,6 +6564,7 @@ qt_internal_library(
     ],
     # Q_PLUGIN_METADATA(FILE "windows.json") in qwindowsprintersupport.cpp.
     textual_hdrs = select({
+        "@platforms//os:macos": ["src/printsupport/platform/macos/cocoa.json"],
         "@platforms//os:windows": ["src/printsupport/platform/windows/windows.json"],
         "//conditions:default": [],
     }),

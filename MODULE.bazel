@@ -22,6 +22,8 @@ single_version_override(
         "//patches:llvm/windows_compiler_param_file.patch",
         "//patches:llvm/windows_pkg_dir_symlinks.patch",
         "//patches:llvm/runtime_library_search_directories_dedup.patch",
+        "//patches:llvm/mingw_no_rpath.patch",
+        "//patches:llvm/mingw_def_extra_tokens.patch",
     ],
     version = "0.8.24",
 )

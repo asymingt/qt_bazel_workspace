@@ -1300,6 +1300,13 @@ qt_internal_library(
         ":license",
         ":license_signalsmith_stretch",
     ],
+    # qcgwindowcapture.mm calls CGWindowListCreateImage, deprecated since
+    # macOS 14.0: our deployment target, but newer than upstream's, so
+    # upstream never sees the warning.
+    copts = select({
+        "@platforms//os:macos": ["-Wno-deprecated-declarations"],
+        "//conditions:default": [],
+    }),
     create_shared = False,
     includes = [
         "src/3rdparty/signalsmith-stretch",
@@ -1338,7 +1345,15 @@ qt_internal_library(
         "QT_BUILD_FFMPEGMEDIAPLUGINIMPL_LIB",
         "QT_NO_CAST_FROM_ASCII",
         "QT_NO_CAST_TO_ASCII",
-    ],
+    ] + select({
+        # VideoToolbox's OpenGL texture cache interop (as upstream:
+        # GL_SILENCE_DEPRECATION on Apple; CoreVideo has its own switch).
+        "@platforms//os:macos": [
+            "COREVIDEO_SILENCE_GL_DEPRECATION",
+            "GL_SILENCE_DEPRECATION",
+        ],
+        "//conditions:default": [],
+    }),
     moc_hdrs = [
         "src/plugins/multimedia/ffmpeg/playbackengine/qffmpegaudiorenderer_p.h",
         "src/plugins/multimedia/ffmpeg/playbackengine/qffmpegdemuxer_p.h",

@@ -90,6 +90,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Like upstream libQt6Gui, QtGui links the glvnd dispatch libraries
+      # (libGL, libGLX, libOpenGL, libEGL), so every Linux binary using it,
+      # including host tools such as qsb, needs them at runtime. The x86_64
+      # runner image ships them; the arm64 one does not.
+      - name: Install GL runtime libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libglx0 libopengl0
+
       # Bazel's repo contents cache (extracted repos) is kept outside
       # setup-bazel's repository cache directory (its default location), so the
       # saved repository cache holds only downloaded archives. It must be on

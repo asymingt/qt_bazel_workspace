@@ -21,6 +21,13 @@ common --macos_minimum_os=14.0
 common --per_file_copt=external/qt[^/]*[+]/.*@-Wno-thread-safety-analysis
 common --host_per_file_copt=external/qt[^/]*[+]/.*@-Wno-thread-safety-analysis
 
+# Third-party (non-Qt) dependencies -- ICU, libx11, libxcb's generated
+# protocol sources, protobuf, glib, ... -- are not ours to fix, and their
+# warnings bury Qt's. Silence them so a Qt warning stands out. The leading .*
+# also matches generated sources (bazel-out/<cfg>/bin/external/<repo>/...).
+common --per_file_copt=.*external/(?!qt)[^/]+/.*@-w
+common --host_per_file_copt=.*external/(?!qt)[^/]+/.*@-w
+
 # Mirrors for flaky upstream download hosts (BCR modules we cannot annotate).
 common --downloader_config=bazel_downloader.cfg
 

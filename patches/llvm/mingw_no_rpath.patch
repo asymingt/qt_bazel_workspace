@@ -1,0 +1,30 @@
+diff --git a/toolchain/features/legacy/BUILD.bazel b/toolchain/features/legacy/BUILD.bazel
+index a1ae53d..6b6798e 100644
+--- a/toolchain/features/legacy/BUILD.bazel
++++ b/toolchain/features/legacy/BUILD.bazel
+@@ -242,7 +242,11 @@ cc_feature_set(
+         "@rules_cc//cc/toolchains/args/linker_param_file:feature",
+         "@rules_cc//cc/toolchains/args/preprocessor_defines:feature",
+         "@rules_cc//cc/toolchains/args/random_seed:feature",
+-        "@rules_cc//cc/toolchains/args/runtime_library_search_directories:feature",
++    ] + select({
++        # PE/COFF (MinGW) has no rpath; lld warns that -rpath has no effect.
++        "@platforms//os:windows": [":coff_runtime_library_search_directories"],
++        "//conditions:default": ["@rules_cc//cc/toolchains/args/runtime_library_search_directories:feature"],
++    }) + [
+         "@rules_cc//cc/toolchains/args/shared_flag:feature",
+         ":strip_debug_symbols",
+         "@rules_cc//cc/toolchains/args/strip_flags:feature",
+diff --git a/toolchain/cc_toolchain.bzl b/toolchain/cc_toolchain.bzl
+index b68c1ea..6c1ca3a 100644
+--- a/toolchain/cc_toolchain.bzl
++++ b/toolchain/cc_toolchain.bzl
+@@ -155,7 +155,7 @@ def cc_toolchain(
+             ],
+             "@platforms//os:windows": [
+                 "@llvm//toolchain/features:static_link_cpp_runtimes",
+-                "@llvm//toolchain/features/runtime_library_search_directories:feature",
++                # No runtime_library_search_directories: PE/COFF has no rpath.
+                 "@rules_cc//cc/toolchains/args/def_file:def_file",
+                 "@llvm//toolchain/features:targets_windows",
+             ],

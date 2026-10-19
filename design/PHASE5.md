@@ -174,6 +174,46 @@ overlay.
   (`qguiapplication.cpp`, `qopenglcontext.cpp`, `vk_mem_alloc.h`). `.bazelrc` adds
   `-Wno-thread-safety-analysis` for `external/qt*+/` sources, through `--per_file_copt` and
   `--host_per_file_copt` (tools). Consumers' own code keeps the check.
+- Third-party dependencies. ICU, libx11 (`config.h` macro redefinitions), libxcb's generated
+  protocol sources, protobuf, glib, dbus, libffi and fontconfig account for over 1,500 warnings
+  per CI job. None of this code is ours to fix. `.bazelrc` compiles every non-Qt external
+  repository with `-w` (`.*external/(?!qt)[^/]+/.*`; the leading `.*` also matches generated
+  sources under `bazel-out/`), so any remaining warning is a Qt one.
+- `qtquick3d` assimp importer: drop the diagnostic-only `QT_ASCII_CAST_WARNINGS` define, because
+  the plugin relies on `QString(const char *)`. Upstream marks it `QT_SKIP_WARNINGS_ARE_ERRORS`.
+
+The flag changes miss every compile in the CI disk cache, so actions that had always been cache
+hits ran for the first time. That exposed two latent CI failures:
+
+- `qt_deploy` packaged with GNU-only `tar --sort/--mtime` and failed on macOS exec hosts
+  (bsdtar). `modules/qt/6.10.2/patches/qt_deploy_portable_tar.patch` falls back to a sorted
+  member list, reset mtimes and owner 0 on bsdtar. **Follow-up**: upstream it to `qt_bazel`.
+- `qsb`, like every QtGui binary and like upstream `libQt6Gui`, needs the glvnd runtime
+  libraries (`libGL`, `libGLX`, `libOpenGL`, `libEGL`). Neither Ubuntu 24.04 runner image
+  installs `libopengl0`, so the workflow now installs them on Linux runners.
+- The Windows `networklistmanager` plugin linked `-lruntimeobject`. MinGW builds that library
+  from an `.mri` archive script, and the hermetic `@llvm` MinGW only generates import libraries
+  from `.def` files. The plugin now links the eight `api-ms-win-*winrt*` components directly.
+- macOS `printsupport`: moc needs `cocoa.json` for `Q_PLUGIN_METADATA(FILE ...)`. This is the
+  same fix as `windows.json` in `f4f86ed`.
+- `qt_plugin_FixMe` (in `qt_bazel`'s `qt.bzl`) swallowed `linkopts` through `**kwargs`. The
+  macOS CoreLocation positioning plugin therefore never linked `-framework CoreLocation`, and
+  every macOS binary that pulls in `@qtpositioning//:position_plugins` failed to link
+  (`kCLLocationAccuracyBest`). `modules/qt/6.10.2/patches/qt_plugin_fixme_linkopts.patch`
+  forwards them. **Follow-up**: upstream it to `qt_bazel`.
+
+The first full CI rebuild also surfaced platform-only Qt warnings, now fixed the way upstream
+does it, or as narrowly as one target allows:
+
+| Warning | Fix |
+|---|---|
+| `NSOpenGLContext` deprecated (`qcocoanativeinterface.mm`) | `GL_SILENCE_DEPRECATION` on macOS `gui`. Upstream defines it for every Apple target. |
+| CoreVideo OpenGL texture cache deprecated (`qffmpeghwaccel_videotoolbox.mm`) | `COREVIDEO_SILENCE_GL_DEPRECATION` and `GL_SILENCE_DEPRECATION` on the macOS FFmpeg plugin |
+| `CGWindowListCreateImage` deprecated in macOS 14 (`qcgwindowcapture.mm`) | `-Wno-deprecated-declarations` on the macOS FFmpeg plugin. It is only deprecated relative to our 14.0 deployment target, which is newer than upstream's. |
+| `-Wnonnull-compare` unknown (`D3D12MemAlloc.cpp`, a GCC-only pragma) | `-Wno-unknown-warning-option` on Windows `gui` |
+| unused `CLSD_SpVoice` (`qtexttospeech_sapi.cpp`) | `-Wno-unused-const-variable` on the SAPI plugin |
+| `lld: -rpath has no effect on PE/COFF targets` (every Windows link) | `patches/llvm/mingw_no_rpath.patch`: on Windows, the MinGW dialect uses `@llvm`'s existing no-op `coff_runtime_library_search_directories` (as clang-cl already does) and drops the rpath workaround feature |
+| `-Wextra-tokens` from `mingw-w64-crt/def-include/func.def.in` (import-library generation, a custom action that `--per_file_copt` does not reach) | `patches/llvm/mingw_def_extra_tokens.patch`, next to the existing `-Wno-invalid-pp-token` |
 
 ### Milestone 5.1: qtmqtt
 
