@@ -1,16 +1,5 @@
 {
-    "integrity": "sha256-yvhOeB2PMKyCk/kJPeNbY7XxSM9GYS+uSKwNdmdcl6Y=",
+    "integrity": "sha256-JYxbZHRmItCmKyPXnLJ5LSSV/Hqfgzbt6DNWua4GXMw=",
     "strip_prefix": "qt_bazel-6.10.2",
-    "url": "https://github.com/asymingt/qt_bazel/archive/refs/tags/6.10.2.tar.gz",
-    "overlay": {
-        "BUILD.bazel": "sha256-IC5VmG9OFx4hPnRce1Zg7zFThECmnZoYsUNWXuKq5Hw=",
-        "LICENSE": "sha256-0BCVYvCLVrenUFhowTOnFjH9mPvDWtMhvN8el/j47Y0=",
-        "MODULE.bazel": "sha256-Hs2x3gvn6957qFnX5C0dX5SYXrjhjDVTu1mLcvXxrsE=",
-        "qt.bzl": "sha256-dP2r0ZREGfXp4J5VWw3HV6IXI6h3RbnKqJZWA6zadxA=",
-        "qt_deploy.bzl": "sha256-CV4hE/awTiyvXA/gjdXVOfVUONE+jlXoYZLs1HbwANY=",
-        "qt_internal_library.bzl": "sha256-rcpqECoSwmcXcaSsa9hBmDPhpAZZNWlviPSRG7/XoOY=",
-        "qt_protobuf.bzl": "sha256-qmXK8yCn7J9aHIHOhMC9KAg21dgo9tdHuyfFR+LW1y0=",
-        "qt_tools.bzl": "sha256-KSDOvNpg95L5cqhQbk9rw1Xrlb7mG4jIOsCScqR40b4=",
-        "qt_wayland.bzl": "sha256-FG2oQTvnkI1ocmvreDF0GVXuivTkl4SVjzT/bFtgUfk="
-    }
+    "url": "https://github.com/asymingt/qt_bazel/archive/refs/tags/6.10.2.tar.gz"
 }
