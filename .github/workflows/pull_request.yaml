@@ -16,18 +16,30 @@
 # the per-(host, target) Bazel disk caches are keyed, restored, pruned and saved.
 #
 # `push` on main is included only so that the Bazel caches get seeded from the
-# default branch; PR runs then restore from those caches (actions/cache scope).
+# default branch: GitHub lets every PR restore caches saved on main, but a PR
+# can never read another PR's caches. A main run therefore only builds and
+# saves (no tests, no `last_rc` stage, which never saves); PR runs then restore
+# from those caches (actions/cache scope). cache_cleanup.yaml deletes a PR's
+# own caches when it is closed.
 name: Pull Request
 
 on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "design/**"
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Superseded PR runs are cancelled; a main run always finishes, so a quick
+  # follow-up merge cannot leave main without a complete cache set.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -56,7 +68,8 @@ jobs:
       stage: 9x
       host: ${{ matrix.host }}
       target: ${{ matrix.host }}
-      test: true
+      # Main runs only seed the caches; PRs already ran the tests.
+      test: ${{ github.event_name != 'push' }}
 
   cross-9x:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel 9.x
@@ -103,6 +116,7 @@ jobs:
   native-last-rc:
     name: native ${{ matrix.host }} / bazel last_rc
     needs: [native-9x]
+    if: github.event_name != 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -124,6 +138,7 @@ jobs:
   cross-last-rc:
     name: cross ${{ matrix.host }} -> ${{ matrix.target }} / bazel last_rc
     needs: [cross-9x]
+    if: github.event_name != 'push'
     strategy:
       fail-fast: false
       matrix:
