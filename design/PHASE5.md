@@ -212,7 +212,6 @@ does it, or as narrowly as one target allows:
 | `CGWindowListCreateImage` deprecated in macOS 14 (`qcgwindowcapture.mm`) | `-Wno-deprecated-declarations` on the macOS FFmpeg plugin. It is only deprecated relative to our 14.0 deployment target, which is newer than upstream's. |
 | `-Wnonnull-compare` unknown (`D3D12MemAlloc.cpp`, a GCC-only pragma) | `-Wno-unknown-warning-option` on Windows `gui` |
 | unused `CLSD_SpVoice` (`qtexttospeech_sapi.cpp`) | `-Wno-unused-const-variable` on the SAPI plugin |
-| `lld: -rpath has no effect on PE/COFF targets` (every Windows link) | `patches/llvm/mingw_no_rpath.patch`: on Windows, the MinGW dialect uses `@llvm`'s existing no-op `coff_runtime_library_search_directories` (as clang-cl already does) and drops the rpath workaround feature |
 | `-Wextra-tokens` from `mingw-w64-crt/def-include/func.def.in` (import-library generation, a custom action that `--per_file_copt` does not reach) | `patches/llvm/mingw_def_extra_tokens.patch`, next to the existing `-Wno-invalid-pp-token` |
 
 ### Milestone 5.1: qtmqtt
@@ -266,5 +265,11 @@ certificate-less client. Every other warning would show up in the test log.
 3. **OPC UA over an encrypted channel** in tests. This needs a test PKI (CA, server and client
    certificates). The current test only proves that encryption support is compiled in.
 4. **MQTT over WebSockets** in tests. The transport is built but only exercised at link time.
-5. **BCR upstreaming** of the three modules once `qt_bazel` and the other Qt modules are
+5. **`lld: warning: parameter -rpath has no effect on PE/COFF targets`** on Windows links remains.
+   Disabling the rpath features for MinGW in `@llvm` (tried in `6561e03`) silenced it but
+   broke Windows exec-host links: without `runtime_library_search_directories`, dynamic
+   libraries are no longer linked from Bazel's `_solib_*` directory, so `lld`'s `-l` search
+   hit an undeclared runtime copy of `libzlib_shared.dll` ("Permission denied"). A real fix
+   belongs in `@llvm`/rules_cc: emit `-rpath` only for ELF/Mach-O while keeping the feature.
+6. **BCR upstreaming** of the three modules once `qt_bazel` and the other Qt modules are
    published there.
