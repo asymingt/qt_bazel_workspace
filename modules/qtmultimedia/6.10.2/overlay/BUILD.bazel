@@ -1199,11 +1199,12 @@ _HOST_IS_CASE_INSENSITIVE = (
     "@platforms//os:osx" in HOST_CONSTRAINTS
 )
 
-qt_write_file(
-    name = "win_d3d11_h",
-    out = "D3d11.h",
-    content = "#include_next <d3d11.h>\n",
-)
+if not _HOST_IS_CASE_INSENSITIVE:
+    qt_write_file(
+        name = "win_d3d11_h",
+        out = "D3d11.h",
+        content = "#include_next <d3d11.h>\n",
+    )
 
 _WIN_D3D11_SHIM_HDRS = [] if _HOST_IS_CASE_INSENSITIVE else [":win_d3d11_h"]
 
