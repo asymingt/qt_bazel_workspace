@@ -5344,6 +5344,11 @@ qt_internal_library(
             "@qtbase//:gui_moc_hdrs",
         ],
     },
+    target_compatible_with = select({
+        "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         ":qml",
         ":quick",
@@ -5378,6 +5383,11 @@ qt_static_plugin(
     moc_opts = ["-Muri=QtQuick.NativeStyle"],
     moc_srcs = ["src/quicknativestyle/qtquickcontrols2nativestyleplugin.cpp"],
     plugin_class_name = "QtQuickControls2NativeStylePlugin",
+    target_compatible_with = select({
+        "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         ":qml",
         ":qquicklayoutsplugin",
