@@ -2,8 +2,12 @@
     "integrity": "sha256-t2lAi/Sj0DIgMx1d5ZY2/fl6IYMdAdP9FBw2xpg1W8E=",
     "strip_prefix": "qtdatavis3d-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtdatavis3d-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtdatavis3d-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtdatavis3d-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
         "BUILD.bazel": "sha256-xI19FM3Zkw6NlSJcSBJIl/8pDS5MAj11rEnFHtLZNYI=",
-        "MODULE.bazel": "sha256-LEGTi0004XfNsKc2FIzdM2DuuLGP0WXEjLsvyOwtV1o="
+        "MODULE.bazel": "sha256-JhhWaW0SNcghQxeOkOTDu1dusOFtotxlV+GEtMo17jU="
     }
 }

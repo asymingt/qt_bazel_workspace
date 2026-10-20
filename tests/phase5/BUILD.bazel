@@ -2,16 +2,11 @@ load("@qt//:qt.bzl", "qt_cc_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 # Phase 5 (design/PHASE5.md): qtmqtt, qtcoap and qtopcua.
-#
-# The new modules are not yet in qt_bazel's library -> cc_shared_library map
-# (QT_SHARED_LIBS), so their shared libraries are listed in `dynamic_deps`
-# explicitly; Qt Core/Network/Gui/Qml/Quick are still resolved automatically.
 
 # M5.1: QtMqtt client against an in-process MQTT 3.1.1 broker.
 qt_cc_test(
     name = "mqtt_test",
     srcs = ["mqtt_test.cc"],
-    dynamic_deps = ["@qtmqtt//:mqtt_shared"],
     moc_srcs = ["mqtt_test.cc"],
     deps = [
         "@qtbase//:core",
@@ -25,7 +20,6 @@ qt_cc_test(
 qt_cc_test(
     name = "coap_test",
     srcs = ["coap_test.cc"],
-    dynamic_deps = ["@qtcoap//:coap_shared"],
     moc_srcs = ["coap_test.cc"],
     deps = [
         "@qtbase//:core",
@@ -39,7 +33,6 @@ qt_cc_test(
 qt_cc_test(
     name = "opcua_test",
     srcs = ["opcua_test.cc"],
-    dynamic_deps = ["@qtopcua//:opcua_shared"],
     moc_srcs = ["opcua_test.cc"],
     deps = [
         "@qtbase//:core",
@@ -66,10 +59,6 @@ cc_library(
 qt_cc_test(
     name = "opcua_qml_test",
     srcs = ["opcua_qml_test.cc"],
-    dynamic_deps = [
-        "@qtopcua//:declarative_opcua_shared",
-        "@qtopcua//:opcua_shared",
-    ],
     env = {"QT_QPA_PLATFORM": "offscreen"},
     moc_srcs = ["opcua_qml_test.cc"],
     deps = [

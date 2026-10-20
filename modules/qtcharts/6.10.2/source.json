@@ -2,8 +2,12 @@
     "integrity": "sha256-QFEWtMXt7ZgUhMTBVOs5LUS2m1hzQvEZMYEXXjCfLAA=",
     "strip_prefix": "qtcharts-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtcharts-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtcharts-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtcharts-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-juHLoG4husP9Qw8MwqzcRDmoShvHHNJa1w/bgXSV5Co=",
-        "MODULE.bazel": "sha256-+qlVlN4NOaOPZvC5hdKpLtfDn6RCt2KoNoosp1Wl2uc="
+        "BUILD.bazel": "sha256-LD45YPKp9h6yZN+V38r/fGDovNHb5/K7wf5Xb7FZq0Q=",
+        "MODULE.bazel": "sha256-pATW8ERpOyIjlZwwGBSgNleksBuRaBTvQ/pNGOX8j+A="
     }
 }

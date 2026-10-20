@@ -7,7 +7,7 @@
         "https://www.x.org/releases/individual/xcb/xcb-util-image-0.4.1.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-M8xM0+nsPzgT/EUKSOEZvP7+E0LEm+Nt4t/vefmL6lY=",
-        "MODULE.bazel": "sha256-j20/r5BD0U9+bH8Komdsihh6kHicyZKu04hAMBNeCks="
+        "BUILD.bazel": "sha256-XIktrc6lBHl6m2r+zLcbdxE6O4/4JyC/nyPNyDdwjZo=",
+        "MODULE.bazel": "sha256-An8wNBgVQCkSNvJ0DxD9MFKCk6TLCBiPEiO2vQM5mHo="
     }
 }

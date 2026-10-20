@@ -2,8 +2,12 @@
     "integrity": "sha256-pdhregeDOg8r0gMEK7wVbsZYj9lX8Ao8FmeIQQ6kAow=",
     "strip_prefix": "qtlottie-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtlottie-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtlottie-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtlottie-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
         "BUILD.bazel": "sha256-ArdE/7tU80RaC6UGredLSuq0xlOSj23lpAFXdDL8s9c=",
-        "MODULE.bazel": "sha256-VWmJMTtr3LnHSSUAN6c3HiTVo3fPpFTzvwapwacpkIg="
+        "MODULE.bazel": "sha256-vjHNsbTb0K4PJ0lOspsSNuma2UnxL0nI7XnXxaXhRpQ="
     }
 }

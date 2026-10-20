@@ -2,14 +2,17 @@
     "integrity": "sha256-rreNKSkaK1/VPLVZUPj1BltJeMJfsdd/Yn1pWrmt8h4=",
     "strip_prefix": "qtbase-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-4thReadPRot/M6Ggrk4nFPNh4uSCS2OHTWpXT+dvAWQ=",
-        "MODULE.bazel": "sha256-IbbXlgPu0qydXkTt4xjUyVKwYCFyvtKazl9Y2VQ5jHM=",
-        "atspi/atspi-constants.h": "sha256-OhxYUoQvLr+ITw1lALSwBfBlrbdtwBL3tuoLYwCoB5Y=",
-        "atspi/atspi.h": "sha256-39fn3Thwv+Df0C/vqsB0LK9rDDEvqjyUidVFSmuiCeQ=",
-        "moltenvk/mvk_vulkan.h": "sha256-Xg/lVqtnt30x7z2RaAjUwmnsg2iYxYAIOZOYWdyfAIU=",
-        "qt_gl_stub_gen.cc": "sha256-V+GV4qItM6vlxj8T5deZ+tTrAdRcs3hBDHvBMj6r8L8=",
+        "BUILD.bazel": "sha256-F9DtbsGuicOb4yfVLvJGJFWfoOp7MXzZxKIAq6Km7L8=",
+        "MODULE.bazel": "sha256-Y6pXAQvV1IhtIjr6kNyYBiPdlCS+JzCutMtHZaBXc2g=",
+        "atspi/atspi-constants.h": "sha256-rh4f2PjehchGGC6RFOHN3+pUkaQbEK2zc9RDhbhobRc=",
+        "atspi/atspi.h": "sha256-DMWKYVskOXUWECowiUUyUtjmbpxmCWMISmcY9G+Viw0=",
+        "moltenvk/mvk_vulkan.h": "sha256-6WZkY5riRmwaJWPSBbbRbQEZYac734niBdGKGhaIQvc=",
         "qt_mime_database_gen.cc": "sha256-GNmHjctomGpuAeboRwXcfD/3F/8Mb2+JV78K/nbXpCE=",
-        "qtbase_config.bzl": "sha256-FVYB1ZwOSIudjkI7G9YXCoD8o8xLyKYnVN8dztB0k8w="
+        "qtbase_config.bzl": "sha256-Hd3IYTsyaVctklKT4yL7VktrYFD0d80tOj6vsa7CX18="
     }
 }

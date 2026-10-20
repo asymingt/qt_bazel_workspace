@@ -2,8 +2,12 @@
     "integrity": "sha256-YnMlYJGoPz8oPRqRSYlk/WqRJWtmfXuemABdcx/bmGs=",
     "strip_prefix": "qtvirtualkeyboard-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtvirtualkeyboard-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtvirtualkeyboard-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtvirtualkeyboard-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-C/5X2nWOs/inQgKBLyEta7miI/7akGxRMHx5W4QWX7M=",
-        "MODULE.bazel": "sha256-YLa8khQCw5qxoqMXP6juIAIo5lRr+56CC046U7Tz2pA="
+        "BUILD.bazel": "sha256-C/J4jzebvLbXelu3r32WugOvFKc3VZqgqrCM9fAqNPc=",
+        "MODULE.bazel": "sha256-XNzdA8tQAKZ8lnuMrMvNRB3kBYxw9l4pppzvHEAHIpg="
     }
 }

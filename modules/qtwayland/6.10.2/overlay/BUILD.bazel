@@ -153,7 +153,7 @@ cc_library(
     deps = [
         ":wayland_client_features_sync_headers",
         "@qtbase//:core",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 # =============================================================================
@@ -494,7 +494,7 @@ WaylandOutputWindow 6.0 WaylandOutputWindow.qml
         "@qtdeclarative//:quick",
         "@wayland//:wayland_server",
         "@xkbcommon",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -530,7 +530,7 @@ qt_static_plugin(
         ":wayland_compositor",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 # =============================================================================
@@ -609,7 +609,7 @@ qt_internal_library(
         "@qtbase//:gui",
         "@qtbase//:opengl",
         "@wayland//:wayland_server",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 # =============================================================================
@@ -677,7 +677,7 @@ prefer :/qt-project.org/imports/QtWayland/Compositor/IviApplication/
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -715,7 +715,7 @@ qt_static_plugin(
         ":wayland_compositor_iviapplication",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_internal_library(
@@ -779,7 +779,7 @@ prefer :/qt-project.org/imports/QtWayland/Compositor/PresentationTime/
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -817,7 +817,7 @@ qt_static_plugin(
         ":wayland_compositor_presentationtime",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_server_protocol(
@@ -925,7 +925,7 @@ prefer :/qt-project.org/imports/QtWayland/Compositor/QtShell/
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
         "@wayland//:wayland_server",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -963,7 +963,7 @@ qt_static_plugin(
         ":wayland_compositor_qtshell",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_internal_library(
@@ -1027,7 +1027,7 @@ prefer :/qt-project.org/imports/QtWayland/Compositor/WlShell/
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -1065,7 +1065,7 @@ qt_static_plugin(
         ":wayland_compositor_wlshell",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_internal_library(
@@ -1129,7 +1129,7 @@ prefer :/qt-project.org/imports/QtWayland/Compositor/XdgShell/
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qml_plugin_gen(
@@ -1167,7 +1167,7 @@ qt_static_plugin(
         ":wayland_compositor_xdgshell",
         "@qtbase//:core",
         "@qtdeclarative//:qml",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 # =============================================================================
@@ -1253,7 +1253,7 @@ qt_static_plugin(
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
         "@wayland//:wayland_client",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_qmldir(
@@ -1312,7 +1312,7 @@ qt_static_plugin(
         "@qtbase//:gui",
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 # =============================================================================
@@ -1365,7 +1365,7 @@ qt_static_plugin(
         "@qtbase//:wayland_client",
         "@qtsvg//:svg",
         "@wayland//:wayland_client",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_client_protocol(
@@ -1424,7 +1424,7 @@ qt_static_plugin(
         "@qtbase//:wayland_client",
         "@wayland//:wayland_client",
         "@xkbcommon",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_client_protocol(
@@ -1478,7 +1478,7 @@ qt_static_plugin(
         "@qtbase//:wayland_client",
         "@wayland//:wayland_client",
         "@xkbcommon",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_static_plugin(
@@ -1529,7 +1529,7 @@ qt_static_plugin(
         "@qtbase//:core",
         "@qtbase//:gui",
         "@qtbase//:opengl",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_server_protocol(
@@ -1590,7 +1590,7 @@ qt_static_plugin(
         "@qtbase//:gui",
         "@qtbase//:opengl",
         "@wayland//:wayland_server",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_server_protocol(
@@ -1653,7 +1653,7 @@ qt_static_plugin(
         "@qtbase//:gui",
         "@qtbase//:opengl",
         "@wayland//:wayland_server",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )
 
 qt_wayland_server_protocol(
@@ -1722,5 +1722,5 @@ qt_static_plugin(
         "@qtbase//:opengl",
         "@wayland//:wayland_egl",
         "@wayland//:wayland_server",
-    ],
+    ],    target_compatible_with = ["@platforms//os:linux"],
 )

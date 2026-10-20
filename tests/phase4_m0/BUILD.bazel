@@ -44,10 +44,8 @@ qt_cc_library(
 )
 
 # F-DEP-1: Simulate a non-Qt shared library (like librclcpp.so in ROS 2) that
-# exports @rules_cc//cc/runfiles:runfiles and uses @zlib in the same binary
-# graph as @qtbase//:core_shared. zlib is shared through @zlib//:zlib_shared
-# (the pattern recommended for downstream libraries) rather than embedded, so
-# there is exactly one copy of zlib in the process.
+# exports @rules_cc//cc/runfiles:runfiles and @zlib in the same binary graph as
+# @qtbase//:core_shared.
 cc_library(
     name = "non_qt_shared_helper",
     testonly = True,
@@ -61,8 +59,10 @@ cc_library(
 cc_shared_library(
     name = "non_qt_shared_helper_shared",
     testonly = True,
-    dynamic_deps = ["@zlib//:zlib_shared"],
-    exports_filter = ["@rules_cc//cc/runfiles"],
+    exports_filter = [
+        "@rules_cc//cc/runfiles",
+        "@zlib//:__subpackages__",
+    ],
     shared_lib_name = select({
         "@platforms//os:windows": "libnon_qt_shared_helper_shared.dll",
         "//conditions:default": "",

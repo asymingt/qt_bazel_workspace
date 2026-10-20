@@ -2,9 +2,13 @@
     "integrity": "sha256-k/fvAQb71zEWWicj8+Q2yRH8XmiA9byYe1VRbCCDPis=",
     "strip_prefix": "qtmultimedia-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-HEW/Z91qsqsr+457o3RuJ1KFgXdxYEpDN2Kw07BWazM=",
-        "MODULE.bazel": "sha256-PhXTQQkK2ZJrcLCNBUGwhOoNzmAcP9PRwryqOVI5dTc=",
+        "BUILD.bazel": "sha256-bwBmszrC9CRZfoh3rdg1JjArl+fLQEdYV5Q2OZkN1sk=",
+        "MODULE.bazel": "sha256-LHvInBno0MkDJ6bmlKuuBR7YN3rRMfk7cJdXPXAjiu8=",
         "pulse/cdecl.h": "sha256-VAkxZGk2GJnh3+TMhDfGC1o9Gea7mg8s8euwbDrMFJ0=",
         "pulse/channelmap.h": "sha256-dKFhXg46boV34vZoGFoi2fCbS1ylxhW/tH2ZHHbcD3E=",
         "pulse/context.h": "sha256-nBHxyYLJkOEiWS7H5CjMjPB9e/vaF3o3qzTY+2gqluM=",
@@ -34,7 +38,7 @@
         "pulse/timeval.h": "sha256-4fqPHIbu2Vgoc3w+Ta7Zp5DPQ4jFVtEnhUNwonwIuhg=",
         "pulse/utf8.h": "sha256-pPznRe55fv0LYDErBe1WBsZBENzub+EqpdFymwvMs+8=",
         "pulse/util.h": "sha256-b7Zw4u873Zti3AQ771ZPJlxAGVAfv51aT2h/igxJ0WY=",
-        "pulse/version.h": "sha256-1jDIYCAxEY7o8jTZERr0Qfmd9Euh449i9QwST/ac4iE=",
+        "pulse/version.h": "sha256-hN67fiRcAWTwS+pGoMHK4jZE1vB0Upq2EQdcGuk/2xQ=",
         "pulse/volume.h": "sha256-i38CBZ+LDzoH+aNAhhYFpO4v0bfzFF1NdzS9LtdmGUI=",
         "pulse/xmalloc.h": "sha256-PAMlCznRzy9Ln299uA+7sWdyU7KWhN3anrlAzQDyfDE=",
         "qtmultimedia_config.bzl": "sha256-9oV3QP7z7iFRaAnEV1Gi3UBeL6isy7GR5yH8VLyf5VA=",

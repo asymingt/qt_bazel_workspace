@@ -1,11 +1,9 @@
 load(
     "@qt//:qt.bzl",
-    "QT_SHARED_PLATFORM_LINKOPTS",
     "qt_export_header",
     "qt_module_headers",
     "qt_qml_module",
 )
-load("@rules_cc//cc:defs.bzl", "cc_shared_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -70,10 +68,7 @@ qt_qml_module(
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
     ],
-)
-
-cc_shared_library(
-    name = "quicktimeline_shared",
+    create_shared = True,
     dynamic_deps = [
         "@qtdeclarative//:quick_shared",
         "@qtdeclarative//:qmlmeta_shared",
@@ -87,12 +82,6 @@ cc_shared_library(
         "@platforms//os:windows": [],
         "//conditions:default": ["@qtbase//:dbus_shared"],
     }),
-    shared_lib_name = select({
-        "@platforms//os:windows": "libquicktimeline_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":quicktimeline"],
 )
 
 # ============================================================================
@@ -145,10 +134,7 @@ qt_qml_module(
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
     ],
-)
-
-cc_shared_library(
-    name = "quicktimelineblendtrees_shared",
+    create_shared = True,
     dynamic_deps = [
         ":quicktimeline_shared",
         "@qtdeclarative//:quick_shared",
@@ -163,10 +149,5 @@ cc_shared_library(
         "@platforms//os:windows": [],
         "//conditions:default": ["@qtbase//:dbus_shared"],
     }),
-    shared_lib_name = select({
-        "@platforms//os:windows": "libquicktimelineblendtrees_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":quicktimelineblendtrees"],
 )
+

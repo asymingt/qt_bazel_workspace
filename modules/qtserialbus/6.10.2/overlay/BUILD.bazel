@@ -1,7 +1,7 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library", "qt_static_plugin")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load("@qt//:qt_tools.bzl", "moc_gen", "moc_out_copts", "qt_sync_headers", "qt_write_file")
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -153,7 +153,12 @@ qt_internal_library(
     ],
     hdrs = glob(["src/serialbus/*.h"]) + [":serialbus_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+        "@qtserialport//:serialport_shared",
+    ],
     defines = ["QT_SERIALBUS_LIB"],
     includes = ["src/serialbus"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_SERIALBUS_LIB"],
@@ -179,21 +184,6 @@ qt_internal_library(
         "@qtbase//:network",
         "@qtserialport//:serialport",
     ],
-)
-
-cc_shared_library(
-    name = "serialbus_shared",
-    dynamic_deps = [
-        "@qtbase//:core_shared",
-        "@qtbase//:network_shared",
-        "@qtserialport//:serialport_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libserialbus_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":serialbus"],
 )
 
 qt_static_plugin(

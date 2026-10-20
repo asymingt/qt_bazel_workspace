@@ -72,6 +72,9 @@ test:ci --test_output=errors
 # to OutputDebugString, leaving test.log empty. Force it to stderr/stdout.
 test --test_env=QT_FORCE_STDERR_LOGGING=1
 
+# Full module + workspace target set (`bazel build --config=qt`).
+build:qt --target_pattern_file=qt.txt
+
 # Address sanitizer
 common:asan --strip=never
 common:asan --@llvm//config:asan

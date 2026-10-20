@@ -1,7 +1,7 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library", "qt_static_plugin")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load("@qt//:qt_tools.bzl", "qt_dbus_interface", "qt_qml_plugin_gen", "qt_sync_headers", "qt_write_file")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -119,7 +119,8 @@ qt_internal_library(
     srcs = glob(["src/sensors/*.cpp"]),
     hdrs = glob(["src/sensors/*.h"]) + [":sensors_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = ["@qtbase//:core_shared"],
     defines = ["QT_SENSORS_LIB"],
     includes = ["src/sensors"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_SENSORS_LIB"],
@@ -151,17 +152,6 @@ qt_internal_library(
     ],
 )
 
-cc_shared_library(
-    name = "sensors_shared",
-    dynamic_deps = ["@qtbase//:core_shared"],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libsensors_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":sensors"],
-)
-
 qt_sync_headers(
     name = "sensorsquick_sync_headers",
     srcs = glob(["src/sensorsquick/*.h"]),
@@ -179,7 +169,12 @@ qt_internal_library(
     srcs = glob(["src/sensorsquick/*.cpp"]),
     hdrs = glob(["src/sensorsquick/*.h"]) + [":sensorsquick_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        ":sensors_shared",
+        "@qtbase//:core_shared",
+        "@qtdeclarative//:qml_shared",
+    ],
     defines = ["QT_SENSORSQUICK_LIB"],
     includes = ["src/sensorsquick"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_SENSORSQUICK_LIB"],
@@ -226,21 +221,6 @@ prefer :/qt-project.org/imports/QtSensors/
         "@qtbase//:core",
         "@qtdeclarative//:qml",
     ],
-)
-
-cc_shared_library(
-    name = "sensorsquick_shared",
-    dynamic_deps = [
-        ":sensors_shared",
-        "@qtbase//:core_shared",
-        "@qtdeclarative//:qml_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libsensorsquick_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":sensorsquick"],
 )
 
 qt_qml_plugin_gen(

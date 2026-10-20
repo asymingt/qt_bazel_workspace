@@ -15,6 +15,14 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 HDRS = [
     "image/xcb_bitops.h",
     "image/xcb_image.h",
@@ -25,7 +33,7 @@ cc_library(
     name = "image_prefixed_hdrs",
     hdrs = HDRS,
     include_prefix = "xcb",
-    strip_include_prefix = "image",
+    strip_include_prefix = "image",    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -39,7 +47,7 @@ cc_library(
         "@libxcb",
         "@libxcb-util",
         "@xorgproto",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 alias(

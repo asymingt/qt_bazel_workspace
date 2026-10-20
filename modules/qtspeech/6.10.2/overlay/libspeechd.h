@@ -1,4 +1,11 @@
-// Minimal Speech Dispatcher C API header for hermetic QtTextToSpeech SpeechDispatcher plugin build.
+// Minimal Speech Dispatcher C API header for the hermetic QtTextToSpeech
+// SpeechDispatcher plugin build. Written for this overlay rather than copied,
+// but it reproduces declarations from speechd 0.11.5's public API
+// (src/api/c/libspeechd.h and include/speechd_types.h): the enum values,
+// SPDVoice, and the public callback fields at the start of SPDConnection
+// (the private fields are omitted; Qt only writes the callbacks). It is
+// therefore licensed like upstream, LGPL-2.1-or-later. libspeechd.so.2 is
+// resolved at runtime (see qtexttospeech_speechd_symbolloader.cpp).
 #ifndef LIBSPEECHD_H
 #define LIBSPEECHD_H
 

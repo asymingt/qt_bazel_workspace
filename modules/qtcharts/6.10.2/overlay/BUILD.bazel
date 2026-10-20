@@ -1,7 +1,7 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library", "qt_static_plugin")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load("@qt//:qt_tools.bzl", "qt_qml_plugin_gen", "qt_sync_headers", "qt_write_file")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -176,7 +176,17 @@ qt_internal_library(
         ],
     ) + [":charts_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:opengl_shared",
+        "@qtbase//:openglwidgets_shared",
+        "@qtbase//:widgets_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     defines = ["QT_CHARTS_LIB"],
     includes = [
         "src/charts",
@@ -380,26 +390,6 @@ qt_internal_library(
     ],
 )
 
-cc_shared_library(
-    name = "charts_shared",
-    dynamic_deps = [
-        "@qtbase//:core_shared",
-        "@qtbase//:gui_shared",
-        "@qtbase//:opengl_shared",
-        "@qtbase//:openglwidgets_shared",
-        "@qtbase//:widgets_shared",
-    ] + select({
-        "@platforms//os:windows": [],
-        "//conditions:default": ["@qtbase//:dbus_shared"],
-    }),
-    shared_lib_name = select({
-        "@platforms//os:windows": "libcharts_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":charts"],
-)
-
 qt_sync_headers(
     name = "chartsqml_sync_headers",
     srcs = glob(["src/chartsqml2/*.h"]),
@@ -419,7 +409,24 @@ qt_internal_library(
     srcs = glob(["src/chartsqml2/*.cpp"]),
     hdrs = glob(["src/chartsqml2/*.h"]) + [":chartsqml_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        ":charts_shared",
+        "@qtbase//:core_shared",
+        "@qtbase//:gui_shared",
+        "@qtbase//:network_shared",
+        "@qtbase//:opengl_shared",
+        "@qtbase//:openglwidgets_shared",
+        "@qtbase//:widgets_shared",
+        "@qtdeclarative//:qml_shared",
+        "@qtdeclarative//:qmlmeta_shared",
+        "@qtdeclarative//:qmlmodels_shared",
+        "@qtdeclarative//:qmlworkerscript_shared",
+        "@qtdeclarative//:quick_shared",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@qtbase//:dbus_shared"],
+    }),
     defines = ["QT_CHARTSQML_LIB"],
     includes = ["src/chartsqml2"],
     local_defines = _COMMON_DEFINES + [
@@ -481,33 +488,6 @@ designersupported
         "@qtdeclarative//:qml",
         "@qtdeclarative//:quick",
     ],
-)
-
-cc_shared_library(
-    name = "chartsqml_shared",
-    dynamic_deps = [
-        ":charts_shared",
-        "@qtbase//:core_shared",
-        "@qtbase//:gui_shared",
-        "@qtbase//:network_shared",
-        "@qtbase//:opengl_shared",
-        "@qtbase//:openglwidgets_shared",
-        "@qtbase//:widgets_shared",
-        "@qtdeclarative//:qml_shared",
-        "@qtdeclarative//:qmlmeta_shared",
-        "@qtdeclarative//:qmlmodels_shared",
-        "@qtdeclarative//:qmlworkerscript_shared",
-        "@qtdeclarative//:quick_shared",
-    ] + select({
-        "@platforms//os:windows": [],
-        "//conditions:default": ["@qtbase//:dbus_shared"],
-    }),
-    shared_lib_name = select({
-        "@platforms//os:windows": "libchartsqml_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":chartsqml"],
 )
 
 qt_qml_plugin_gen(

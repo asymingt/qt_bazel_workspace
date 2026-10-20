@@ -31,7 +31,18 @@ license(
     license_text = "LICENSES/LGPL-3.0-only.txt",
 )
 
-exports_files(["LICENSES/LGPL-3.0-only.txt"])
+license(
+    name = "license_atspi",
+    license_kinds = [
+        "@rules_license//licenses/spdx:LGPL-2.1-or-later",
+    ],
+    license_text = "atspi/atspi-constants.h",
+)
+
+exports_files([
+    "LICENSES/LGPL-3.0-only.txt",
+    "atspi/atspi-constants.h",
+])
 
 QT_VERSION = "6.10.2"
 
@@ -84,13 +95,6 @@ cc_binary(
     srcs = ["qt_mime_database_gen.cc"],
     visibility = ["//visibility:private"],
     deps = ["@zlib"],
-)
-
-cc_binary(
-    name = "qt_gl_stub_gen",
-    srcs = ["qt_gl_stub_gen.cc"],
-    linkstatic = True,
-    visibility = ["//visibility:private"],
 )
 
 declare_qtbase_config_targets()
@@ -1384,10 +1388,6 @@ qt_internal_library(
     }),
     cxxopts = ["-std=gnu++20"],
     defines = common_defines + ["QT_CORE_LIB"],
-    # zlib (used directly and via glib/freetype/libpng) comes from the single
-    # shared copy in @zlib//:zlib_shared. Every Qt shared library depends on
-    # core_shared, so they all inherit it and none embeds its own zlib.
-    dynamic_deps = ["@zlib//:zlib_shared"],
     # Third-party libraries linked statically into libcore_shared.so. They are
     # compiled with default visibility, so their symbols are exported and other
     # Qt shared libraries must reuse them instead of linking a second copy.
@@ -5428,7 +5428,6 @@ cc_binary(
         "_LARGEFILE64_SOURCE",
         "_LARGEFILE_SOURCE",
     ],
-    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":core",
         ":core_internal_cfg",

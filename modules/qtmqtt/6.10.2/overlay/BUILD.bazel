@@ -1,7 +1,6 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library")
 load("@qt//:qt_tools.bzl", "qt_export_header", "qt_sync_headers")
-load("@rules_cc//cc:defs.bzl", "cc_shared_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -73,7 +72,12 @@ qt_internal_library(
     ]),
     hdrs = MQTT_HDRS,
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+        "@qtwebsockets//:websockets_shared",
+    ],
     defines = ["QT_MQTT_LIB"],
     includes = [
         "src/mqtt",
@@ -101,17 +105,3 @@ qt_internal_library(
     ],
 )
 
-cc_shared_library(
-    name = "mqtt_shared",
-    dynamic_deps = [
-        "@qtbase//:core_shared",
-        "@qtbase//:network_shared",
-        "@qtwebsockets//:websockets_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libmqtt_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":mqtt"],
-)

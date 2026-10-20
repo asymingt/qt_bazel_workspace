@@ -69,6 +69,16 @@ license(
     license_text = "src/3rdparty/signalsmith-stretch/LICENSE.txt",
 )
 
+# Vendored PulseAudio v17.0 client headers (pulse/*.h), used on Linux for
+# compile-time type declarations by qpulseaudio_symbolloader.cpp.
+license(
+    name = "license_pulseaudio",
+    license_kinds = [
+        "@rules_license//licenses/spdx:LGPL-2.1-or-later",
+    ],
+    license_text = "pulse/version.h",
+)
+
 _COMMON_DEFINES = common_defines + [
     "QT_BUILDING_QT",
     "QT_LEAN_HEADERS=1",
@@ -527,6 +537,7 @@ qt_internal_library(
     applicable_licenses = [
         ":license",
         ":license_dr_libs",
+        ":license_pulseaudio",
     ],
     defines = ["QT_MULTIMEDIA_LIB"],
     dynamic_deps = [
@@ -1136,11 +1147,13 @@ qt_static_plugin(
 # ---------------------------------------------------------------------------
 # FFmpeg Media Plugin (`ffmpegmediaplugin_impl` + `qffmpegmediaplugin`)
 # ---------------------------------------------------------------------------
+cc_library(
+    name = "ffmpeg_linkable_hint",
+    deps = ["@qt//:runfiles_linkable_hint"],
+)
+
 cc_shared_library(
     name = "ffmpeg_shared",
-    # FFmpeg uses zlib; share the single copy from @zlib//:zlib_shared (also
-    # used by core_shared) instead of embedding a second one.
-    dynamic_deps = ["@zlib//:zlib_shared"],
     exports_filter = [
         "@ffmpeg//:__subpackages__",
         # FFmpeg links OpenSSL (https/tls protocols); export the single copy so
@@ -1152,6 +1165,7 @@ cc_shared_library(
         "//conditions:default": "",
     }),
     deps = [
+        ":ffmpeg_linkable_hint",
         "@ffmpeg//:avcodec",
         "@ffmpeg//:avformat",
         "@ffmpeg//:avutil",
@@ -1394,6 +1408,7 @@ qt_internal_library(
         "src/plugins/multimedia/ffmpeg/qffmpegaudioinput.cpp",
     ],
     moc_unity = True,
+    dynamic_deps = [":ffmpeg_shared"],
     deps = [
         ":multimedia",
         "@ffmpeg//:avcodec",

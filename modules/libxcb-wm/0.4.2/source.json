@@ -8,7 +8,7 @@
         "https://ftp.x.org/pub/individual/xcb/xcb-util-wm-0.4.2.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-BY0c5Y673OLdTCXZMJvUFAYqTzPtYMthKHHjtbu8qj4=",
-        "MODULE.bazel": "sha256-AXkRnKWDXRPAZX8/25pc4kkD1+Fj48lSQSl0S9sqJ78="
+        "BUILD.bazel": "sha256-1MMUvIVLztVf0C8MAecImMHrnObiLmYNywfRhvWp1wc=",
+        "MODULE.bazel": "sha256-4HcM8zsB5ljBqRc7ANJP+MvrQFMEGSPMlIat9Mk1VJI="
     }
 }

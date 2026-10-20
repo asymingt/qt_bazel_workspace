@@ -1,3 +1,11 @@
+/*
+ * Vendored from PulseAudio v17.0 (tag v17.0, commit
+ * 1f020889c9aa44ea0f63d7222e8c2b62c3f45f68), LGPL-2.1-or-later.
+ * The other pulse/*.h headers are byte-identical copies of src/pulse/ at that
+ * tag; this file is src/pulse/version.h.in with the values from v17.0's
+ * meson.build substituted. Only used for declarations: qpulseaudio_symbolloader
+ * loads libpulse.so.0 at runtime.
+ */
 #ifndef fooversionhfoo /*-*-C-*-*/
 #define fooversionhfoo
 

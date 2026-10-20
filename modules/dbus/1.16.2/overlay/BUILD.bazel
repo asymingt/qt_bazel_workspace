@@ -20,6 +20,14 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 autoconf(
     name = "config_checks",
     checks = DBUS_CONFIG_CHECKS,
@@ -130,11 +138,11 @@ cc_library(
         "DBUS_COMPILATION",
         "HAVE_CONFIG_H",
     ],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:public"],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_shared_library(
     name = "dbus_shared",
     deps = [":dbus"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:public"],    target_compatible_with = _UNIX_COMPATIBLE,
 )
