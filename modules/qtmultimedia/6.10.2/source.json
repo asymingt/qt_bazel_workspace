@@ -7,7 +7,7 @@
         "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtmultimedia-everywhere-src-6.10.2.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-JNX3bGHb7Qn2LVJ8T6N7epSF+wnigd5WEHzLp8l/cyg=",
+        "BUILD.bazel": "sha256-LWi9b1HSNEwkT8U7uQsuk4UrKH8PhWc7y4swkcXhNwc=",
         "MODULE.bazel": "sha256-LHvInBno0MkDJ6bmlKuuBR7YN3rRMfk7cJdXPXAjiu8=",
         "qtmultimedia_config.bzl": "sha256-9oV3QP7z7iFRaAnEV1Gi3UBeL6isy7GR5yH8VLyf5VA=",
         "pulse/cdecl.h": "sha256-VAkxZGk2GJnh3+TMhDfGC1o9Gea7mg8s8euwbDrMFJ0=",
