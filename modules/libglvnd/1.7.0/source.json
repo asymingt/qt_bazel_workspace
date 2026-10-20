@@ -5,7 +5,6 @@
     "overlay": {
         "BUILD.bazel": "sha256-TIiuJwOtizvqiOaDzWoU8TqiZcSZVjkGZGrPTnHivZk=",
         "MODULE.bazel": "sha256-Igavma7yeqt2XuKOyYeicAIzFXCu5w5p/N5ji44UfgM=",
-        "MODULE.bazel.lock": "sha256-hjH/oQe66nWii8thG5bIXG3x0AkW+3ZQn8OCpaZ0QR8=",
         "gl_stub_gen.cc": "sha256-T9+qikJraYlneiFAWIU2wlSKxhH7niHVNOjEbOaG3fU=",
         "glvnd_stubs.bzl": "sha256-hfFWRZmcvNrHO5inI2uC4w9avU4Ih7ALCseov9dkcwo="
     }
