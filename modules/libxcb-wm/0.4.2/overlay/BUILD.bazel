@@ -15,11 +15,19 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 cc_library(
     name = "icccm_prefixed_hdrs",
     hdrs = ["icccm/xcb_icccm.h"],
     include_prefix = "xcb",
-    strip_include_prefix = "icccm",
+    strip_include_prefix = "icccm",    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -32,7 +40,7 @@ cc_library(
         ":icccm_prefixed_hdrs",
         "@libxcb",
         "@xorgproto",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 alias(

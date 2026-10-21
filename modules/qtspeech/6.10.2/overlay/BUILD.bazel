@@ -19,6 +19,14 @@ license(
     license_text = "LICENSES/LGPL-3.0-only.txt",
 )
 
+license(
+    name = "license_speechd",
+    license_kinds = [
+        "@rules_license//licenses/spdx:LGPL-2.1-or-later",
+    ],
+    license_text = "libspeechd.h",
+)
+
 _COMMON_DEFINES = common_defines + [
     "QT_NO_QASCONST=1",
     "QT_NO_CONTEXTLESS_CONNECT=1",
@@ -196,6 +204,10 @@ qt_static_plugin(
         "libspeechd.h",
         "src/plugins/tts/speechdispatcher/qtexttospeech_speechd.h",
         "src/plugins/tts/speechdispatcher/qtexttospeech_speechd_plugin.h",
+    ],
+    applicable_licenses = [
+        ":license",
+        ":license_speechd",
     ],
     includes = [
         ".",

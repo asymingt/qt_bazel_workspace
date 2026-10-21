@@ -2,8 +2,12 @@
     "integrity": "sha256-keZRW3zrv642loYZM/U1nMMD3+gveEnPWhDfN4yO9YE=",
     "strip_prefix": "qtsensors-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtsensors-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtsensors-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtsensors-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-SWq55MpPZ8jdQPHCpn0RYflvKn9ruv6fB+ayIMATiUs=",
-        "MODULE.bazel": "sha256-TjLxDwDlKwzk9MWqdFfJWv8shbBh8PU53py/2tapT6I="
+        "BUILD.bazel": "sha256-kfg02O5u4U8knyk5jjfwLRlB9Dx73742ZBR8/JHnbH0=",
+        "MODULE.bazel": "sha256-eP8c9ezpJxSv8mhPMzgHpUDAJ1NM61i97QBJjxeU9hw="
     }
 }

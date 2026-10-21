@@ -9,7 +9,7 @@
         "https://ftp.x.org/pub/individual/xcb/xcb-util-renderutil-0.3.10.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-ptFIjCSnQLljPZIuqKsAwbHQ7KtNxOCFxRJSNX7p32E=",
-        "MODULE.bazel": "sha256-bjS2MHzT+HQmSkTfeCIY0vXCCFdMqK4s7fXXRwGOmhE="
+        "BUILD.bazel": "sha256-ecW8NSDrJTjcnxkhLYFMuIPvDNV/2icXZjHlLn8wEwk=",
+        "MODULE.bazel": "sha256-/TVRbu93dyZBez6JKUGXWa41UxsUX1O8Pr0acr6Wooo="
     }
 }

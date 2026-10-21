@@ -19,6 +19,14 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 autoconf(
     name = "config_checks",
     checks = LIBSM_CONFIG_CHECKS,
@@ -61,7 +69,7 @@ cc_library(
         "@libice",
         "@libxtrans",
         "@xorgproto",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 alias(

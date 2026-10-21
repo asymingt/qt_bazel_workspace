@@ -30,7 +30,10 @@ qt_cc_test(
     name = "deploy_test",
     srcs = ["deploy_test.cc"],
     data = [":probe_deploy"],
-    deps = ["@qtbase//:core"],
+    deps = [
+        "@qtbase//:core",
+        "@rules_cc//cc/runfiles",
+    ],
 )
 
 # F-RT-2: GUI-subsystem Windows binary and macOS .app layout (built on every

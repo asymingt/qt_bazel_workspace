@@ -6,7 +6,7 @@
         "https://src.fedoraproject.org/repo/pkgs/xcb-util/xcb-util-0.4.1.tar.xz/sha512/da67f2f017d2a1788dcf35f28d6956e171303a622a1dd085cd3d69fdb2ed77965d83c557cc926ebf9b32e905eb2cbb5921987250192d78a2f5edc4d437ed7d2b/xcb-util-0.4.1.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-F5sKEpa/OqpAZ9Lfz9JK0ywlpDUufEsoq5v/DOWF7yM=",
-        "MODULE.bazel": "sha256-wiJcSjOVu0Fg+6YN696vOOkC2b0HSmhkqU9FfJHQuCg="
+        "BUILD.bazel": "sha256-D7jmTezPQ1P5FqZN/w7ModpfHk3Ty7aAEZvPwjroV8o=",
+        "MODULE.bazel": "sha256-QONJSmuHqh69D9PYWpVkKyVg/sST7nYTOa1E6nn0MqI="
     }
 }

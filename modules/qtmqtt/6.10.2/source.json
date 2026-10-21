@@ -3,7 +3,7 @@
     "strip_prefix": "qtmqtt-6.10.2",
     "url": "https://github.com/qt/qtmqtt/archive/refs/tags/v6.10.2.tar.gz",
     "overlay": {
-        "BUILD.bazel": "sha256-7fMJob7ed8eUjuNWvLp6O3xEN/JpjOSyEPH501qRZ+U=",
-        "MODULE.bazel": "sha256-wxrNt14FliALlGf4t5+1EGzBS3gDmVuVSXvK25oyEco="
+        "BUILD.bazel": "sha256-OxWSdoNMsLMXY9dkDPlzK9knt5aLXl+7oTwDuAi7l0I=",
+        "MODULE.bazel": "sha256-JFZVwfUf2gKKxAkWy31azWO4b9bSqYeMbzK0mPBtWRI="
     }
 }

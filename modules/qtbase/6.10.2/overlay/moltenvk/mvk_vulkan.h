@@ -1,5 +1,8 @@
 /*
- * Minimal stand-in for MoltenVK's <MoltenVK/mvk_vulkan.h>.
+ * Minimal stand-in for MoltenVK's <MoltenVK/mvk_vulkan.h>, written for this
+ * overlay (no MoltenVK code is copied). On macOS, upstream's header
+ * (MoltenVK/MoltenVK/API/mvk_vulkan.h) defines VK_USE_PLATFORM_METAL_EXT and
+ * VK_USE_PLATFORM_MACOS_MVK and includes <vulkan/vulkan.h>; this does the same.
  *
  * Qt's cocoa QPA plugin includes this header when QT_FEATURE_vulkan is on.
  * MoltenVK itself is not linked: Qt dlopen()s the Vulkan loader at runtime,

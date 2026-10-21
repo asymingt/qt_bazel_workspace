@@ -2,8 +2,12 @@
     "integrity": "sha256-vGg/BE/nTc8GwrR/Mf/y2We1rIGJZiAQhpfcyULrZc0=",
     "strip_prefix": "qtremoteobjects-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtremoteobjects-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtremoteobjects-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtremoteobjects-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-SfonVXJJM3s6EVC93hZ4t5j4ynGAg3w0ntT02bhkRjg=",
-        "MODULE.bazel": "sha256-T8kErRqYn33exxOc7rf6d81dVfqrROK6M4G/7yfDydE="
+        "BUILD.bazel": "sha256-c0BUUSRRcMS18XColsFx0KE5b38swedZeaEj2NtXamk=",
+        "MODULE.bazel": "sha256-nPHVpkCrUJRW7z5/ZFeo+vevnZpbU4XcmA7LymilAEE="
     }
 }

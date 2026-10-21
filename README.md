@@ -15,16 +15,21 @@ them directly from here.
 
 ## Build status
 
-Latest `main` build with Bazel 9.x, by host (rows) and target (columns). The
-diagonal is a native build plus the full test suite; every other cell
-cross-compiles `//...` for the target platform. Cross builds only start once
-every native build is green, so a native failure shows the row's cross builds
-as skipped.
+Latest `main` build, by host (rows) and target (columns), once with Bazel 9.x
+and once with Bazel's latest release candidate (`last_rc`). The diagonal is a
+native build plus the full test suite; every other cell cross-compiles `//...`
+for the target platform. Cross builds only start once the jobs they depend on
+are green (all native builds for 9.x, all 9.x cross builds for `last_rc`), so a
+failure there shows them as skipped.
 
-[![Build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain)
+| Bazel 9.x | Bazel `last_rc` |
+| :---: | :---: |
+| [![Bazel 9.x build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_9x.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain) | [![Bazel last_rc build status matrix](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_last_rc.svg)](https://github.com/asymingt/qt_bazel_workspace/actions/workflows/pull_request.yaml?query=branch%3Amain) |
 
 The same data is available as
-[`build_status.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status.json).
+[`build_status_9x.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_9x.json)
+and
+[`build_status_last_rc.json`](https://raw.githubusercontent.com/asymingt/qt_bazel_workspace/status/build_status_last_rc.json).
 
 ## Why build Qt from source?
 
@@ -113,12 +118,37 @@ arm64 (see [Build status](#build-status) for what currently passes):
 | IoT / Industrial | `qtmqtt`, `qtcoap`, `qtopcua` (bundled open62541 backend, `QtOpcUa` QML module) |
 | Platform | `qtwayland`, `qtscxml`, plus the shared [`qt`](https://github.com/asymingt/qt_bazel) rules module |
 
-Plus a handful of small X11/D-Bus dependencies that are not (yet) in the BCR.
+Plus 10 small X11/D-Bus/GL dependencies not yet in the BCR (`dbus`, `libice`,
+`libsm`, `xkbcommon-x11`, `libglvnd` providing `<GL/glx.h>` and link-time
+`libGL`/`libGLX`/`libOpenGL`/`libEGL` stub DSOs, and `libxcb-util`,
+`libxcb-image`, `libxcb-render-util`, `libxcb-wm`, `libxcb-cursor` named with
+the `libxcb-` prefix to match `@libxcb` and `@libxcb-keysyms` in the BCR).
+
+### Licensing
+
+Every module declares its licenses with `@rules_license` `license()` targets. The main `:license` of each module is:
+
+- **LGPL-3.0-only** (some also offer GPL-2.0-only / GPL-3.0-only): `qtbase`, `qt3d`, `qt5compat`, `qtconnectivity`, `qtdeclarative`, `qtimageformats`, `qtlanguageserver`, `qtlocation`, `qtmultimedia`, `qtopcua`, `qtpositioning`, `qtremoteobjects`, `qtscxml`, `qtsensors`, `qtserialbus`, `qtserialport`, `qtshadertools`, `qtspeech`, `qtsvg`, `qtwebchannel`, `qtwebsockets`, `qtwebview`.
+- **LGPL-3.0-only and GPL-3.0-only** (both listed): `qttools`, `qtwayland`.
+- **GPL-3.0-only**: `qtcharts`, `qtcoap`, `qtdatavis3d`, `qtgraphs`, `qtgrpc`, `qthttpserver`, `qtlottie`, `qtmqtt`, `qtnetworkauth`, `qtquick3d`, `qtquick3dphysics`, `qtquicktimeline`, `qtvirtualkeyboard`.
+- **BSD-3-Clause**: `qttranslations` and the `qt` rules module.
+
+### Toolchain requirements
+
+The overlays assume Clang with libc++ on every platform (on Windows, the
+`win32-clang-g++` mkspec with a MinGW sysroot); they set `-std=gnu++20`
+themselves. MSVC (`cl.exe`/`clang-cl`) is not supported; so far only the `qt`
+module's `win_cxxabi_shim` is marked incompatible with it via
+`@rules_cc//cc/compiler`. This workspace's `.bazelrc` also sets flags the
+build currently relies on: `--features=system_include_paths`,
+`--@llvm//config:experimental_stub_libgcc_s=False`, and a per-file
+`-Wno-thread-safety-analysis` for Qt sources. We recommend registering the
+hermetic `@llvm` toolchain as shown above.
 
 ## How this differs from other Bazel + Qt projects
 
 The user-facing API (`qt_cc_library`, `qt_cc_binary`, `qt_ui_library`,
-`qt_resource`, `qt_qml_module`) is deliberately modelled on
+`qt_resource`, `qt_qml_module`, `qt_plugin`) is deliberately modelled on
 [Vertexwahn/rules_qt6](https://github.com/Vertexwahn/rules_qt6) and its
 ancestors ([justbuchanan/bazel_rules_qt](https://github.com/justbuchanan/bazel_rules_qt),
 [bbreslauer/qt-bazel-example](https://github.com/bbreslauer/qt-bazel-example)),
@@ -141,47 +171,54 @@ is a different thing:
   Qt is split along its own submodule boundaries with the Starlark factored
   into a shared `qt` module, so modules version and depend on each other
   through a registry exactly like any other BCR dependency.
-- **Zero patches to Qt.** Every module is the pristine upstream tarball plus a
-  registry overlay (`BUILD.bazel`, `MODULE.bazel`, a config `.bzl`). Adding a
-  Qt submodule means writing a `BUILD.bazel`, not forking Qt.
+- **(Almost) no patches to Qt.** Every module is the pristine upstream tarball
+  plus a registry overlay (`BUILD.bazel`, `MODULE.bazel`, a config `.bzl`).
+  Adding a Qt submodule means writing a `BUILD.bazel`, not forking Qt. The one
+  exception is a single-line fix to `qtopcua` (see
+  [Patches to Qt modules](#patches-to-qt-modules)).
 
 ## Layout
 
 | Path | Purpose |
 | --- | --- |
-| `bazel_registry.json`, `modules/` | The Bazel registry, published to GitHub Pages on every merge (`.github/workflows/ci.yaml`). Registry-level patches to the shared `qt` rules module live in `modules/qt/6.10.2/patches/`. |
+| `bazel_registry.json`, `modules/` | The Bazel registry, published to GitHub Pages on every merge (`.github/workflows/ci.yaml`). |
+| `qt.txt` | Target pattern list (`//...` plus `@<module>//...` for all 49 registry modules), selected by `--config=qt`. |
 | `tests/` | Smoke and runtime tests per Qt area (`phase4_*`, `phase5`, ...), run natively and cross-compiled by the CI matrix. |
 | `design/` | Design notes and plans per phase (`PHASE1.md` ... `PHASE5.md`). |
 | `patches/` | Patches for third-party BCR modules, one directory per module, applied via `single_version_override`. See below. |
 | `.github/workflows/` | CI: `pull_request.yaml` (build/test matrix), `bazel.yaml` (one host/target job), `cache_cleanup.yaml`, `ci.yaml` (registry publishing). See [Continuous integration](#continuous-integration). |
-| `.bazelrc` | Toolchain flags and sanitizer configs. No platform is pinned, so `bazel test //...` builds natively on any supported host; cross-compile by passing `--platforms=@llvm//platforms:<os>_<arch>` explicitly. Warnings from third-party (non-Qt) dependencies are silenced so that Qt's own stand out. |
+| `.bazelrc` | Toolchain flags, `--config=qt`, and sanitizer configs. No platform is pinned, so `bazel test //...` builds natively on any supported host; cross-compile by passing `--platforms=@llvm//platforms:<os>_<arch>` explicitly. Warnings from third-party (non-Qt) dependencies are silenced so that Qt's own stand out. |
 | `bazel_downloader.cfg` | Download mirrors for upstream tarballs of BCR modules we cannot annotate with `mirror_urls` (currently `fontconfig`). |
 
 ## Continuous integration
 
 `pull_request.yaml` runs on every pull request and on every push to `main`:
 
-1. **Native** (6 jobs): build and test `//...` on each of Linux, macOS and
-   Windows, x86_64 and arm64.
-2. **Cross** (30 jobs): every host cross-compiles `//...` for every other
-   platform. These only start once all native jobs are green.
-3. **Status** (`main` only): publishes the [build status](#build-status)
-   matrix to the `status` branch.
-
-A second stage that repeats the matrix with Bazel's latest release candidate
-(`last_rc`) is temporarily disabled while CI is stabilised on Bazel 9.x.
+1. **Native** (6 jobs): build `--config=qt` (`//...` and every `@<module>//...`) and test `//...` on each of Linux, macOS and Windows, x86_64 and arm64.
+2. **Cross** (30 jobs): every host cross-compiles `--config=qt` for every other platform. These only start once all native jobs are green.
+3. **`last_rc`**: repeats the native and cross matrix with Bazel's latest release candidate. Its failures are reported but never fail the run.
+4. **Status** (`main` only): publishes one [build status](#build-status) matrix per Bazel version to the `status` branch.
 
 Each job keeps a Bazel disk cache in GitHub's Actions cache, keyed by host,
 target and commit and pruned to what the build used. GitHub lets every pull
 request restore caches saved on `main`, but never another pull request's, so
-`main` seeds the shared caches (pushes to `main` only build; they skip the
-tests and are never cancelled by a later merge). A pull request saves its own
+`main` seeds the shared caches (runs on `main` are never cancelled by a later
+merge, and only the 9.x stage saves). A pull request saves its own
 caches for quick re-runs, and `cache_cleanup.yaml` deletes them once it is
 merged or closed.
 
+## Patches to Qt modules
+
+One Qt module carries a registry patch (`modules/<module>/<version>/patches/`),
+applied for every consumer of the published registry:
+
+| Module | Patch | Why |
+| --- | --- | --- |
+| `qtopcua` | `provider_plugin_ownership.patch` | `QOpcUaProvider`'s destructor deletes backend plugin instances that are owned by its `QFactoryLoader`. With statically linked plugins (as here) the loader deletes them again at process exit, through an already-destroyed `static QPointer`, which crashed `opcua_qml_test` intermittently. The patch leaves deletion to the loader. |
+
 ## Patches to third-party modules
 
-Qt itself is never patched. A few *third-party* Bazel modules are, via
+A few *third-party* Bazel modules are patched via
 `single_version_override` in `MODULE.bazel`, with the patch files kept under
 `patches/<module>/`. These only apply inside this workspace (overrides are not
 part of the published registry); each one is a stopgap we intend to drop once
@@ -192,18 +229,9 @@ the fix lands upstream.
 | `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: fastbuild flags, header search paths, sanitizer runtimes, stage-0 object reset, zstd for LLVM 21, Windows `@params` files, de-duplicated `-rpath` entries, quiet MinGW `.def` preprocessing, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
 | `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
 | `openssl` | `patches/openssl/windows_clang.patch`, `perlasm_gnu_section_syntax.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC; always emit the GNU `.section` syntax that clang accepts (the assembler probe does not work under `cmd.exe`). |
-| `zlib` | `patches/zlib/zlib_shared.patch` | Add `@zlib//:zlib_shared`, so every Qt shared library links one shared copy of zlib. |
 | `libjpeg_turbo` | `patches/libjpeg_turbo/mingw_copts.patch` | Select MSVC-only copts by compiler rather than by OS, for MinGW targets. |
 | `libexpat` | `patches/libexpat/windows.patch` | Add a Windows branch to its config header (built for the execution platform via `wayland-scanner`). |
-| `xkbcommon` | `patches/xkbcommon/pregenerated_parser.patch` | Ship the Bison-generated parser instead of running bison/m4, which do not build with MinGW on Windows hosts. |
-| `rules_cc` | `patches/rules_cc/runfiles_linkable_more_than_once.patch` | Tag the C++ runfiles library `LINKABLE_MORE_THAN_ONCE` (ICU pulls it into `libcore_shared`). |
 | `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
-
-The shared `qt` rules module ([asymingt/qt_bazel](https://github.com/asymingt/qt_bazel))
-carries two registry-level patches (`modules/qt/6.10.2/patches/`): a `tar`
-fallback so `qt_deploy` works on macOS (bsdtar) execution hosts, and
-forwarding `linkopts` from `qt_plugin_FixMe` (needed by the macOS CoreLocation
-plugin). Both are intended for upstreaming.
 
 ### `rules_perl`: Perl on Windows/ARM64 hosts
 

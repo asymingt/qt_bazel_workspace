@@ -2,9 +2,13 @@
     "integrity": "sha256-fsQG/wmYkAzO8P+OTlsfvxXk4Y87Q+ty6LKu2g3Q6rQ=",
     "strip_prefix": "qtwebview-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtwebview-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtwebview-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtwebview-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
         "BUILD.bazel": "sha256-reYLCQBcZp/kmM5y3HPA30UvnVQJaFmD217p7jlv4Tk=",
-        "MODULE.bazel": "sha256-nRIEJDN5wnXD6dQvFznKeyoqD/AM6wOJRvT5BACA10k=",
+        "MODULE.bazel": "sha256-K2X7DYHB3az22mufDVPaJBAgRvv87SxpK36phUG3S4I=",
         "qtwebview_config.bzl": "sha256-bkl4itoSWzbd55ipHW/Iai80Pj/t+FbvL0XB9sqbhPw="
     }
 }

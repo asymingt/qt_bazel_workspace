@@ -1,7 +1,6 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library")
 load("@qt//:qt_tools.bzl", "qt_export_header", "qt_sync_headers")
-load("@rules_cc//cc:defs.bzl", "cc_shared_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -60,7 +59,11 @@ qt_internal_library(
     srcs = glob(["src/coap/*.cpp"]),
     hdrs = glob(["src/coap/*.h"]),
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
     defines = ["QT_COAP_LIB"],
     includes = ["src/coap"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_COAP_LIB"],
@@ -84,16 +87,3 @@ qt_internal_library(
     ],
 )
 
-cc_shared_library(
-    name = "coap_shared",
-    dynamic_deps = [
-        "@qtbase//:core_shared",
-        "@qtbase//:network_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libcoap_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":coap"],
-)

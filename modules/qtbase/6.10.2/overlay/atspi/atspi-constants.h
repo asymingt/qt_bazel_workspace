@@ -2,6 +2,12 @@
  * AT-SPI - Assistive Technology Service Provider Interface
  * (Gnome Accessibility Project; http://developer.gnome.org/projects/gap)
  *
+ * Vendored from GNOME at-spi2-core atspi/atspi-constants.h, which is
+ * unchanged from 2.61.90 through 2.62.1 (tag 2.62.1, commit
+ * 3a214cddffbf345b8c0d0b17e458abbc5ed851b1). Modified only to drop the glib
+ * dependency: G_BEGIN_DECLS/G_END_DECLS became extern "C" guards and
+ * <glib.h> was replaced by a local G_STATIC_ASSERT fallback.
+ *
  * Copyright 2010, 2011 Novell, Inc.
  * Copyright (c) 2012 SUSE LINUX Products GmbH, Nuernberg, Germany.
  *

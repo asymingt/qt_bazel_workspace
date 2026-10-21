@@ -1,7 +1,7 @@
 load("@qt//:qt.bzl", "common_copts")
-load("@qt//:qt_internal_library.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "qt_internal_library", "qt_static_plugin")
+load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load("@qt//:qt_tools.bzl", "qt_qml_plugin_gen", "qt_sync_headers", "qt_write_file")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -106,7 +106,11 @@ qt_internal_library(
     ],
     hdrs = glob(["src/websockets/*.h"]) + [":websockets_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = [
+        "@qtbase//:core_shared",
+        "@qtbase//:network_shared",
+    ],
     defines = ["QT_WEBSOCKETS_LIB"],
     includes = ["src/websockets"],
     local_defines = _COMMON_DEFINES + ["QT_BUILD_WEBSOCKETS_LIB"],
@@ -122,20 +126,6 @@ qt_internal_library(
         "@qtbase//:core",
         "@qtbase//:network",
     ],
-)
-
-cc_shared_library(
-    name = "websockets_shared",
-    dynamic_deps = [
-        "@qtbase//:core_shared",
-        "@qtbase//:network_shared",
-    ],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libwebsockets_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":websockets"],
 )
 
 alias(

@@ -25,6 +25,14 @@ license(
 
 exports_files(["LICENSE"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 autoconf(
     name = "config_checks",
     checks = XKBCOMMON_CONFIG_CHECKS,
@@ -82,5 +90,5 @@ cc_library(
     deps = [
         "@libxcb",
         "@xkbcommon",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )

@@ -2,8 +2,12 @@
     "integrity": "sha256-z1jwIfMoV7W2eZzUQE72EzmezBxRVJLw9iDOM4oxGjI=",
     "strip_prefix": "qtconnectivity-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtconnectivity-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtconnectivity-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtconnectivity-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-hBoiaYSMUN9oDmr2fJtE5rhJ2FznonEDg+seZ/hZZ+w=",
-        "MODULE.bazel": "sha256-2pHgEd8HeosY+0akg69l4HxfddvYVWCuoTtnfA37TMw="
+        "BUILD.bazel": "sha256-akWA8/KhSetCv4/vPCOpu0HwVCXF6d5QZijG+74JSYE=",
+        "MODULE.bazel": "sha256-reEdid8N7WvgqBKiYIisKaJj3KmhqTmgL8c0pz4tPi4="
     }
 }

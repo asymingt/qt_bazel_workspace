@@ -29,7 +29,7 @@ single_version_override(
 )
 
 # Backends built into the from-source `@llvm-project` overlay (used for
-# libclang in qttools, or `--@llvm//toolchain:bootstrap_stage=stage1_from_source`).
+# `--@llvm//toolchain:bootstrap_stage=stage1_from_source`).
 # The prebuilt cross-compiler always has every backend, so this list does not
 # limit which `--platforms` we can compile for; it should mirror the CPUs we
 # ship (amd64 + arm64 across Linux/macOS/Windows, see design/PHASE3.md).
@@ -144,12 +144,6 @@ single_version_override(
 
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
-single_version_override(
-    module_name = "rules_cc",
-    patch_strip = 1,
-    patches = ["//patches:rules_cc/runfiles_linkable_more_than_once.patch"],
-    version = "0.2.26",
-)
 
 # Not a direct dependency: pulled in by ffmpeg/xkbcommon/dbus/... but pinned
 # here because < 0.27.0 fails to compile its config checker with libc++ on a
@@ -187,18 +181,6 @@ bazel_dep(name = "libx11", version = "1.8.12.bcr.5")
 
 bazel_dep(name = "zlib", version = "1.3.2.bcr.2")
 
-# Adds @zlib//:zlib_shared, a cc_shared_library exporting the whole zlib API.
-# Qt's libraries (and any other cc_shared_library in the same process, e.g.
-# downstream ROS libraries) depend on it via `dynamic_deps`, so exactly one copy
-# of zlib is linked without tagging `:z` LINKABLE_MORE_THAN_ONCE. Intended for
-# upstreaming to the BCR zlib module; drop this override once it lands.
-single_version_override(
-    module_name = "zlib",
-    patch_strip = 1,
-    patches = ["//patches:zlib/zlib_shared.patch"],
-    version = "1.3.2.bcr.2",
-)
-
 # Not a direct dependency (openssl -> rules_perl), but overridden to add a
 # windows/arm64 Perl toolchain (x86_64 Strawberry Perl under Windows-on-Arm
 # emulation) so OpenSSL's Perl code generation works when the execution
@@ -215,18 +197,18 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "vulkan_headers", version = "1.4.349")
 bazel_dep(name = "wayland", version = "1.24.0.bcr.1")
 
-# Not a direct dependency (pulled in by qtbase for Linux targets), but
-# overridden to ship its Bison-generated parser instead of running bison (and
-# m4) at build time: those are built for the execution platform and neither
-# builds with MinGW, which breaks cross-compiling Linux targets from Windows.
-# See patches/xkbcommon/.
-bazel_dep(name = "xkbcommon", version = "1.9.2.bcr.beta.1")
-single_version_override(
-    module_name = "xkbcommon",
-    patch_strip = 1,
-    patches = ["//patches:xkbcommon/pregenerated_parser.patch"],
-    version = "1.9.2.bcr.beta.1",
-)
+# Local helper modules (served from the local registry under modules/, see .bazelrc)
+
+bazel_dep(name = "dbus", version = "1.16.2")
+bazel_dep(name = "libglvnd", version = "1.7.0")
+bazel_dep(name = "libice", version = "1.1.2")
+bazel_dep(name = "libsm", version = "1.2.5")
+bazel_dep(name = "libxcb-cursor", version = "0.1.5")
+bazel_dep(name = "libxcb-image", version = "0.4.1")
+bazel_dep(name = "libxcb-render-util", version = "0.3.10")
+bazel_dep(name = "libxcb-util", version = "0.4.1")
+bazel_dep(name = "libxcb-wm", version = "0.4.2")
+bazel_dep(name = "xkbcommon-x11", version = "1.9.2")
 
 # Qt modules (served from the local registry under modules/, see .bazelrc)
 

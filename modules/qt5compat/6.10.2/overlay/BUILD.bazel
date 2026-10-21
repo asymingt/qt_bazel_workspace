@@ -1,7 +1,7 @@
-load("@qt//:qt.bzl", "QT_SHARED_PLATFORM_LINKOPTS", "common_copts")
+load("@qt//:qt.bzl", "common_copts")
 load("@qt//:qt_internal_library.bzl", "qt_internal_library", "qt_static_plugin")
 load("@qt//:qt_tools.bzl", "qt_generate_qrc", "qt_qml_plugin_gen", "qt_rcc_internal", "qt_sync_headers", "qt_write_file")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
@@ -166,7 +166,8 @@ qt_internal_library(
     }),
     hdrs = glob(["src/core5/**/*.h"]) + [":core5compat_sync_headers"],
     copts = common_copts + ["-std=gnu++20"],
-    create_shared = False,
+    create_shared = True,
+    dynamic_deps = ["@qtbase//:core_shared"],
     defines = ["QT_CORE5COMPAT_LIB"],
     includes = [
         "src/core5",
@@ -189,17 +190,6 @@ qt_internal_library(
         ],
         "//conditions:default": [],
     }),
-)
-
-cc_shared_library(
-    name = "core5compat_shared",
-    dynamic_deps = ["@qtbase//:core_shared"],
-    shared_lib_name = select({
-        "@platforms//os:windows": "libcore5compat_shared.dll",
-        "//conditions:default": "",
-    }),
-    user_link_flags = QT_SHARED_PLATFORM_LINKOPTS,
-    deps = [":core5compat"],
 )
 
 _GFX_PRIV_QML_FILES = [

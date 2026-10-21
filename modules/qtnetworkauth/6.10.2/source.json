@@ -2,8 +2,12 @@
     "integrity": "sha256-Tyn9nktQX1cU/EIpawTHAfZs7RhcSd5NUgy43ksZgbM=",
     "strip_prefix": "qtnetworkauth-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtnetworkauth-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtnetworkauth-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtnetworkauth-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-2FEBey5EgYz56kn4b3fRIOoOaOkouH0oZrn/kUwh+/o=",
-        "MODULE.bazel": "sha256-e+PKy4tCA0NGr9HG1PidBOp/H0O/ZusfXXbAMf7cK5E="
+        "BUILD.bazel": "sha256-sS3FBlycHL4XzBX9AK2Un/qlJr01Twhq9oX6v7+E8/c=",
+        "MODULE.bazel": "sha256-gDqcbQs0Rqe7QyD46E/8q7P0R3fMhScsAYYJclGUUxA="
     }
 }

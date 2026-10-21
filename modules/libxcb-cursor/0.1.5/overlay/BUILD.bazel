@@ -15,13 +15,21 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 HDRS = ["cursor/xcb_cursor.h"]
 
 cc_library(
     name = "cursor_prefixed_hdrs",
     hdrs = HDRS,
     include_prefix = "xcb",
-    strip_include_prefix = "cursor",
+    strip_include_prefix = "cursor",    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -54,7 +62,7 @@ cc_library(
         "@libxcb",
         "@libxcb-image",
         "@libxcb-render-util",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 alias(

@@ -167,12 +167,12 @@ jobs:
 
       - name: Analyze (${{ inputs.host }} -> ${{ inputs.target }})
         shell: bash
-        run: bazel build --nobuild $PLATFORM_FLAG //...
+        run: bazel build --nobuild --config=qt $PLATFORM_FLAG
 
       - name: Build (${{ inputs.host }} -> ${{ inputs.target }})
         id: build
         shell: bash
-        run: bazel build $PLATFORM_FLAG //...
+        run: bazel build --config=qt $PLATFORM_FLAG
 
       - name: Test (${{ inputs.host }})
         id: test

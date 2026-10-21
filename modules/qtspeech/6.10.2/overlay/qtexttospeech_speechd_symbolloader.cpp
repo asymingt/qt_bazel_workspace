@@ -1,4 +1,6 @@
-// Runtime symbol loader for libspeechd.so.2 (hermetic build without external link-time libspeechd).
+// Written for the @qtspeech overlay: resolves libspeechd.so.2 symbols at
+// runtime via QLibrary, so the SpeechDispatcher TTS plugin builds hermetically
+// without linking a host libspeechd.
 #include <libspeechd.h>
 #include <QtCore/QLibrary>
 

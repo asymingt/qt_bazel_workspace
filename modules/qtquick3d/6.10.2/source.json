@@ -2,9 +2,14 @@
     "integrity": "sha256-uVQ58x0eWAw3npgotIsDuTKwva3k/wn03WOe/52izXU=",
     "strip_prefix": "qtquick3d-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtquick3d-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtquick3d-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtquick3d-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
         "BUILD.bazel": "sha256-ZnnSoOXqIg0ZBQ1wt/yDzwPd51z7TzIaj9IpqKMypTc=",
-        "MODULE.bazel": "sha256-mujqSZ2TCj4zfjrpVcgCWWhm2UaAn9BNIhaE/S6/tR0=",
-        "qtquick3d_config.bzl": "sha256-fLjV377VR5ubx7rRzVhLtJ3/dYGNWWGbUFBfDlah0fw="
+        "MODULE.bazel": "sha256-Lh2W1TGfz5ULe2CHln1fRyYxMEtYlQ5BcW+KbgTgk14=",
+        "qtquick3d_config.bzl": "sha256-fLjV377VR5ubx7rRzVhLtJ3/dYGNWWGbUFBfDlah0fw=",
+        "src/3rdparty/assimp/src/contrib/googletest/BUILD.bazel": "sha256-FrrM6uNBdleo2+5pmNjMmMWiNR0uNzWP1j/nwRoOjcc="
     }
 }

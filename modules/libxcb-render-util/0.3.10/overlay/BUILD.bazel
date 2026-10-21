@@ -15,11 +15,19 @@ license(
 
 exports_files(["COPYING"])
 
+_UNIX_COMPATIBLE = select({
+    "@platforms//os:linux": [],
+    "@platforms//os:macos": [],
+    "@platforms//os:freebsd": [],
+    "@platforms//os:openbsd": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
 cc_library(
     name = "renderutil_prefixed_hdrs",
     hdrs = ["renderutil/xcb_renderutil.h"],
     include_prefix = "xcb",
-    strip_include_prefix = "renderutil",
+    strip_include_prefix = "renderutil",    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -36,7 +44,7 @@ cc_library(
         ":renderutil_prefixed_hdrs",
         "@libxcb",
         "@xorgproto",
-    ],
+    ],    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 alias(

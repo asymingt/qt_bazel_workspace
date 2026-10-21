@@ -1,7 +1,7 @@
 module(
     name = "xkbcommon-x11",
     version = "1.9.2",
-    bazel_compatibility = [">=7.2.1"],
+    bazel_compatibility = [">=9.0.0"],
     compatibility_level = 1,
 )
 

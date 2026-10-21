@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Renders the host x target build matrix of a Pull Request workflow run.
 
-Usage: render_build_status.py JOBS_JSONL OUT_DIR RUN_URL COMMIT
+Usage: render_build_status.py JOBS_JSONL OUT_DIR RUN_URL COMMIT BAZEL STEM
 
 JOBS_JSONL holds one GitHub Actions job object per line (from
 `gh api .../actions/runs/<id>/jobs --paginate --jq '.jobs[]'`). Writes
-OUT_DIR/build_status.svg (the matrix shown in the README) and
-OUT_DIR/build_status.json (the same data, machine readable).
+OUT_DIR/STEM.svg (the matrix shown in the README) and OUT_DIR/STEM.json (the
+same data, machine readable).
 
-Only the `bazel 9.x` stage is considered. Diagonal cells are the native jobs
-(build + test); off-diagonal cells are cross builds (host -> target).
+Only the jobs of the `bazel BAZEL` stage (e.g. `9.x`, `last_rc`) are
+considered. Diagonal cells are the native jobs (build + test); off-diagonal
+cells are cross builds (host -> target).
 """
 
 import html
@@ -26,15 +27,12 @@ PLATFORMS = [
     "windows-arm64",
 ]
 
-NATIVE_RE = re.compile(r"^native (\S+) / bazel 9\.x\b")
-CROSS_RE = re.compile(r"^cross (\S+) -> (\S+) / bazel 9\.x\b")
-
 # conclusion -> (symbol, fill colour, legend text)
 STYLES = {
     "success": ("✓", "#2da44e", "pass"),
     "failure": ("✗", "#cf222e", "fail"),
     "cancelled": ("–", "#8c959f", "cancelled"),
-    "skipped": ("–", "#8c959f", "skipped (native failed)"),
+    "skipped": ("–", "#8c959f", "skipped (dependency failed)"),
     "pending": ("…", "#bf8700", "running"),
 }
 
@@ -46,21 +44,24 @@ def outcome(job):
     return conclusion if conclusion in STYLES else "failure"
 
 
-def collect(jobs):
+def collect(jobs, bazel):
+    suffix = rf" / bazel {re.escape(bazel)}(?: |$)"
+    native_re = re.compile(r"^native (\S+)" + suffix)
+    cross_re = re.compile(r"^cross (\S+) -> (\S+)" + suffix)
     cells = {}
     for job in jobs:
         name = job.get("name", "")
-        m = NATIVE_RE.match(name)
+        m = native_re.match(name)
         if m:
             cells[(m.group(1), m.group(1))] = outcome(job)
             continue
-        m = CROSS_RE.match(name)
+        m = cross_re.match(name)
         if m:
             cells[(m.group(1), m.group(2))] = outcome(job)
     return cells
 
 
-def render_svg(cells, commit):
+def render_svg(cells, commit, bazel):
     cell, label_w, header_h, pad = 34, 118, 92, 8
     n = len(PLATFORMS)
     legend = ("success", "failure", "skipped", "pending")
@@ -109,7 +110,7 @@ def render_svg(cells, commit):
         out.append(f'<text x="{x + 19}" y="{legend_y}" fill="#24292f">{text}</text>')
         x += 25 + 7 * len(text)
     out.append(
-        f'<text x="{pad}" y="{legend_y + 22}" fill="#57606a">bazel 9.x · outlined: native '
+        f'<text x="{pad}" y="{legend_y + 22}" fill="#57606a">bazel {html.escape(bazel)} · outlined: native '
         f'(build + test) · main @ {html.escape(commit[:7])}</text>'
     )
     out.append("</svg>")
@@ -117,18 +118,18 @@ def render_svg(cells, commit):
 
 
 def main():
-    jobs_path, out_dir, run_url, commit = sys.argv[1:5]
+    jobs_path, out_dir, run_url, commit, bazel, stem = sys.argv[1:7]
     with open(jobs_path) as f:
         jobs = [json.loads(line) for line in f if line.strip()]
-    cells = collect(jobs)
-    with open(f"{out_dir}/build_status.svg", "w") as f:
-        f.write(render_svg(cells, commit))
-    with open(f"{out_dir}/build_status.json", "w") as f:
+    cells = collect(jobs, bazel)
+    with open(f"{out_dir}/{stem}.svg", "w") as f:
+        f.write(render_svg(cells, commit, bazel))
+    with open(f"{out_dir}/{stem}.json", "w") as f:
         json.dump(
             {
                 "commit": commit,
                 "run": run_url,
-                "bazel": "9.x",
+                "bazel": bazel,
                 "platforms": PLATFORMS,
                 "cells": [
                     {"host": h, "target": t, "kind": "native" if h == t else "cross",

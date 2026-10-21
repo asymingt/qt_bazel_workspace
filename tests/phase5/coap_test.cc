@@ -128,7 +128,10 @@ private slots:
         QCOMPARE(reply->errorReceived(), QtCoap::Error::Ok);
         QCOMPARE(reply->responseCode(), QtCoap::ResponseCode::Content);
         QCOMPARE(reply->readAll(), QByteArrayLiteral("echo:sensors/temperature"));
-        QCOMPARE(finished.size(), 1);
+        // QCoapClient::finished is relayed reply -> protocol (worker thread)
+        // -> client (this thread) via queued connections, so it can arrive
+        // after reply->isFinished() is already true.
+        QTRY_COMPARE(finished.size(), 1);
         QCOMPARE(server.requestedPaths, QStringList{QStringLiteral("sensors/temperature")});
     }
 };

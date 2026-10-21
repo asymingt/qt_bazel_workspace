@@ -2,8 +2,12 @@
     "integrity": "sha256-tAy/KdoRH/qP7n58tEuQlwQngs0XoQRIqD/zFWzevWs=",
     "strip_prefix": "qtserialport-everywhere-src-6.10.2",
     "url": "https://download.qt.io/official_releases/qt/6.10/6.10.2/submodules/qtserialport-everywhere-src-6.10.2.tar.xz",
+    "mirror_urls": [
+        "https://mirrors.ocf.berkeley.edu/qt/official_releases/qt/6.10/6.10.2/submodules/qtserialport-everywhere-src-6.10.2.tar.xz",
+        "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtserialport-everywhere-src-6.10.2.tar.xz"
+    ],
     "overlay": {
-        "BUILD.bazel": "sha256-oIhudRs3nSQ1JlRtUEE83Mbn94pQWw68xc0Q3zAmjFk=",
-        "MODULE.bazel": "sha256-RtDOEFYQYSUIY35lq2IgAULOgEflSh79h/b3lyXm5PU="
+        "BUILD.bazel": "sha256-/hErveEWX8U4AtV3GnlKINomgpZRtkscGRdj6VVRA64=",
+        "MODULE.bazel": "sha256-V9A5TAGW0xQRF1vGf54kBxS3rr44ww+4EyKMMCm5Dg0="
     }
 }

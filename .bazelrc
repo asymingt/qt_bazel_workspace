@@ -60,6 +60,15 @@ common:macos --host_action_env=PATH=/bin:/usr/bin:/usr/local/bin
 # toolchain (patches/llvm/windows_compiler_param_file.patch).
 build:windows --features=compiler_param_file
 
+# rules_bison and rules_m4 ship a gnulib Windows configuration written for MSVC
+# (#pragma include_alias, mode_t/pid_t/ssize_t/off_t macro overrides, and
+# omitted C99 extern-inline instantiation units). When cross-compiling Linux
+# targets (xkbcommon) from a Windows host, bison and m4 are compiled for the
+# Windows exec platform with MinGW clang; pass the flags needed for gnulib's
+# MSVC config to compile and link under MinGW clang.
+build:windows --host_per_file_copt=external/rules_(bison|m4)[^/]*/.*@-fms-extensions,-D_MODE_T_,-D_PID_T_,-D_SSIZE_T_DEFINED,-D_GL_M4_SYS_TYPES_H,-D_GL_EXTERN_INLINE_STDHEADER_BUG
+build:windows --per_file_copt=external/rules_(bison|m4)[^/]*/.*@-fms-extensions,-D_MODE_T_,-D_PID_T_,-D_SSIZE_T_DEFINED,-D_GL_M4_SYS_TYPES_H,-D_GL_EXTERN_INLINE_STDHEADER_BUG
+
 # CI defaults (see .github/workflows/pull_request.yaml)
 common:ci --announce_rc
 common:ci --show_timestamps
@@ -71,6 +80,9 @@ test:ci --test_output=errors
 # Without a console (as under Bazel on Windows) Qt routes qDebug/QTest output
 # to OutputDebugString, leaving test.log empty. Force it to stderr/stdout.
 test --test_env=QT_FORCE_STDERR_LOGGING=1
+
+# Full module + workspace target set (`bazel build --config=qt`).
+build:qt --target_pattern_file=qt.txt
 
 # Address sanitizer
 common:asan --strip=never

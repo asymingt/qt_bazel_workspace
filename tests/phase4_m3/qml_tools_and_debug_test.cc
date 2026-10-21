@@ -50,7 +50,12 @@ private slots:
         };
 
         for (const auto &entry : tools) {
-            std::string path = runfiles->Rlocation(entry.first.toStdString());
+#ifdef Q_OS_WIN
+            const QString rlocation = entry.first + QStringLiteral(".exe");
+#else
+            const QString &rlocation = entry.first;
+#endif
+            std::string path = runfiles->Rlocation(rlocation.toStdString());
             QVERIFY2(!path.empty() && QFileInfo::exists(QString::fromStdString(path)),
                      qPrintable("Missing tool binary: " + entry.first));
             QProcess proc;

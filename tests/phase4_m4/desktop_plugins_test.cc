@@ -60,7 +60,7 @@ class DesktopPluginsTest : public QObject {
     QVERIFY(backends.contains(QStringLiteral("glib")) ||
             backends.contains(QStringLiteral("networkmanager")));
 #elif defined(Q_OS_MACOS)
-    QVERIFY(backends.contains(QStringLiteral("scnetworkreachability")));
+    QVERIFY(backends.contains(QStringLiteral("applenetworkinformation")));
 #elif defined(Q_OS_WIN)
     QVERIFY(backends.contains(QStringLiteral("networklistmanager")));
 #endif

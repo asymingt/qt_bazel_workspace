@@ -3,8 +3,8 @@
     "strip_prefix": "libxkbcommon-xkbcommon-1.9.2",
     "url": "https://github.com/xkbcommon/libxkbcommon/archive/refs/tags/xkbcommon-1.9.2.tar.gz",
     "overlay": {
-        "BUILD.bazel": "sha256-vwtE16O52uCLhYQbnzxlLIi+olrgrINcjMrWHRQk5wY=",
-        "MODULE.bazel": "sha256-4OVfrxfyu9XJH/jsXZMCunN1GUBOPaPtSq44Mz7K8Bk=",
+        "BUILD.bazel": "sha256-gQvaT8uYz8xNU2ktI4Ux75HeBGA/Z2MVFP+NpiSBMW0=",
+        "MODULE.bazel": "sha256-NKyWRnjGImnxblusucq7BncdBp67sjWi6Fgi5kDZyts=",
         "config.h.in": "sha256-+R1lKwvRPZCgFTxS6BKpXl79+l1idsFFbOmb5q9iD+g="
     }
 }

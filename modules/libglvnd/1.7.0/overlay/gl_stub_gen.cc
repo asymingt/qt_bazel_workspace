@@ -67,7 +67,7 @@ bool write_stub(const std::string& out_path, const std::set<std::string>& syms) 
 
 int main(int argc, char** argv) {
     if (argc < 5) {
-        std::cerr << "Usage: qt_gl_stub_gen <gl.c> <glx.c> <opengl.c> <egl.c> [headers...]\n";
+        std::cerr << "Usage: gl_stub_gen <gl.c> <glx.c> <opengl.c> <egl.c> [headers...]\n";
         return 1;
     }
     std::string out_gl = argv[1];
