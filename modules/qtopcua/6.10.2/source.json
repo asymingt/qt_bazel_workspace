@@ -7,7 +7,7 @@
         "provider_plugin_ownership.patch": "sha256-Rq5wpRlIM3kdUTTlR/FVnQZm+4k9R95HqaIHBhqRKTQ="
     },
     "overlay": {
-        "BUILD.bazel": "sha256-0ksURHAxjf/7tfVhcFHhgkK2x74+1HdqhtiGzkKHJC4=",
+        "BUILD.bazel": "sha256-zkdAbKDJvgMHAeG6OX3j4GxtuTT9j/cckpJFaYEKze0=",
         "MODULE.bazel": "sha256-Lrkt6Iugznfx6IVdParqfBQ0E8yG46I86he54mu8lZU=",
         "src/opcua/x509/qopcua_openssl_rename_p.h": "sha256-lAVL5VyXHAPSuLxB6lEsmHxkS/DlrISFQDhmJgw+OLU="
     }

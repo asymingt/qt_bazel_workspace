@@ -66,6 +66,7 @@ qt_cc_test(
         "@qtbase//:gui",
         "@qtbase//:test",
         "@qtdeclarative//:qml",
+        "@qtdeclarative//:qmlplugin",
         "@qtopcua//:declarative_opcua",
         "@qtopcua//:declarative_opcuaplugin",
         "@qtopcua//:opcua_plugins",
