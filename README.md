@@ -75,7 +75,7 @@ Then depend on Qt like any other module:
 
 ```starlark
 # MODULE.bazel
-bazel_dep(name = "llvm", version = "0.8.24")   # hermetic toolchain
+bazel_dep(name = "llvm", version = "0.8.25")   # hermetic toolchain
 bazel_dep(name = "qt", version = "6.10.2")     # rules
 bazel_dep(name = "qtbase", version = "6.10.2")
 bazel_dep(name = "qtdeclarative", version = "6.10.2")
@@ -226,7 +226,7 @@ the fix lands upstream.
 
 | Module | Patch | Why |
 | --- | --- | --- |
-| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: fastbuild flags, header search paths, sanitizer runtimes, stage-0 object reset, zstd for LLVM 21, Windows `@params` files, de-duplicated `-rpath` entries, quiet MinGW `.def` preprocessing, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
+| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: header search paths, sanitizer runtimes, Windows `@params` files, de-duplicated `-rpath` entries, quiet MinGW `.def` preprocessing, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
 | `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
 | `openssl` | `patches/openssl/windows_clang.patch`, `perlasm_gnu_section_syntax.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC; always emit the GNU `.section` syntax that clang accepts (the assembler probe does not work under `cmd.exe`). |
 | `libjpeg_turbo` | `patches/libjpeg_turbo/mingw_copts.patch` | Select MSVC-only copts by compiler rather than by OS, for MinGW targets. |
