@@ -150,17 +150,11 @@ bazel_dep(name = "rules_cc", version = "0.2.26")
 # Windows host (std::ifstream from std::wstring).
 bazel_dep(name = "rules_cc_autoconf", version = "0.27.0")
 
-# Not a direct dependency (wayland -> libexpat), but overridden to add a
-# Windows branch to its config header. wayland-scanner (and so libexpat) is
-# built for the execution platform, which is Windows when cross-compiling a
-# Linux target from a Windows host. See patches/libexpat/.
-bazel_dep(name = "libexpat", version = "2.7.1.bcr.1")
-single_version_override(
-    module_name = "libexpat",
-    patch_strip = 1,
-    patches = ["//patches:libexpat/windows.patch"],
-    version = "2.7.1.bcr.1",
-)
+# Not a direct dependency (wayland -> libexpat), but pinned here because
+# < 2.8.3 has no Windows branch in its config header. wayland-scanner (and so
+# libexpat) is built for the execution platform, which is Windows when
+# cross-compiling a Linux target from a Windows host.
+bazel_dep(name = "libexpat", version = "2.8.3")
 
 bazel_dep(name = "freetype", version = "2.14.1.bcr.1")
 
