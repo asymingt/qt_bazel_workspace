@@ -43,6 +43,10 @@ concurrency:
 
 permissions:
   contents: read
+  # bazel.yaml deletes superseded disk cache entries after saving; a called
+  # workflow cannot be granted more than its caller. (Fork PRs still get a
+  # read-only token; that step is non-fatal.)
+  actions: write
 
 jobs:
   # ---------------------------------------------------------------------------
