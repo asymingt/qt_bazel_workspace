@@ -158,17 +158,7 @@ bazel_dep(name = "libexpat", version = "2.8.3")
 
 bazel_dep(name = "freetype", version = "2.14.1.bcr.1")
 
-bazel_dep(name = "libjpeg_turbo", version = "3.1.3.bcr.4")
-
-# Its Windows x86_64 copts are MSVC-only (/Ox, -wd4996), which breaks MinGW
-# (x86_64-w64-windows-gnu) targets. The patch selects them by compiler instead
-# of by OS. Intended for upstreaming to the BCR module.
-single_version_override(
-    module_name = "libjpeg_turbo",
-    patch_strip = 1,
-    patches = ["//patches:libjpeg_turbo/mingw_copts.patch"],
-    version = "3.1.3.bcr.4",
-)
+bazel_dep(name = "libjpeg_turbo", version = "3.1.3.bcr.6")
 bazel_dep(name = "libpng", version = "1.6.58.bcr.1")
 
 bazel_dep(name = "libx11", version = "1.8.12.bcr.5")

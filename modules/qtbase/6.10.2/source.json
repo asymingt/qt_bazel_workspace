@@ -8,7 +8,7 @@
     ],
     "overlay": {
         "BUILD.bazel": "sha256-F9DtbsGuicOb4yfVLvJGJFWfoOp7MXzZxKIAq6Km7L8=",
-        "MODULE.bazel": "sha256-GyQovuoANeu/9wQmweSbFRAqQtrp+oolfMMv6nGQUMY=",
+        "MODULE.bazel": "sha256-U7NgtFVKuCR/84Ch3XUV1xsh8yKdR7y8N+d+mx/+a4Q=",
         "atspi/atspi-constants.h": "sha256-rh4f2PjehchGGC6RFOHN3+pUkaQbEK2zc9RDhbhobRc=",
         "atspi/atspi.h": "sha256-DMWKYVskOXUWECowiUUyUtjmbpxmCWMISmcY9G+Viw0=",
         "moltenvk/mvk_vulkan.h": "sha256-6WZkY5riRmwaJWPSBbbRbQEZYac734niBdGKGhaIQvc=",
