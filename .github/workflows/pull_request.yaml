@@ -43,6 +43,10 @@ concurrency:
 
 permissions:
   contents: read
+  # bazel.yaml deletes superseded disk cache entries after saving; a called
+  # workflow cannot be granted more than its caller. (Fork PRs still get a
+  # read-only token; that step is non-fatal.)
+  actions: write
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -189,9 +193,17 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           mkdir -p out
-          gh api --paginate \
-            "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100" \
-            --jq '.jobs[]' > jobs.jsonl
+          # Keep pages small: each job embeds all of its steps, and with a large
+          # matrix per_page=100 exceeds GitHub's ~10s API timeout (HTTP 502).
+          for attempt in 1 2 3; do
+            if gh api --paginate \
+              "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=20" \
+              --jq '.jobs[]' > jobs.jsonl; then
+              break
+            fi
+            [ "$attempt" -eq 3 ] && exit 1
+            sleep $((attempt * 10))
+          done
           python3 .github/scripts/render_build_status.py jobs.jsonl out "$RUN_URL" "${{ github.sha }}" 9.x build_status_9x
           python3 .github/scripts/render_build_status.py jobs.jsonl out "$RUN_URL" "${{ github.sha }}" last_rc build_status_last_rc
 
