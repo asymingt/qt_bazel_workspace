@@ -230,7 +230,6 @@ the fix lands upstream.
 | `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
 | `openssl` | `patches/openssl/windows_clang.patch`, `perlasm_gnu_section_syntax.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC; always emit the GNU `.section` syntax that clang accepts (the assembler probe does not work under `cmd.exe`). |
 | `libjpeg_turbo` | `patches/libjpeg_turbo/mingw_copts.patch` | Select MSVC-only copts by compiler rather than by OS, for MinGW targets. |
-| `libexpat` | `patches/libexpat/windows.patch` | Add a Windows branch to its config header (built for the execution platform via `wayland-scanner`). |
 | `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
 
 ### `rules_perl`: Perl on Windows/ARM64 hosts
