@@ -16,6 +16,12 @@
 # (host, target) pair. Before saving, entries the build did not read or write
 # are pruned (Bazel refreshes mtimes on hits), so each entry holds only the
 # working set of the current commit and does not grow without bound.
+#
+# After a successful save, every older entry for the same (host, target) pair
+# on the same ref is deleted, so main (and each PR) holds exactly one disk
+# cache per pair. Otherwise every commit adds a full set (~36 GB) and GitHub's
+# LRU eviction ends up dropping whichever pair ran earliest, forcing it to
+# rebuild Qt from scratch.
 name: Bazel job
 
 on:
@@ -69,6 +75,8 @@ on:
 
 permissions:
   contents: read
+  # Delete superseded disk cache entries (see "Delete superseded disk caches").
+  actions: write
 
 jobs:
   bazel:
@@ -201,11 +209,39 @@ jobs:
       # a run that failed or was cancelled early would shadow the last good one.
       # `always()` keeps saving when only the tests failed.
       - name: Save disk cache
+        id: save-disk-cache
         if: always() && inputs.save_disk_cache && steps.build.outcome == 'success' && steps.restore-disk-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.DISK_CACHE_DIR }}
           key: ${{ env.DISK_CACHE_PREFIX }}${{ github.sha }}-${{ inputs.stage }}
+
+      # Keep exactly one disk cache per (host, target) pair per ref: once the
+      # new entry is saved, older ones for the same pair are never restored
+      # first again and only push the repo towards its cache quota. Scoped to
+      # this run's ref, so a PR never touches main's caches. Only runs after a
+      # successful save, so a failed build never removes the last good entry.
+      # Non-fatal: fork PRs get a read-only token, and a leftover entry is
+      # cleaned up by the next successful run (or cache_cleanup.yaml).
+      - name: Delete superseded disk caches
+        if: always() && steps.save-disk-cache.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          KEEP_KEY: ${{ env.DISK_CACHE_PREFIX }}${{ github.sha }}-${{ inputs.stage }}
+        run: |
+          # --key is a prefix match; DISK_CACHE_PREFIX ends in '-', so it only
+          # matches this exact (host, target) pair.
+          ids=$(gh cache list --ref "$GITHUB_REF" --key "$DISK_CACHE_PREFIX" --limit 100 \
+            --json id,key --jq '.[] | select(.key != $ENV.KEEP_KEY) | .id')
+          count=0
+          for id in $ids; do
+            gh cache delete "$id"
+            count=$((count + 1))
+          done
+          echo "Kept $KEEP_KEY; deleted $count superseded entries on $GITHUB_REF"
 
       - name: Upload test logs on failure
         if: failure() && steps.test.outcome == 'failure'
