@@ -1,3 +1,4 @@
+#include <QtCore/QDeadlineTimer>
 #include <QtCore/QObject>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QProcess>
@@ -79,17 +80,40 @@ class GlContextTest : public QObject {
         QSKIP("Xvfb not available on this host");
       }
       QProcess xvfb;
-      xvfb.start(xvfbPath, {QStringLiteral(":99"), QStringLiteral("-screen"),
-                            QStringLiteral("0"), QStringLiteral("640x480x24"),
+      // -displayfd 1: Xvfb picks a free display itself and writes its number
+      // to stdout only once it accepts connections. A fixed display plus a
+      // fixed sleep raced on loaded CI runners ("could not connect to
+      // display :99" when Xvfb took longer than the sleep to come up).
+      xvfb.start(xvfbPath, {QStringLiteral("-displayfd"), QStringLiteral("1"),
+                            QStringLiteral("-screen"), QStringLiteral("0"),
+                            QStringLiteral("640x480x24"),
                             QStringLiteral("-nolisten"), QStringLiteral("tcp")});
       if (!xvfb.waitForStarted(3000)) {
-        QSKIP("Could not start Xvfb :99");
+        QSKIP("Could not start Xvfb");
       }
-      QTest::qWait(200);
+      QByteArray displayNumber;
+      QDeadlineTimer deadline(10000);
+      while (!displayNumber.contains('\n') &&
+             xvfb.state() == QProcess::Running && !deadline.hasExpired()) {
+        xvfb.waitForReadyRead(static_cast<int>(deadline.remainingTime()));
+        displayNumber += xvfb.readAllStandardOutput();
+      }
+      displayNumber = displayNumber.trimmed();
+      bool isNumber = false;
+      displayNumber.toUInt(&isNumber);
+      if (!isNumber) {
+        const QByteArray xvfbStderr = xvfb.readAllStandardError();
+        xvfb.terminate();
+        xvfb.waitForFinished(2000);
+        qWarning().noquote() << xvfbStderr;
+        QFAIL("Xvfb did not report a ready display within 10s");
+      }
+      const QString display =
+          QStringLiteral(":") + QString::fromLatin1(displayNumber);
 
       QProcess child;
       QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-      env.insert(QStringLiteral("DISPLAY"), QStringLiteral(":99"));
+      env.insert(QStringLiteral("DISPLAY"), display);
       env.insert(QStringLiteral("QT_QPA_PLATFORM"), QStringLiteral("xcb"));
       env.insert(QStringLiteral("LIBGL_ALWAYS_SOFTWARE"), QStringLiteral("1"));
       child.setProcessEnvironment(env);

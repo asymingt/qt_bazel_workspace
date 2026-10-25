@@ -6,17 +6,13 @@ module(
 
 # Hermetic LLVM toolchain
 
-bazel_dep(name = "llvm", version = "0.8.24")
+bazel_dep(name = "llvm", version = "0.8.25")
 single_version_override(
     module_name = "llvm",
     patch_strip = 1,
     patches = [
-        "//patches:llvm/fastbuild_compile_flags.patch",
         "//patches:llvm/header_search_paths.patch",
         "//patches:llvm/msan_libcxx.patch",
-        "//patches:llvm/stage0_object_reset.patch",
-        "//patches:llvm/llvm21_third_party_zstd.patch",
-        "//patches:llvm/asan_runtime.patch",
         "//patches:llvm/sanitizer_runtime_libunwind.patch",
         "//patches:llvm/sanitizer_strip_foreign_source_paths.patch",
         "//patches:llvm/windows_compiler_param_file.patch",
@@ -25,7 +21,7 @@ single_version_override(
         "//patches:llvm/mingw_def_extra_tokens.patch",
         "//patches:llvm/osx_cryptex_frameworks.patch",
     ],
-    version = "0.8.24",
+    version = "0.8.25",
 )
 
 # Backends built into the from-source `@llvm-project` overlay (used for
