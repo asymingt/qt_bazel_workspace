@@ -9,7 +9,61 @@
 #include <cassert>
 #include <cstdio>
 
+#if defined(__x86_64__) || defined(_M_X64)
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else
+#include <cpuid.h>
+#endif
+
+static bool hostSupportsAvx() {
+#if defined(_MSC_VER)
+    int info[4];
+    __cpuid(info, 1);
+    if ((info[2] & (1 << 27)) && (info[2] & (1 << 28))) {
+        unsigned long long xcr = _xgetbv(0);
+        return (xcr & 6) == 6;
+    }
+    return false;
+#else
+    unsigned int eax, ebx, ecx, edx;
+    if (__get_cpuid(1, &eax, &ebx, &ecx, &edx)) {
+        if ((ecx & (1 << 27)) && (ecx & (1 << 28))) {
+            unsigned int xcr0_lo, xcr0_hi;
+            __asm__ volatile("xgetbv" : "=a"(xcr0_lo), "=d"(xcr0_hi) : "c"(0));
+            return (xcr0_lo & 6) == 6;
+        }
+    }
+    return false;
+#endif
+}
+
+static bool hostSupportsAvx2() {
+    if (!hostSupportsAvx()) {
+        return false;
+    }
+#if defined(_MSC_VER)
+    int info[4];
+    __cpuidex(info, 7, 0);
+    return (info[1] & (1 << 5)) != 0;
+#else
+    unsigned int eax, ebx, ecx, edx;
+    if (__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx)) {
+        return (ebx & (1 << 5)) != 0;
+    }
+    return false;
+#endif
+}
+#endif
+
 int main(int argc, char** argv) {
+#if defined(__x86_64__) || defined(_M_X64)
+    if (!hostSupportsAvx2()) {
+        std::printf("SKIPPED: Host CPU lacks AVX2 instruction support\n");
+        return 0;
+    }
+#endif
+
     qputenv("QT_QPA_PLATFORM", "offscreen");
     QGuiApplication app(argc, argv);
 
