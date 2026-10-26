@@ -181,22 +181,33 @@ jobs:
         shell: bash
         run: bazel build --nobuild --config=qt $PLATFORM_FLAG
 
-      # Stop the build after 5 hours (with SIGINT so Bazel flushes in-flight
-      # disk cache writes) to leave ~1 hour before GitHub's 360-minute job
-      # timeout for `bazel shutdown` and uploading the cache. Cold builds on
+      # Stop the build after 5 hours to leave ~1 hour before GitHub's 360-minute
+      # job timeout for `bazel shutdown` and uploading the cache. Cold builds on
       # slower runners (notably darwin-amd64) can exceed 5h; saving the partial
       # cache on timeout lets a re-run resume where this attempt left off.
+      # Step-level `timeout-minutes` is portable across Linux, macOS (which does
+      # not ship GNU `timeout` on PATH) and Windows; when it triggers, the step
+      # outcome is `failure` and the next step detects the timeout via elapsed
+      # wall-clock time (`>= 17940s`).
       - name: Build (${{ inputs.host }} -> ${{ inputs.target }})
         id: build
+        timeout-minutes: 300
         shell: bash
         run: |
-          rc=0
-          timeout -s INT -k 5m 300m bazel build --config=qt $PLATFORM_FLAG || rc=$?
-          if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
-            echo "::warning::Build hit the 300m time limit; saving partial disk cache so a re-run can resume."
+          date +%s > "${{ runner.temp }}/build_start"
+          bazel build --config=qt $PLATFORM_FLAG
+
+      - name: Check if build timed out
+        id: build-timeout
+        if: always() && steps.build.outcome == 'failure'
+        shell: bash
+        run: |
+          start=$(cat "${{ runner.temp }}/build_start" 2>/dev/null || echo 0)
+          elapsed=$(( $(date +%s) - start ))
+          if [ "$start" -gt 0 ] && [ "$elapsed" -ge 17940 ]; then
+            echo "::warning::Build ran for ${elapsed}s and hit the 300m time limit; saving partial disk cache so a re-run can resume."
             echo "timed_out=true" >> "$GITHUB_OUTPUT"
           fi
-          exit "$rc"
 
       - name: Test (${{ inputs.host }})
         id: test
@@ -228,7 +239,7 @@ jobs:
       # only the tests failed.
       - name: Save disk cache
         id: save-disk-cache
-        if: always() && inputs.save_disk_cache && (steps.build.outcome == 'success' || steps.build.outputs.timed_out == 'true') && steps.restore-disk-cache.outputs.cache-hit != 'true'
+        if: always() && inputs.save_disk_cache && (steps.build.outcome == 'success' || steps.build-timeout.outputs.timed_out == 'true') && steps.restore-disk-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.DISK_CACHE_DIR }}
