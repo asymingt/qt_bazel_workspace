@@ -5186,7 +5186,7 @@ qt_internal_library(
         "@libxcb-util",
         "@libxcb-wm",
         "@xkbcommon",
-        "@xkbcommon-x11",
+        "@xkbcommon//:xkbcommon-x11",
     ],
 )
 

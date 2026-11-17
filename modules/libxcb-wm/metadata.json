@@ -8,7 +8,9 @@
             "name": "Andrew Symington"
         }
     ],
-    "repository": [],
+    "repository": [
+        "https://xcb.freedesktop.org/dist"
+    ],
     "versions": [
         "0.4.2"
     ],

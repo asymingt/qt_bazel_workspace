@@ -118,11 +118,17 @@ arm64 (see [Build status](#build-status) for what currently passes):
 | IoT / Industrial | `qtmqtt`, `qtcoap`, `qtopcua` (bundled open62541 backend, `QtOpcUa` QML module) |
 | Platform | `qtwayland`, `qtscxml`, plus the shared [`qt`](https://github.com/asymingt/qt_bazel) rules module |
 
-Plus 10 small X11/D-Bus/GL dependencies not yet in the BCR (`dbus`, `libice`,
-`libsm`, `xkbcommon-x11`, `libglvnd` providing `<GL/glx.h>` and link-time
-`libGL`/`libGLX`/`libOpenGL`/`libEGL` stub DSOs, and `libxcb-util`,
-`libxcb-image`, `libxcb-render-util`, `libxcb-wm`, `libxcb-cursor` named with
-the `libxcb-` prefix to match `@libxcb` and `@libxcb-keysyms` in the BCR).
+Plus 10 small X11/D-Bus/GL dependencies with BCR submissions pending (`dbus`,
+`libice`, `libsm`, `libglvnd` providing `<GL/glx.h>` and link-time
+`libGL`/`libGLX`/`libOpenGL`/`libEGL`/`libGLESv1_CM`/`libGLESv2` stub DSOs,
+`libxcb-util`, `libxcb-image`, `libxcb-render-util`, `libxcb-wm`,
+`libxcb-cursor` named with the `libxcb-` prefix to match `@libxcb` and
+`@libxcb-keysyms` in the BCR, and `xkbcommon@1.9.2.bcr.beta.3`, which adds
+the `@xkbcommon//:xkbcommon-x11` target to the BCR's `xkbcommon`), and
+`ffmpeg@7.1.1.bcr.beta.15`
+([bazel-central-registry#11868](https://github.com/bazelbuild/bazel-central-registry/pull/11868)),
+which stops putting the FFmpeg source root (and its `VERSION` file, which
+shadows `<version>` on case-insensitive filesystems) on consumers' include path.
 
 ### Licensing
 
@@ -227,7 +233,6 @@ the fix lands upstream.
 | Module | Patch | Why |
 | --- | --- | --- |
 | `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: header search paths, sanitizer runtimes, Windows `@params` files, de-duplicated `-rpath` entries, quiet MinGW `.def` preprocessing, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
-| `ffmpeg` | `patches/ffmpeg/sysctl.patch` | Make the `HAVE_SYSCTL` configure check a link test (`AC_TRY_LINK`) so it is answered correctly when cross-compiling. |
 | `openssl` | `patches/openssl/windows_clang.patch`, `perlasm_gnu_section_syntax.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC; always emit the GNU `.section` syntax that clang accepts (the assembler probe does not work under `cmd.exe`). |
 | `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
 

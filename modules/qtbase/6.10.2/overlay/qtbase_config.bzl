@@ -1362,10 +1362,17 @@ def declare_qtbase_config_targets():
         target_compatible_with = ["@platforms//os:macos"],
         deps = ["@vulkan_headers//:vulkan_headers_no_prototypes"],
     )
-    native.alias(
+    # Link-time-only stubs of the glvnd client libraries (libGL, libGLX,
+    # libOpenGL, libEGL); the system libglvnd is used at runtime.
+    cc_library(
         name = "glvnd_stubs",
-        actual = "@libglvnd//:glvnd_stubs",
         target_compatible_with = ["@platforms//os:linux"],
+        deps = [
+            "@libglvnd//:GL",
+            "@libglvnd//:GLX",
+            "@libglvnd//:OpenGL",
+            "@libglvnd//:EGL",
+        ],
     )
     qt_vkgen(
         name = "gen_qvulkanfunctions",

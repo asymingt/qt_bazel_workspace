@@ -7,12 +7,12 @@
         "https://qt.mirror.constant.com/official_releases/qt/6.10/6.10.2/submodules/qtbase-everywhere-src-6.10.2.tar.xz"
     ],
     "overlay": {
-        "BUILD.bazel": "sha256-F9DtbsGuicOb4yfVLvJGJFWfoOp7MXzZxKIAq6Km7L8=",
-        "MODULE.bazel": "sha256-U7NgtFVKuCR/84Ch3XUV1xsh8yKdR7y8N+d+mx/+a4Q=",
+        "BUILD.bazel": "sha256-pyOCw9q+C7dY5e+8Btp717BrzIewJ7nMlGdat2EaNuE=",
+        "MODULE.bazel": "sha256-PEmnJ1V8oZXacBu2VR0vkFupS5jSQvY6fhogAgO59t8=",
         "atspi/atspi-constants.h": "sha256-rh4f2PjehchGGC6RFOHN3+pUkaQbEK2zc9RDhbhobRc=",
         "atspi/atspi.h": "sha256-DMWKYVskOXUWECowiUUyUtjmbpxmCWMISmcY9G+Viw0=",
         "moltenvk/mvk_vulkan.h": "sha256-6WZkY5riRmwaJWPSBbbRbQEZYac734niBdGKGhaIQvc=",
         "qt_mime_database_gen.cc": "sha256-GNmHjctomGpuAeboRwXcfD/3F/8Mb2+JV78K/nbXpCE=",
-        "qtbase_config.bzl": "sha256-Hd3IYTsyaVctklKT4yL7VktrYFD0d80tOj6vsa7CX18="
+        "qtbase_config.bzl": "sha256-MdYFZVaE1Z3d7Ggenmneh4DorqXBWIST0V9hnfmWxuo="
     }
 }
