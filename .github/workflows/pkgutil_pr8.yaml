@@ -54,8 +54,11 @@ jobs:
           $paths = @('C:\_bzl', $env:RUNNER_TEMP, $env:GITHUB_WORKSPACE)
           Add-MpPreference -ExclusionPath $paths -ErrorAction SilentlyContinue
 
-      # No repository or disk cache: each variant must extract the macOS SDK
-      # itself with the pkgutil under test.
+      # No repository, repo contents or disk cache: each variant must extract
+      # the macOS SDK itself with the pkgutil under test. The repo contents
+      # cache would also default to C: while the output base is on D: on the
+      # x64 runners, and that cross-drive move turns the SDK's symlinks into
+      # junctions/copies (see bazel.yaml), masking what pkgutil produced.
       - name: Set up Bazel
         uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
         with:
@@ -65,6 +68,35 @@ jobs:
           cache-save: false
           bazelrc: |
             startup --output_user_root=C:/_bzl
+            common --repo_contents_cache=
+
+      # Fetch (= extract) the macOS SDK on its own so its duration is visible
+      # and comparable between variants. A step timeout well below the job's
+      # separates "slow" from "hangs".
+      - name: Fetch macOS SDK (${{ matrix.variant }})
+        timeout-minutes: 55
+        shell: bash
+        run: |
+          start=$(date +%s)
+          set +e
+          bazel fetch \
+            --target_pattern_file= \
+            --platforms=@llvm//platforms:macos_arm64 \
+            ${{ matrix.variant == 'control' && '--repo_env=PKGUTIL_PR8=0' || '' }} \
+            --repo=@@llvm++osx+macos_sdk
+          rc=$?
+          echo "macOS SDK fetch: exit=$rc, $(( $(date +%s) - start ))s"
+          exit 0
+
+      - name: Count symlinks in the extracted SDK
+        if: always()
+        shell: pwsh
+        run: |
+          $base = (bazel info output_base) -replace '/', '\'
+          $sdk = "$base\external\llvm++osx+macos_sdk"
+          if (-not (Test-Path $sdk)) { Write-Host "not extracted: $sdk"; exit 0 }
+          $links = Get-ChildItem -LiteralPath $sdk -Recurse -Force -Attributes ReparsePoint -ErrorAction SilentlyContinue
+          Write-Host ("reparse points: {0} (directory: {1}, file: {2})" -f $links.Count, ($links | Where-Object PSIsContainer).Count, ($links | Where-Object { -not $_.PSIsContainer }).Count)
 
       - name: Build CoreFoundation smoke target for macOS (${{ matrix.variant }})
         id: build
