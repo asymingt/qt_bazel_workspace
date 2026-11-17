@@ -13,7 +13,7 @@ single_version_override(
     patches = [
         "//patches:llvm/header_search_paths.patch",
         "//patches:llvm/windows_compiler_param_file.patch",
-        "//patches:llvm/windows_pkg_dir_symlinks.patch",
+        "//patches:llvm/pkgutil_pr8.patch",
         "//patches:llvm/osx_cryptex_frameworks.patch",
     ],
     version = "0.8.27",

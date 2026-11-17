@@ -1,0 +1,117 @@
+# TEMPORARY: validates https://github.com/hermeticbuild/pkgutil/pull/8 on real
+# Windows hosts. Remove together with third_party/pkgutil_pr8,
+# tests/pkgutil_pr8 and patches/llvm/pkgutil_pr8.patch.
+#
+# Each runner cross-compiles a C file that includes
+# <CoreFoundation/CoreFoundation.h> for macOS, which forces the macOS SDK .pkg
+# to be extracted on the Windows host and its framework directory symlinks
+# (Headers -> Versions/Current/Headers, Versions/Current -> A) to be traversed.
+#
+#   pr8:     pkgutil built from the PR (default)  -> the build must succeed.
+#   control: the stock prebuilt pkgutil, and no other workaround
+#            (--repo_env=PKGUTIL_PR8=0)            -> the build must fail
+#            because the header cannot be found.
+name: pkgutil PR 8 validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: ${{ matrix.host }} / ${{ matrix.variant }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [windows-amd64, windows-arm64]
+        variant: [pr8, control]
+        include:
+          - { host: windows-amd64, runner: windows-2025 }
+          - { host: windows-arm64, runner: windows-11-arm }
+    env:
+      USE_BAZEL_VERSION: 9.x
+      # Keep Bazel labels intact under Git Bash.
+      MSYS2_ARG_CONV_EXCL: "*"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Exclude Bazel directories from Defender
+        shell: pwsh
+        run: |
+          $paths = @('C:\_bzl', $env:RUNNER_TEMP, $env:GITHUB_WORKSPACE)
+          Add-MpPreference -ExclusionPath $paths -ErrorAction SilentlyContinue
+
+      # No repository or disk cache: each variant must extract the macOS SDK
+      # itself with the pkgutil under test.
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+        with:
+          bazelisk-cache: true
+          disk-cache: false
+          repository-cache: false
+          cache-save: false
+          bazelrc: |
+            startup --output_user_root=C:/_bzl
+
+      - name: Build CoreFoundation smoke target for macOS (${{ matrix.variant }})
+        id: build
+        shell: bash
+        run: |
+          set +e
+          bazel build \
+            --target_pattern_file= \
+            --platforms=@llvm//platforms:macos_arm64 \
+            ${{ matrix.variant == 'control' && '--repo_env=PKGUTIL_PR8=0' || '' }} \
+            //tests/pkgutil_pr8:corefoundation_smoke 2>&1 | tee "$RUNNER_TEMP/build.log"
+          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Show how the SDK framework symlinks were extracted
+        if: always()
+        shell: pwsh
+        run: |
+          $base = (bazel info output_base) -replace '/', '\'
+          $sdk = Get-ChildItem -Path "$base\external" -Directory -Filter '*macos_sdk*' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $sdk) { Write-Host "macOS SDK repository not found under $base\external"; exit 0 }
+          Write-Host "SDK repository: $($sdk.FullName)"
+          $fw = Get-ChildItem -Path $sdk.FullName -Recurse -Directory -Filter 'CoreFoundation.framework' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $fw) { Write-Host "CoreFoundation.framework not found"; exit 0 }
+          foreach ($p in @("$($fw.FullName)\Headers", "$($fw.FullName)\Versions\Current")) {
+            $i = Get-Item -LiteralPath $p -Force -ErrorAction SilentlyContinue
+            if ($i) { Write-Host ("{0}: LinkType={1} Target={2} IsDirectory={3}" -f $p, $i.LinkType, ($i.Target -join ','), $i.PSIsContainer) }
+            else { Write-Host "${p}: missing" }
+          }
+
+      - name: Check result (${{ matrix.variant }})
+        shell: bash
+        run: |
+          exit_code="${{ steps.build.outputs.exit }}"
+          if [ "${{ matrix.variant }}" = "pr8" ]; then
+            if [ "$exit_code" != "0" ]; then
+              echo "::error::Build with pkgutil from PR 8 failed (exit $exit_code)."
+              exit 1
+            fi
+            echo "PR 8 pkgutil: macOS SDK framework headers resolve on ${{ matrix.host }}."
+          else
+            if [ "$exit_code" = "0" ]; then
+              echo "::error::Control build unexpectedly succeeded; this test does not reproduce the bug."
+              exit 1
+            fi
+            if ! grep -q "CoreFoundation/CoreFoundation.h' file not found" "$RUNNER_TEMP/build.log"; then
+              echo "::error::Control build failed, but not with the expected missing-header error."
+              exit 1
+            fi
+            echo "Control reproduces the bug: stock pkgutil leaves CoreFoundation headers unreachable."
+          fi

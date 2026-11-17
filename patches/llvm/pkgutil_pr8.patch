@@ -1,0 +1,22 @@
+TEMPORARY: validate https://github.com/hermeticbuild/pkgutil/pull/8 on Windows CI.
+On Windows hosts, extract .pkg archives (the macOS SDK) with a pkgutil built
+from that PR (third_party/pkgutil_pr8) instead of the prebuilt from
+toolchain-extra-prebuilts. --repo_env=PKGUTIL_PR8=0 restores the prebuilt.
+
+diff --git a/http_pkg_archive.bzl b/http_pkg_archive.bzl
+index 8724ec5..344007a 100644
+--- a/http_pkg_archive.bzl
++++ b/http_pkg_archive.bzl
+@@ -28,6 +28,12 @@ def _http_pkg_archive_impl(rctx):
+     args.extend(["--expand-full", ".downloaded.pkg", rctx.attr.dst])
+ 
+     host_pkgutil = Label("@toolchain-extra-prebuilts-%s//:bin/pkgutil" % (repo_utils.platform(rctx).replace("_", "-")))
++
++    # TEMPORARY (qt_bazel_workspace): on Windows hosts, use pkgutil built from
++    # https://github.com/hermeticbuild/pkgutil/pull/8 unless
++    # --repo_env=PKGUTIL_PR8=0, which keeps the prebuilt as a control.
++    if repo_utils.is_windows(rctx) and rctx.getenv("PKGUTIL_PR8", "1") != "0":
++        host_pkgutil = Label("@@//third_party/pkgutil_pr8:pkgutil-%s.exe" % repo_utils.platform(rctx).replace("_", "-"))
+     res = rctx.execute([rctx.path(host_pkgutil)] + args)
+     if res.return_code != 0:
+         fail("Failed to extract package: {}".format(res.stderr))

@@ -1,0 +1,10 @@
+# TEMPORARY: compile-only check that the macOS SDK extracted on a Windows host
+# has traversable framework directory symlinks (see third_party/pkgutil_pr8).
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "corefoundation_smoke",
+    srcs = ["corefoundation_smoke.c"],
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:macos"],
+)

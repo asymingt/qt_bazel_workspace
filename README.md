@@ -232,7 +232,7 @@ the fix lands upstream.
 
 | Module | Patch | Why |
 | --- | --- | --- |
-| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: header search paths, Windows `@params` files, macOS SDK directory symlinks when extracted on a Windows host, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
+| `llvm` | `patches/llvm/*.patch` | Toolchain fixes for the hermetic LLVM module: header search paths, Windows `@params` files, a temporary `pkgutil` from hermeticbuild/pkgutil#8 (`third_party/pkgutil_pr8`) so macOS SDK directory symlinks work when extracted on a Windows host, and extracting the `System/Cryptexes` targets of macOS SDK frameworks (WebKit, JavaScriptCore). |
 | `openssl` | `patches/openssl/windows_clang.patch`, `perlasm_gnu_section_syntax.patch` | Select the right generated `configdata.pm`/build config for Windows when compiling with clang + MinGW rather than MSVC; always emit the GNU `.section` syntax that clang accepts (the assembler probe does not work under `cmd.exe`). |
 | `rules_perl` | `patches/rules_perl/windows_arm64_emulated_x86_64.patch` | See below. |
 

@@ -1,0 +1,15 @@
+# TEMPORARY: pkgutil built from https://github.com/hermeticbuild/pkgutil/pull/8
+# (head b800761cf704d0c0f5d57cfd7bd8e0d09b7b2bfb) to validate that PR on the
+# Windows CI runners. Used by patches/llvm/pkgutil_pr8.patch in place of the
+# prebuilt from @llvm's toolchain-extra-prebuilts. Remove once hermetic-llvm
+# ships prebuilts-extras containing the fix.
+#
+# Built on Linux from that commit with:
+#   bazel build --config=release --platforms=@llvm//platforms:windows_<arch> //:pkgutil
+# sha256:
+#   e4e1dcf3f1cfeb987f3754661b5e2b7a3bdcd8668bf608a344b1a8027c3d97e3  pkgutil-windows-amd64.exe
+#   b75c364d7781710ea249c37e837d9934a5946317cc82d612216316c653df512a  pkgutil-windows-arm64.exe
+exports_files([
+    "pkgutil-windows-amd64.exe",
+    "pkgutil-windows-arm64.exe",
+])
