@@ -1,16 +1,149 @@
+Backport of https://github.com/hermeticbuild/hermetic-llvm/pull/963 (head 84bf721)
+to hermetic-llvm 0.8.27: compiles executing on a Windows host use param files
+whatever OS they target. The e2e/ and CI changes are omitted (not in the
+release archive), and the clang_cl hunks are adapted to 0.8.27, which
+predates the compiler_param_file_on_demand feature.
+
+diff --git a/toolchain/bootstrap/declare_toolchains.bzl b/toolchain/bootstrap/declare_toolchains.bzl
+index 72a4b9e..fab9778 100644
+--- a/toolchain/bootstrap/declare_toolchains.bzl
++++ b/toolchain/bootstrap/declare_toolchains.bzl
+@@ -619,6 +619,7 @@ def declare_toolchains(*, execs = None, targets = SUPPORTED_TARGETS):
+             cc_toolchain(
+                 name = cc_toolchain_name,
+                 supports_gnu_param_file_quoting = exec_os in ["linux", "macos"],
++                requires_compiler_param_files = exec_os == "windows",
+                 extra_args = select({
+                     "@platforms//os:uefi": [],
+                     "//conditions:default": [cc_toolchain_name + "_resource_directory_args"],
+diff --git a/toolchain/cc_toolchain.bzl b/toolchain/cc_toolchain.bzl
+index 49d417d..86dbfd6 100644
+--- a/toolchain/cc_toolchain.bzl
++++ b/toolchain/cc_toolchain.bzl
+@@ -8,7 +8,8 @@ def cc_toolchain(
+         tool_map,
+         module_map = None,
+         extra_args = None,
+-        supports_gnu_param_file_quoting = False):
++        supports_gnu_param_file_quoting = False,
++        requires_compiler_param_files = False):
+     extra_args = extra_args or []
+ 
+     # Link and archive response files share a quoting feature. Enable the GNU
+@@ -16,6 +17,14 @@ def cc_toolchain(
+     gnu_quoting_features = [
+         "@llvm//toolchain/features:gcc_quoting_for_param_files",
+     ] if supports_gnu_param_file_quoting else []
++
++    # The execution OS, not the target, bounds compile command-line length.
++    # clang's GNU driver reads response files with GNU quoting on every host,
++    # so this needs no quoting feature of its own. clang-cl always enables
++    # these features through its protocol composition.
++    compiler_param_file_features = [
++        "@llvm//toolchain/features:compiler_param_file_features",
++    ] if requires_compiler_param_files else []
+     cc_feature_set(
+         name = name + "_msvc_known_features",
+         all_of = [
+@@ -215,7 +224,7 @@ def cc_toolchain(
+ 
+     cc_feature_set(
+         name = name + "_generic_selected_known_features",
+-        all_of = gnu_quoting_features + select({
++        all_of = compiler_param_file_features + gnu_quoting_features + select({
+             "@llvm//toolchain:runtimes_none": [
+                 "@llvm//toolchain/features:external_include_paths",
+                 "@llvm//toolchain/features:fdo_optimize",
+@@ -237,7 +246,7 @@ def cc_toolchain(
+ 
+     cc_feature_set(
+         name = name + "_generic_selected_enabled_features",
+-        all_of = gnu_quoting_features + select({
++        all_of = compiler_param_file_features + gnu_quoting_features + select({
+             "@llvm//toolchain:runtimes_none": [name + "_generic_runtimes_only_enabled_features"],
+             "@llvm//toolchain:runtimes_stage1": [name + "_generic_runtimes_only_enabled_features"],
+             "@llvm//toolchain:runtimes_stage1_hosted": [name + "_generic_runtimes_only_enabled_features"],
+diff --git a/toolchain/declare_toolchains.bzl b/toolchain/declare_toolchains.bzl
+index ea2d652..405df60 100644
+--- a/toolchain/declare_toolchains.bzl
++++ b/toolchain/declare_toolchains.bzl
+@@ -38,6 +38,9 @@ def declare_toolchains(*, execs = SUPPORTED_EXECS, targets = SUPPORTED_TARGETS):
+             module_map = platform_module_map(exec_os, exec_cpu),
+             # llvm-ar's default response-file parser follows the execution OS.
+             supports_gnu_param_file_quoting = exec_os in ["linux", "macos"],
++            # Windows process creation limits command lines to 32,767
++            # characters, whichever OS the action targets.
++            requires_compiler_param_files = exec_os == "windows",
+             # Paths below describe the concrete execution filesystem. Keep
+             # target semantics in //toolchain's ordered argument composition.
+             extra_args = select({
 diff --git a/toolchain/features/BUILD.bazel b/toolchain/features/BUILD.bazel
-index 9e77256..82c9633 100644
+index 6f8c0ca..1952d7a 100644
 --- a/toolchain/features/BUILD.bazel
 +++ b/toolchain/features/BUILD.bazel
-@@ -695,6 +695,11 @@ cc_feature_set(
-         ":llvm_coverage_map_format",
-         ":gcc_coverage_map_format",
-         ":fully_static_link",
-+        # Available for every target (enabled on demand, e.g. by
-+        # --features=compiler_param_file): CreateProcessW's 32767-char command
-+        # line limit depends on the *execution* platform, so cross-compiling
-+        # from a Windows host to Linux/macOS needs @params files too.
-+        "//toolchain/features/clang_cl:compiler_param_file",
-     ] + select({
-         "@platforms//os:windows": [
-             ":copy_dynamic_libraries_to_binary",
+@@ -13,6 +13,31 @@ cc_feature(
+     feature_name = "gcc_quoting_for_param_files",
+ )
+ 
++# CreateProcessW limits a command line to 32,767 characters. That limit belongs
++# to the execution platform, not the target: compiling for Linux or macOS on a
++# Windows host is subject to it too. Toolchains that execute on Windows enable
++# both features below regardless of target, and clang-cl enables them for every
++# execution platform.
++cc_feature(
++    name = "compiler_param_file",
++    feature_name = "compiler_param_file",
++)
++
++# Takes precedence over compiler_param_file in Bazel versions that support it,
++# so that param files are only used for long command lines.
++cc_feature(
++    name = "compiler_param_file_on_demand",
++    feature_name = "compiler_param_file_on_demand",
++)
++
++cc_feature_set(
++    name = "compiler_param_file_features",
++    all_of = [
++        ":compiler_param_file",
++        ":compiler_param_file_on_demand",
++    ],
++)
++
+ _DEBUG_INFO_COMPILE_ACTIONS = [
+     "@rules_cc//cc/toolchains/actions:c_compile",
+     "@rules_cc//cc/toolchains/actions:cpp_compile",
+diff --git a/toolchain/features/clang_cl/BUILD.bazel b/toolchain/features/clang_cl/BUILD.bazel
+index 096e5d7..e15d7f5 100644
+--- a/toolchain/features/clang_cl/BUILD.bazel
++++ b/toolchain/features/clang_cl/BUILD.bazel
+@@ -605,11 +605,6 @@ cc_feature(
+     overrides = "@rules_cc//cc/toolchains/features/legacy:random_seed",
+ )
+ 
+-cc_feature(
+-    name = "compiler_param_file",
+-    feature_name = "compiler_param_file",
+-)
+-
+ cc_feature(
+     name = "windows_quoting_for_param_files",
+     feature_name = "windows_quoting_for_param_files",
+@@ -649,7 +644,7 @@ cc_feature(
+ cc_feature_set(
+     name = "known_features",
+     all_of = [
+-        ":compiler_param_file",
++        "//toolchain/features:compiler_param_file_features",
+         ":def_file",
+         ":pending_layering_check",
+         ":pending_use_module_maps",
+@@ -662,7 +657,7 @@ cc_feature_set(
+ cc_feature_set(
+     name = "enabled_features",
+     all_of = [
+-        ":compiler_param_file",
++        "//toolchain/features:compiler_param_file_features",
+         ":def_file",
+         ":windows_quoting_for_param_files",
+     ],

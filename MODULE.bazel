@@ -6,22 +6,17 @@ module(
 
 # Hermetic LLVM toolchain
 
-bazel_dep(name = "llvm", version = "0.8.25")
+bazel_dep(name = "llvm", version = "0.8.27")
 single_version_override(
     module_name = "llvm",
     patch_strip = 1,
     patches = [
         "//patches:llvm/header_search_paths.patch",
-        "//patches:llvm/msan_libcxx.patch",
-        "//patches:llvm/sanitizer_runtime_libunwind.patch",
-        "//patches:llvm/sanitizer_strip_foreign_source_paths.patch",
         "//patches:llvm/windows_compiler_param_file.patch",
-        "//patches:llvm/windows_pkg_dir_symlinks.patch",
-        "//patches:llvm/runtime_library_search_directories_dedup.patch",
-        "//patches:llvm/mingw_def_extra_tokens.patch",
+        "//patches:llvm/pkgutil_pr8.patch",
         "//patches:llvm/osx_cryptex_frameworks.patch",
     ],
-    version = "0.8.25",
+    version = "0.8.27",
 )
 
 # Backends built into the from-source `@llvm-project` overlay (used for
@@ -118,13 +113,7 @@ osx.libraries(names = ["libcups"])
 bazel_dep(name = "assimp", version = "6.0.5")
 bazel_dep(name = "egl-registry", version = "0.0.0-20250527")
 bazel_dep(name = "eigen", version = "5.0.1.bcr.1")
-bazel_dep(name = "ffmpeg", version = "7.1.1.bcr.beta.13")
-single_version_override(
-    module_name = "ffmpeg",
-    patch_strip = 1,
-    patches = ["//patches:ffmpeg/sysctl.patch"],
-    version = "7.1.1.bcr.beta.13",
-)
+bazel_dep(name = "ffmpeg", version = "7.1.1.bcr.beta.15")
 
 bazel_dep(name = "opengl-registry", version = "0.0.0-20250707")
 bazel_dep(name = "openssl", version = "3.5.8.bcr.0")
@@ -144,7 +133,7 @@ bazel_dep(name = "rules_cc", version = "0.2.26")
 # Not a direct dependency: pulled in by ffmpeg/xkbcommon/dbus/... but pinned
 # here because < 0.27.0 fails to compile its config checker with libc++ on a
 # Windows host (std::ifstream from std::wstring).
-bazel_dep(name = "rules_cc_autoconf", version = "0.27.0")
+bazel_dep(name = "rules_cc_autoconf", version = "0.35.0")
 
 # Not a direct dependency (wayland -> libexpat), but pinned here because
 # < 2.8.3 has no Windows branch in its config header. wayland-scanner (and so
@@ -188,7 +177,7 @@ bazel_dep(name = "libxcb-image", version = "0.4.1")
 bazel_dep(name = "libxcb-render-util", version = "0.3.10")
 bazel_dep(name = "libxcb-util", version = "0.4.1")
 bazel_dep(name = "libxcb-wm", version = "0.4.2")
-bazel_dep(name = "xkbcommon-x11", version = "1.9.2")
+bazel_dep(name = "xkbcommon", version = "1.9.2.bcr.beta.3")
 
 # Qt modules (served from the local registry under modules/, see .bazelrc)
 

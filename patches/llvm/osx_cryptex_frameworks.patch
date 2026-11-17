@@ -1,16 +1,15 @@
+Backport of https://github.com/hermeticbuild/hermetic-llvm/pull/961 (merged, 676348d)
+to hermetic-llvm 0.8.27: extract the System/Cryptexes targets of macOS SDK frameworks.
+
 diff --git a/extensions/osx.bzl b/extensions/osx.bzl
-index df37ac6..de25001 100644
+index 0a11bec5..c8ea804a 100644
 --- a/extensions/osx.bzl
 +++ b/extensions/osx.bzl
-@@ -149,6 +149,11 @@ def _osx_extension_impl(mctx):
+@@ -152,6 +152,7 @@ def _osx_extension_impl(mctx):
+     for framework in frameworks:
          includes.append("System/Library/Frameworks/%s.framework/**" % framework)
          includes.append("System/Library/PrivateFrameworks/%s.framework/**" % framework)
- 
-+        # Since the macOS 26 SDK some frameworks (WebKit, JavaScriptCore, ...)
-+        # are symlinks into System/Cryptexes/OS; extract their targets too so
-+        # the links resolve.
 +        includes.append("System/Cryptexes/OS/System/Library/Frameworks/%s.framework/**" % framework)
-+
+ 
      # The following directories are unused, deprecated, or private headers.
      # These components:
-     # - Are not part of the documented macOS SDK

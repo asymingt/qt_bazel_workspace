@@ -1,0 +1,41 @@
+TEMPORARY: validate https://github.com/hermeticbuild/pkgutil/pull/8 on Windows CI.
+On Windows hosts, extract .pkg archives (the macOS SDK) with a pkgutil from
+third_party/pkgutil_pr8 instead of the prebuilt from toolchain-extra-prebuilts.
+--repo_env=PKGUTIL_PR8 picks the binary (1 = PR 8, the default; x64 = PR 8's
+x64 build; base = the PR's parent commit; fixes = PR 8 plus the review
+suggestions; 0 = the prebuilt, as a control).
+The extraction timeout is raised so the workflow can diagnose stuck runs.
+
+diff --git a/http_pkg_archive.bzl b/http_pkg_archive.bzl
+index 8724ec5..24f0419 100644
+--- a/http_pkg_archive.bzl
++++ b/http_pkg_archive.bzl
+@@ -28,7 +28,27 @@ def _http_pkg_archive_impl(rctx):
+     args.extend(["--expand-full", ".downloaded.pkg", rctx.attr.dst])
+ 
+     host_pkgutil = Label("@toolchain-extra-prebuilts-%s//:bin/pkgutil" % (repo_utils.platform(rctx).replace("_", "-")))
+-    res = rctx.execute([rctx.path(host_pkgutil)] + args)
++
++    # TEMPORARY (qt_bazel_workspace): on Windows hosts, use a pkgutil from
++    # third_party/pkgutil_pr8 picked by --repo_env=PKGUTIL_PR8:
++    #   1 (default): built from https://github.com/hermeticbuild/pkgutil/pull/8
++    #   x64:         the x64 build of that PR (on arm64 runs under emulation)
++    #   base:        built the same way from the PR's parent commit
++    #   fixes:       PR 8 plus the review suggestions posted on it
++    #   0:           the prebuilt from toolchain-extra-prebuilts (control)
++    pkgutil_pr8 = rctx.getenv("PKGUTIL_PR8", "1")
++    if repo_utils.is_windows(rctx) and pkgutil_pr8 != "0":
++        plat = repo_utils.platform(rctx).replace("_", "-")
++        exe = {
++            "1": "pkgutil-%s.exe" % plat,
++            "x64": "pkgutil-windows-amd64.exe",
++            "base": "pkgutil-%s-base.exe" % plat,
++            "fixes": "pkgutil-%s-fixes.exe" % plat,
++        }[pkgutil_pr8]
++        host_pkgutil = Label("@@//third_party/pkgutil_pr8:" + exe)
++    # TEMPORARY: the default 600s cap stopped the PR 8 binary on windows-arm64;
++    # raise it so the workflow, not Bazel, decides when extraction is stuck.
++    res = rctx.execute([rctx.path(host_pkgutil)] + args, timeout = 3600)
+     if res.return_code != 0:
+         fail("Failed to extract package: {}".format(res.stderr))
+ 

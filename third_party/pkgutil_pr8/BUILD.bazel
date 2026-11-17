@@ -1,0 +1,30 @@
+# TEMPORARY: pkgutil built from https://github.com/hermeticbuild/pkgutil/pull/8
+# (head b800761cf704d0c0f5d57cfd7bd8e0d09b7b2bfb) to validate that PR on the
+# Windows CI runners. Used by patches/llvm/pkgutil_pr8.patch in place of the
+# prebuilt from @llvm's toolchain-extra-prebuilts. Remove once hermetic-llvm
+# ships prebuilts-extras containing the fix.
+#
+# Built on Linux from that commit with:
+#   bazel build --config=release --platforms=@llvm//platforms:windows_<arch> //:pkgutil
+# sha256:
+#   e4e1dcf3f1cfeb987f3754661b5e2b7a3bdcd8668bf608a344b1a8027c3d97e3  pkgutil-windows-amd64.exe
+#   b75c364d7781710ea249c37e837d9934a5946317cc82d612216316c653df512a  pkgutil-windows-arm64.exe
+#
+# pkgutil-windows-arm64-base.exe is built the same way from the PR's parent
+# (2fdc9a2), to tell a PR 8 regression apart from a problem with this arm64
+# build:
+#   8bccc9a540538a271353f80659b2b143dbdd57f807f26cd48d3bf4dafa0d2245  pkgutil-windows-arm64-base.exe
+#
+# pkgutil-windows-<arch>-fixes.exe are PR 8 plus the two review suggestions
+# posted on it (src = ":test" on the symlink_chain test, and a
+# symlink_list_fixup that drops resolved entries and only revisits unresolved
+# ones), built the same way:
+#   d8077cb4973677e75401811983e1c5cedef38bc44c10892074264d9d4909960f  pkgutil-windows-amd64-fixes.exe
+#   e2d6381bfe407dc9466174c489a9dda01d603e106d77ea084f04f5845490757b  pkgutil-windows-arm64-fixes.exe
+exports_files([
+    "pkgutil-windows-amd64.exe",
+    "pkgutil-windows-arm64.exe",
+    "pkgutil-windows-arm64-base.exe",
+    "pkgutil-windows-amd64-fixes.exe",
+    "pkgutil-windows-arm64-fixes.exe",
+])

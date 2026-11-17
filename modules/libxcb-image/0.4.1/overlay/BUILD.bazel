@@ -33,7 +33,8 @@ cc_library(
     name = "image_prefixed_hdrs",
     hdrs = HDRS,
     include_prefix = "xcb",
-    strip_include_prefix = "image",    target_compatible_with = _UNIX_COMPATIBLE,
+    strip_include_prefix = "image",
+    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -41,13 +42,14 @@ cc_library(
     srcs = ["image/xcb_image.c"],
     hdrs = HDRS,
     includes = ["image"],
+    target_compatible_with = _UNIX_COMPATIBLE,
     visibility = ["//visibility:public"],
     deps = [
         ":image_prefixed_hdrs",
         "@libxcb",
         "@libxcb-util",
         "@xorgproto",
-    ],    target_compatible_with = _UNIX_COMPATIBLE,
+    ],
 )
 
 alias(

@@ -29,7 +29,8 @@ cc_library(
     name = "cursor_prefixed_hdrs",
     hdrs = HDRS,
     include_prefix = "xcb",
-    strip_include_prefix = "cursor",    target_compatible_with = _UNIX_COMPATIBLE,
+    strip_include_prefix = "cursor",
+    target_compatible_with = _UNIX_COMPATIBLE,
 )
 
 cc_library(
@@ -56,13 +57,14 @@ cc_library(
         ],
     }),
     includes = ["cursor"],
+    target_compatible_with = _UNIX_COMPATIBLE,
     visibility = ["//visibility:public"],
     deps = [
         ":cursor_prefixed_hdrs",
         "@libxcb",
         "@libxcb-image",
         "@libxcb-render-util",
-    ],    target_compatible_with = _UNIX_COMPATIBLE,
+    ],
 )
 
 alias(

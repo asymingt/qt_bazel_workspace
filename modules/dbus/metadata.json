@@ -8,7 +8,9 @@
             "name": "Andrew Symington"
         }
     ],
-    "repository": [],
+    "repository": [
+        "https://dbus.freedesktop.org/releases/dbus"
+    ],
     "versions": [
         "1.16.2"
     ],
