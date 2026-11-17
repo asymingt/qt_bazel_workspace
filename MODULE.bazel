@@ -7,6 +7,17 @@ module(
 # Hermetic LLVM toolchain
 
 bazel_dep(name = "llvm", version = "0.8.27")
+single_version_override(
+    module_name = "llvm",
+    patch_strip = 1,
+    patches = [
+        "//patches:llvm/header_search_paths.patch",
+        "//patches:llvm/windows_compiler_param_file.patch",
+        "//patches:llvm/windows_pkg_dir_symlinks.patch",
+        "//patches:llvm/osx_cryptex_frameworks.patch",
+    ],
+    version = "0.8.27",
+)
 
 # Backends built into the from-source `@llvm-project` overlay (used for
 # `--@llvm//toolchain:bootstrap_stage=stage1_from_source`).
